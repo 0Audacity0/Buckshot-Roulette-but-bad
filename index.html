@@ -634,15 +634,15 @@ body.title #topL,body.title #oppBox,body.title #turn,body.title #log,body.title 
   right: 12px;
   left: auto;
   z-index: 40;
-  width: 42px;
-  height: 42px;
+  width: 48px;
+  height: 48px;
   padding: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   background: rgba(10,9,7,.94);
   border: 1px solid #ffd24a;
-  border-radius: 50%;
+  border-radius: 0;
   color: #ffd24a;
   font-size: 22px;
   line-height: 1;
@@ -651,7 +651,10 @@ body.title #topL,body.title #oppBox,body.title #turn,body.title #log,body.title 
 }
 #btnSettings:hover {
   background: rgba(55,43,15,.98);
-  transform: rotate(20deg)
+  transform: none
+}
+body:not(.title) #btnSettings {
+  display: none !important
 }
 #btnSettings:focus-visible {
   outline: 2px solid #fff;
@@ -934,7 +937,10 @@ button:hover:not(:disabled) {
   <canvas id="c">
   </canvas>
   <button aria-controls="settingsPanel" aria-haspopup="dialog" aria-label="Open graphics settings" id="btnSettings" title="Settings" type="button">
-   ⚙
+   <svg aria-hidden="true" fill="none" height="30" stroke="currentColor" viewBox="0 0 24 24" width="30">
+    <circle cx="12" cy="12" r="6.2" stroke-width="2.6"/>
+    <circle cx="12" cy="12" r="9.2" stroke-dasharray="3.6 3.6" stroke-width="3.4"/>
+   </svg>
   </button>
   <div aria-labelledby="settingsHeading" aria-modal="true" id="settingsPanel" role="dialog">
    <div class="settingsCard">
