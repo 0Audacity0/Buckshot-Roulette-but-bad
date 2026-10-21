@@ -3,6 +3,9 @@
  <head>
   <meta charset="utf-8"/>
   <meta content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover" name="viewport"/>
+  <script>
+   (function(){var ua=navigator.userAgent||'',p=(navigator.userAgentData&&navigator.userAgentData.mobile)||/Android.*Mobile|iPhone|iPod|IEMobile|Opera Mini|Windows Phone/i.test(ua)||(window.matchMedia&&matchMedia('(pointer:coarse)').matches&&Math.min(screen.width,screen.height)<=540);window.IS_PHONE=!!p;if(p)document.documentElement.classList.add('mobile')})();
+  </script>
   <meta content="Buckshot Roulette (but bad), a standalone browser game." name="description"/>
   <title>
    Buckshot Roulette But Bad
@@ -931,6 +934,30 @@ button:hover:not(:disabled) {
   font-family: Impact,"Arial Black",sans-serif;
   letter-spacing: .16em
 }
+
+/* Phone-only layout (html.mobile is set by the detection script; desktop is untouched) */
+html.mobile #title{display:flex;flex-direction:column;gap:14px;padding:max(14px,env(safe-area-inset-top)) max(14px,env(safe-area-inset-right)) calc(max(18px,env(safe-area-inset-bottom)) + 10px) max(14px,env(safe-area-inset-left));overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+html.mobile #tCenter{display:contents}
+html.mobile .tTop{order:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:56px 0 0;min-height:max(120px,calc(100vh - 250px));min-height:max(120px,calc(100dvh - 250px))}
+html.mobile .tBot{order:2;width:100%;padding-top:0}
+html.mobile .tMid{order:3;width:100%}
+html.mobile #tShop{order:4}
+html.mobile #tStats{order:5}
+html.mobile #tCode{order:6;width:100%;justify-self:auto;justify-content:stretch;gap:8px}
+html.mobile #tShop,html.mobile #tStats{align-self:stretch;width:100%}
+html.mobile .tpanel{max-height:none;overflow:visible;font-size:14px;padding:14px}
+html.mobile .tnote{display:block;font-size:11px}
+html.mobile #tCenter h1{font-size:clamp(30px,11vw,54px);letter-spacing:.12em;line-height:1.1}
+html.mobile #tCenter h2{font-size:13px;letter-spacing:.22em}
+html.mobile #btnPlay{width:100%;min-height:68px;padding:22px 0;font-size:26px;letter-spacing:.25em}
+html.mobile .ghost{min-height:44px;padding:0 18px;font-size:14px}
+html.mobile #tBuy .buy{min-height:44px;padding:10px 12px}
+html.mobile #codeIn{flex:1 1 180px;width:auto;min-height:48px;padding:14px;font-size:16px}
+html.mobile #tCode button{min-height:48px;padding:0 22px}
+html.mobile #codeMsg{flex:1 1 100%;text-align:center}
+html.mobile #btnSettings{top:max(12px,env(safe-area-inset-top));right:max(12px,env(safe-area-inset-right));width:50px;height:50px}
+html.mobile #btnCodeList{top:max(12px,env(safe-area-inset-top));left:max(12px,env(safe-area-inset-left));bottom:auto;min-height:44px}
+html.mobile #codeListPanel{left:12px;right:12px;bottom:auto;top:calc(max(12px,env(safe-area-inset-top)) + 62px);width:auto;max-height:70vh;max-height:70dvh}
   </style>
  </head>
  <body class="title">
@@ -1432,9 +1459,10 @@ button:hover:not(:disabled) {
     const GRAPHICS_KEY = 'lastshell_graphics_quality_v1';
     let graphicsQuality = 'high';
     try {
-        graphicsQuality = localStorage.getItem(GRAPHICS_KEY) === 'low' ? 'low' : 'high';
+        const savedQ = localStorage.getItem(GRAPHICS_KEY);
+        graphicsQuality = savedQ === 'low' || savedQ === 'high' ? savedQ : (window.IS_PHONE ? 'low' : 'high');
     }
-    catch (e) { }
+    catch (e) { if (window.IS_PHONE) graphicsQuality = 'low'; }
     function applyGraphicsQuality(quality, save = true) {
         graphicsQuality = quality === 'low' ? 'low' : 'high';
         const low = graphicsQuality === 'low';
