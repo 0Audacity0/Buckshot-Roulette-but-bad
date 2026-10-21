@@ -958,6 +958,8 @@ html.mobile #codeMsg{flex:1 1 100%;text-align:center}
 html.mobile #btnSettings{top:max(12px,env(safe-area-inset-top));right:max(12px,env(safe-area-inset-right));width:50px;height:50px}
 html.mobile #btnCodeList{top:max(12px,env(safe-area-inset-top));left:max(12px,env(safe-area-inset-left));bottom:auto;min-height:44px}
 html.mobile #codeListPanel{left:12px;right:12px;bottom:auto;top:calc(max(12px,env(safe-area-inset-top)) + 62px);width:auto;max-height:70vh;max-height:70dvh}
+html.mobile #topL{font-size:9px;line-height:1.3}
+html.mobile #topL .live,html.mobile #topL .blank{margin-right:8px}
   </style>
  </head>
  <body class="title">
@@ -986,7 +988,7 @@ html.mobile #codeListPanel{left:12px;right:12px;bottom:auto;top:calc(max(12px,en
     <button class="qualityChoice" id="qualityLow" type="button">
      LOW
      <small>
-      Reduced resolution and shadows disabled
+      Much lower resolution, no shadows, no dust, glow, neon or colored lights
      </small>
     </button>
     <button class="ghost" id="btnCloseSettings" style="margin-top:16px" type="button">
@@ -1466,9 +1468,10 @@ html.mobile #codeListPanel{left:12px;right:12px;bottom:auto;top:calc(max(12px,en
     function applyGraphicsQuality(quality, save = true) {
         graphicsQuality = quality === 'low' ? 'low' : 'high';
         const low = graphicsQuality === 'low';
-        renderer.setPixelRatio(low ? 1 : Math.min(window.devicePixelRatio || 1, 2));
+        renderer.setPixelRatio(low ? 0.6 : Math.min(window.devicePixelRatio || 1, 2));
         renderer.shadowMap.enabled = !low;
         lamp.castShadow = !low;
+        try { lowFx(low); } catch (e) { }
         renderer.setSize(window.innerWidth, window.innerHeight, false);
         $('#qualityHigh').classList.toggle('selected', !low);
         $('#qualityLow').classList.toggle('selected', low);
@@ -2919,6 +2922,14 @@ html.mobile #codeListPanel{left:12px;right:12px;bottom:auto;top:calc(max(12px,en
     glow.scale.set(1, 1, 1);
     glow.position.set(0, 3.6, 0);
     scene.add(glow);
+    function lowFx(low) {
+        window._dust.visible = !low;
+        for (const m of beamMats) m.visible = !low;
+        for (const n of neon) n.m.visible = !low;
+        glow.visible = !low;
+        pool.visible = !low;
+        rimR.visible = rimB.visible = !low;
+    }
     const SP = 90, spP = new Float32Array(SP * 3), spV = new Float32Array(SP * 3);
     let spLife = 0, punch = 0;
     const spG = new THREE.BufferGeometry();
