@@ -960,16 +960,38 @@ html.mobile #codeMsg{flex:1 1 100%;text-align:center}
 html.mobile #btnSettings{top:max(12px,env(safe-area-inset-top));right:max(12px,env(safe-area-inset-right));width:50px;height:50px}
 html.mobile #btnCodeList{top:max(12px,env(safe-area-inset-top));left:max(12px,env(safe-area-inset-left));bottom:auto;min-height:44px}
 html.mobile #codeListPanel{left:12px;right:12px;bottom:auto;top:calc(max(12px,env(safe-area-inset-top)) + 62px);width:auto;max-height:70vh;max-height:70dvh}
-html.mobile body #topL{top:max(6px,env(safe-area-inset-top));left:max(6px,env(safe-area-inset-left));font-size:8px;line-height:1.3;padding:4px 6px;max-width:112px;z-index:4}
-html.mobile body #topL .live,html.mobile body #topL .blank{margin-right:5px}
-html.mobile body #topL .lbl{font-size:8px}
-html.mobile body:not(.mp) #oppBox{top:max(6px,env(safe-area-inset-top));left:50%;right:auto;transform:translateX(-50%);min-width:96px}
-html.mobile body.mp #mpBar{top:max(6px,env(safe-area-inset-top));left:118px;right:84px;transform:none;flex-wrap:nowrap;gap:4px;justify-content:center}
-html.mobile body.mp .mpChip{flex:0 1 50px;min-width:0;width:50px;padding:4px 3px;gap:2px}
-html.mobile body.mp .mpChip .n{font-size:9px;letter-spacing:0;max-width:46px}
-html.mobile body.mp .mpChip .pips i{width:7px;height:12px;margin-right:1px}
-html.mobile body.mp .mpChip .it{font-size:9px;min-height:11px;white-space:nowrap;overflow:hidden;max-width:46px}
-html.mobile body.mp #turn{top:calc(max(6px,env(safe-area-inset-top)) + 70px);left:50%;right:auto;transform:translateX(-50%);font-size:10px}
+html.mobile body #topL{top:max(6px,env(safe-area-inset-top));left:max(6px,env(safe-area-inset-left));font-size:11px;line-height:1.35;padding:5px 7px;max-width:106px;z-index:4}
+html.mobile body #topL #roundInfo{font-size:8px;letter-spacing:0;white-space:nowrap;color:#b9b19a}
+html.mobile body #topL #shellInfo span{display:block;margin-right:0;font-weight:bold}
+html.mobile body #topL #cash,html.mobile body #topL #modes{font-size:10px}
+html.mobile body:not(.mp) #oppBox{top:max(6px,env(safe-area-inset-top));left:50%;right:auto;transform:translateX(-50%);width:fit-content;margin:0;min-width:0;padding:6px 8px;text-align:center}
+html.mobile body:not(.mp) #oppBox .lbl{font-size:11px;letter-spacing:.1em}
+html.mobile body:not(.mp) #oppBox .pips i{width:13px;height:21px;margin-right:2px}
+html.mobile body:not(.mp) #oppItems{font-size:17px}
+html.mobile body.mp #mpBar{top:max(6px,env(safe-area-inset-top));left:122px;right:66px;transform:none;flex-wrap:nowrap;gap:4px;justify-content:center}
+html.mobile body.mp .mpChip{flex:1 1 0;min-width:0;max-width:64px;padding:5px 3px;gap:3px}
+html.mobile body.mp .mpChip .n{font-size:11px;letter-spacing:0;max-width:100%}
+html.mobile body.mp .mpChip .pips{white-space:nowrap}
+html.mobile body.mp .mpChip .pips i{width:8px;height:15px;margin-right:1px}
+html.mobile body.mp .mpChip .it{font-size:11px;min-height:13px;white-space:nowrap;overflow:hidden;max-width:100%}
+html.mobile body.mp #turn{top:calc(max(6px,env(safe-area-inset-top)) + 84px);left:50%;right:auto;transform:translateX(-50%);font-size:11px}
+@media (max-width:600px){
+  body #topL{top:max(6px,env(safe-area-inset-top));left:max(6px,env(safe-area-inset-left));font-size:11px;line-height:1.35;padding:5px 7px;max-width:106px;z-index:4}
+  body #topL #roundInfo{font-size:8px;letter-spacing:0;white-space:nowrap;color:#b9b19a}
+  body #topL #shellInfo span{display:block;margin-right:0;font-weight:bold}
+  body #topL #cash,body #topL #modes{font-size:10px}
+  body:not(.mp) #oppBox{top:max(6px,env(safe-area-inset-top));left:50%;right:auto;transform:translateX(-50%);width:fit-content;margin:0;min-width:0;padding:6px 8px;text-align:center}
+  body:not(.mp) #oppBox .lbl{font-size:11px;letter-spacing:.1em}
+  body:not(.mp) #oppBox .pips i{width:13px;height:21px;margin-right:2px}
+  body:not(.mp) #oppItems{font-size:17px}
+  body.mp #mpBar{top:max(6px,env(safe-area-inset-top));left:122px;right:66px;transform:none;flex-wrap:nowrap;gap:4px;justify-content:center}
+  body.mp .mpChip{flex:1 1 0;min-width:0;max-width:64px;padding:5px 3px;gap:3px}
+  body.mp .mpChip .n{font-size:11px;letter-spacing:0;max-width:100%}
+  body.mp .mpChip .pips{white-space:nowrap}
+  body.mp .mpChip .pips i{width:8px;height:15px;margin-right:1px}
+  body.mp .mpChip .it{font-size:11px;min-height:13px;white-space:nowrap;overflow:hidden;max-width:100%}
+  body.mp #turn{top:calc(max(6px,env(safe-area-inset-top)) + 84px);left:50%;right:auto;transform:translateX(-50%);font-size:11px}
+}
 
 /* ---------- Multiplayer ---------- */
 .tMid{display:flex;flex-direction:column;align-items:center;gap:12px}
@@ -2042,7 +2064,8 @@ html.mobile #chatSend{min-height:44px}
         await sleep(1000);
         await tween(650, e => { opp.rotation.x = -.75 * (1 - e); });
     }
-    let shake = 0, mx = 0, my = 0;
+    let shake = 0, mx = 0, my = 0, yaw = 0, yawT = 0;
+    const MAX_YAW = 40 * Math.PI / 180;
     function screenFlash(color = '#fff') {
         const f = $('#flash');
         f.style.background = color;
@@ -2890,6 +2913,10 @@ html.mobile #chatSend{min-height:44px}
     }
     let armedAt = 0;
     canvas.addEventListener('pointerdown', e => {
+        if (mode === 'mp' && e.pointerType !== 'mouse') {
+            mx = e.clientX / innerWidth * 2 - 1;
+            yawT = Math.max(-1, Math.min(1, mx)) * MAX_YAW;
+        }
         const h = pick(e);
         if (!h)
             return;
@@ -2916,6 +2943,8 @@ html.mobile #chatSend{min-height:44px}
     canvas.addEventListener('pointermove', e => {
         mx = e.clientX / innerWidth * 2 - 1;
         my = e.clientY / innerHeight * 2 - 1;
+        if (mode === 'mp')
+            yawT = Math.max(-1, Math.min(1, mx)) * MAX_YAW;
         const h = pick(e), tip = $('#tip');
         if (h && h.kind === 'item') {
             tip.textContent = `${h.owner === 'p' ? 'Your' : "The Dealer's"} ${ITEMS[h.type].name}: ${ITEMS[h.type].desc}`;
@@ -3180,7 +3209,18 @@ html.mobile #chatSend{min-height:44px}
         shake *= Math.pow(.02, dt);
         window._dust.rotation.y += dt * .03;
         camera.position.set(camBase.x + mx * .2 + (Math.random() - .5) * shake, camBase.y - my * .08 + (Math.random() - .5) * shake, camBase.z + (Math.random() - .5) * shake * .5);
-        camera.lookAt(lookTarget);
+        if (mode === 'mp')
+            yaw += (yawT - yaw) * Math.min(1, dt * 7);
+        else {
+            yaw = 0;
+            yawT = 0;
+        }
+        if (yaw) {
+            const ddx = lookTarget.x - camera.position.x, ddz = lookTarget.z - camera.position.z, cy = Math.cos(yaw), sy = Math.sin(yaw);
+            camera.lookAt(camera.position.x + ddx * cy - ddz * sy, lookTarget.y, camera.position.z + ddx * sy + ddz * cy);
+        }
+        else
+            camera.lookAt(lookTarget);
         fxTick(t, dt);
         renderer.render(scene, camera);
         requestAnimationFrame(frame);
@@ -3621,6 +3661,7 @@ html.mobile #chatSend{min-height:44px}
         MP.S = S;
         const i = Math.max(0, S.seatOrder.indexOf(MP.pid));
         MP.others = S.seatOrder.slice(i + 1).concat(S.seatOrder.slice(0, i));
+        mpItemsKey = '';
         G.players.p.items = S.P[MP.pid].items;
         G.players.o.items = Array(5).fill(null);
         opp.visible = false;
@@ -3693,8 +3734,15 @@ html.mobile #chatSend{min-height:44px}
             const y0 = m.position.y;
             await tween(500, e => { m.position.y = y0 + e * .55; m.rotation.y += .22; m.scale.setScalar(Math.max(.05, 1 - e * .9)); });
         }
-        else
-            await sleep(500);
+        else {
+            const om = mpOtherItems.children.find(c => c.userData.owner === pid && c.userData.idx === slot);
+            if (om) {
+                const y0 = om.position.y, s0 = om.scale.x;
+                await tween(500, e => { om.position.y = y0 + e * .55; om.rotation.y += .22; om.scale.setScalar(Math.max(.03, s0 * (1 - e * .9))); });
+            }
+            else
+                await sleep(500);
+        }
         P.items[slot] = null;
         if (pid === me)
             rebuildItems();
@@ -3915,6 +3963,7 @@ html.mobile #chatSend{min-height:44px}
         const S = MP.S;
         if (!S)
             return;
+        mpSyncOtherItems();
         const me = S.P[MP.pid], can = mpCan();
         $('#roundInfo').textContent = 'MULTIPLAYER · ' + MP.code;
         pips('#youPips', me);
@@ -3978,6 +4027,41 @@ html.mobile #chatSend{min-height:44px}
         }
     }
     /* ----- figures for the other players ----- */
+    const mpOtherItems = new THREE.Group();
+    scene.add(mpOtherItems);
+    let mpItemsKey = '';
+    function mpSyncOtherItems() {
+        const S = MP.S;
+        if (!S) {
+            if (mpOtherItems.children.length)
+                while (mpOtherItems.children.length)
+                    mpOtherItems.remove(mpOtherItems.children[0]);
+            mpItemsKey = '';
+            return;
+        }
+        const key = MP.others.map(id => id + (MP.figs[id] ? 'f' : 'n') + ':' + (S.P[id].alive ? S.P[id].items.map(t => t || '-').join(',') : 'dead')).join('|');
+        if (key === mpItemsKey)
+            return;
+        mpItemsKey = key;
+        while (mpOtherItems.children.length)
+            mpOtherItems.remove(mpOtherItems.children[0]);
+        MP.others.forEach(id => {
+            const P = S.P[id], fig = MP.figs[id];
+            if (!P || !P.alive || !fig)
+                return;
+            const bx = fig.userData.base.x * .95;
+            P.items.forEach((t, i) => {
+                if (!t)
+                    return;
+                const m = buildItem(t);
+                m.scale.setScalar(.7);
+                m.position.set(bx + (i - 2) * .19, 1.005, -.55);
+                m.rotation.y = Math.PI + ((i * 37 % 10) - 5) * .05;
+                m.userData = { kind: 'otherItem', owner: id, idx: i, type: t };
+                mpOtherItems.add(m);
+            });
+        });
+    }
     const mpFigs = new THREE.Group();
     mpFigs.visible = false;
     scene.add(mpFigs);
