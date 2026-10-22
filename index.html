@@ -1013,6 +1013,19 @@ html.mobile #btnMulti{width:100%;min-height:56px;font-size:18px;padding:14px 0}
 .mpCode{font-size:clamp(32px,9vw,48px);letter-spacing:.3em;color:#ffd24a;margin:6px 0 10px;text-shadow:0 0 14px #a60}
 .mpSlot{text-align:left;padding:10px 12px;border:1px solid #4a4638;margin-bottom:6px;font-size:14px;background:rgba(255,210,74,.05)}
 .mpSlot.empty{opacity:.4;border-style:dashed}
+#mpCard .mpTabs{display:flex;gap:6px;margin:12px 0 6px}
+#mpCard .mpTabs button{width:auto;flex:1;padding:9px 6px;font-size:13px;letter-spacing:.15em;background:transparent;border:1px solid #4a4638;color:#8a846f}
+#mpCard .mpTabs button.on{border-color:#ffd24a;color:#ffd24a;background:rgba(255,210,74,.08)}
+.mpSlot{display:flex;align-items:center;gap:10px}
+.mpSlot .dot{width:22px;height:22px;border-radius:50%;flex:none;border:2px solid #000;box-shadow:0 0 0 1px #6b6552}
+.mpSlot canvas.fth{width:24px;height:24px;border-radius:50%;flex:none;border:1px solid #6b6552}
+#skinPrev{display:block;margin:6px auto;width:150px;height:150px;border-radius:50%;background:radial-gradient(circle,#1b1713,#070605);border:1px solid #4a4638}
+#skinSwatches{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;margin:8px 0}
+#skinSwatches button{width:100%!important;aspect-ratio:1;min-height:0!important;padding:0!important;border:2px solid #000!important;border-radius:50%;box-shadow:0 0 0 1px #6b6552}
+#skinSwatches button.sel{box-shadow:0 0 0 2px #ffd24a}
+.skinPick{display:flex;align-items:center;justify-content:space-between;font-size:12px;letter-spacing:.15em;color:#cfc8b4;margin-top:6px}
+.skinPick input{width:64px;height:34px;padding:0;border:1px solid #6b6552;background:none}
+.mpNote{font-size:11px;color:#8a846f;margin-top:8px;line-height:1.4}
 #mpWait{font-size:12px;color:#8a846f;margin:8px 0 2px;text-align:center}
 #mpMsg{min-height:1.4em;margin-top:10px;font-size:12px;color:#7ad07a;text-align:center;line-height:1.5}
 #mpMsg.bad{color:#ff6a5a}
@@ -1344,6 +1357,11 @@ html.mobile #chatSend{min-height:44px}
      </div>
     </div>
     <div id="mpRoom" style="display:none">
+     <div class="mpTabs">
+      <button class="on" id="mpTabLobby" type="button">LOBBY</button>
+      <button id="mpTabSkin" type="button">CUSTOMIZE</button>
+     </div>
+     <div id="mpPaneLobby">
      <div class="mpSep">
       LOBBY CODE
      </div>
@@ -1356,6 +1374,20 @@ html.mobile #chatSend{min-height:44px}
      <button id="mpStart" type="button">
       START MATCH
      </button>
+    </div>
+     <div id="mpPaneSkin" style="display:none">
+      <canvas height="300" id="skinPrev" width="300"></canvas>
+      <div class="mpSep">SKIN COLOR</div>
+      <div id="skinSwatches"></div>
+      <label class="skinPick">CUSTOM COLOR <input id="skinColor" type="color" value="#3a2a52"/></label>
+      <div class="mpSep">FACE</div>
+      <div class="mpRow">
+       <button id="faceImport" type="button">IMPORT IMAGE</button>
+       <button class="ghost" id="faceReset" type="button">RESET</button>
+      </div>
+      <input accept="image/*" hidden id="faceFile" type="file"/>
+      <div class="mpNote">Everyone in the lobby and match sees your color and face.</div>
+     </div>
     </div>
     <div id="mpMsg">
     </div>
@@ -3478,11 +3510,17 @@ html.mobile #chatSend{min-height:44px}
             mpIngest([p.new]); })
             .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'mp_chat', filter: f }, p => { if (p && p.new) chatIngest([p.new]); })
             .on('postgres_changes', { event: '*', schema: 'public', table: 'mp_look', filter: f }, p => { if (p && p.new) mpLookRow(p.new); })
-            .on('broadcast', { event: 'flags' }, m => { const d = m && m.payload; if (d && d.pid && d.f) { MP.flags[d.pid] = { god: !!d.f.god, peek: !!d.f.peek, stocked: !!d.f.stocked }; mpSendFlagsBack(d.pid); } })
-            .subscribe(st => { if (st === 'SUBSCRIBED') mpSendFlags(); });
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'mp_skins', filter: f }, p => { if (p && p.new) mpSkinRow(p.new); })
+            .on('broadcast', { event: 'flags' }, m => { const d = m && m.payload; if (d && d.pid && d.f) { MP.gone.delete(d.pid); MP.flags[d.pid] = { god: !!d.f.god, peek: !!d.f.peek, stocked: !!d.f.stocked }; mpSendFlagsBack(d.pid); } })
+            .on('broadcast', { event: 'quit' }, m => { const d = m && m.payload; if (d && d.pid && d.pid !== MP.pid) { MP.gone.add(d.pid); mpRenderRoom(); } })
+            .subscribe(st => { if (st === 'SUBSCRIBED') { mpSendFlags(); if (MP.skin.color || MP.skin.face) mpSendSkin(false); } });
         MP.flags = {};
         MP.look = {};
         MP.flags[MP.pid] = mpMyFlags();
+        MP.skins = {};
+        MP.gone = new Set();
+        MP.played = false;
+        mpSkinTab('lobby');
         MP.flagTimer = setInterval(mpSendFlags, 4000);
         MP.chatLast = 0;
         chatReset();
@@ -3490,7 +3528,198 @@ html.mobile #chatSend{min-height:44px}
         MP.poll = setInterval(mpPoll, 1500);
         mpRenderRoom();
         mpPoll();
+        setTimeout(() => { if (MP.code && (MP.skin.color || MP.skin.face)) mpSendSkin(false); }, 1200);
     }
+    const SKIN_KEY = 'lastshell_skin_v1';
+    const SKIN_COLORS = ['#3a2a52', '#24493a', '#55372a', '#2a3f5a', '#8a1c1c', '#c9a227', '#1f6f78', '#6b6b6b', '#d9d4c5', '#e07a1f', '#b0457a', '#2d2d2d'];
+    MP.skins = {};
+    MP.gone = new Set();
+    MP.played = false;
+    MP.skin = { color: null, face: null };
+    MP.skinImg = null;
+    try {
+        const sv = JSON.parse(localStorage.getItem(SKIN_KEY) || 'null');
+        if (sv && typeof sv === 'object') {
+            if (typeof sv.color === 'string' && /^#[0-9a-fA-F]{6}$/.test(sv.color))
+                MP.skin.color = sv.color;
+            if (typeof sv.face === 'string' && sv.face.startsWith('data:image/') && sv.face.length < 40000)
+                MP.skin.face = sv.face;
+        }
+    }
+    catch (e) { }
+    function mySkinSave() {
+        try { localStorage.setItem(SKIN_KEY, JSON.stringify(MP.skin)); }
+        catch (e) { }
+    }
+    function loadMyFaceImg() {
+        MP.skinImg = null;
+        if (!MP.skin.face)
+            return;
+        const im = new Image();
+        im.onload = () => { MP.skinImg = im; skinPreview(); mpRenderRoom(); };
+        im.src = MP.skin.face;
+    }
+    function mpSendSkin(keepFace) {
+        if (!MP.code || !MP.sb)
+            return;
+        MP.sb.rpc('mp_set_skin', { p_code: MP.code, p_player: MP.pid, p_color: MP.skin.color || '', p_face: keepFace ? '' : (MP.skin.face || ''), p_keep_face: !!keepFace }).then(() => { }, () => { });
+    }
+    function mpSkinRefresh() {
+        mpRenderRoom();
+        if (MP.S)
+            for (const id of Object.keys(MP.figs))
+                mpFigState(id);
+    }
+    function mpSkinApplyFace(sk, face) {
+        sk.v++;
+        if (face && typeof face === 'string' && face.startsWith('data:image/') && face.length < 40000) {
+            const im = new Image();
+            const ver = sk.v;
+            im.onload = () => { sk.img = im; sk.v = Math.max(sk.v, ver) + 1; mpSkinRefresh(); };
+            im.src = face;
+        }
+        else
+            sk.img = null;
+    }
+    function mpSkinRow(r) {
+        if (!r || !r.player_id || r.player_id === MP.pid)
+            return;
+        const sk = MP.skins[r.player_id] || (MP.skins[r.player_id] = { color: null, rev: -1, img: null, v: 0 });
+        const col = typeof r.color === 'string' && /^#[0-9a-fA-F]{6}$/.test(r.color) ? r.color : null;
+        let changed = false;
+        if (sk.color !== col) {
+            sk.color = col;
+            sk.v++;
+            changed = true;
+        }
+        if (r.rev !== sk.rev && typeof r.rev === 'number') {
+            sk.rev = r.rev;
+            if (r.face !== undefined)
+                mpSkinApplyFace(sk, r.face);
+            else if (MP.sb) {
+                const pid = r.player_id;
+                MP.sb.from('mp_skins').select('face').eq('lobby_code', MP.code).eq('player_id', pid).maybeSingle().then(res => { if (res && res.data)
+                    mpSkinApplyFace(sk, res.data.face); });
+            }
+            changed = true;
+        }
+        if (changed)
+            mpSkinRefresh();
+    }
+    function skinBadge(pid, seat) {
+        const wrap = document.createDocumentFragment();
+        const mine = pid === MP.pid, sk = MP.skins[pid];
+        const col = mine ? MP.skin.color : (sk && sk.color);
+        const dot = document.createElement('span');
+        dot.className = 'dot';
+        dot.style.background = col || '#' + FIG_COL[seat % 4].toString(16).padStart(6, '0');
+        wrap.appendChild(dot);
+        const img = mine ? MP.skinImg : (sk && sk.img);
+        if (img) {
+            const c = document.createElement('canvas');
+            c.className = 'fth';
+            c.width = c.height = 48;
+            c.getContext('2d').drawImage(img, 0, 0, 48, 48);
+            wrap.appendChild(c);
+        }
+        return wrap;
+    }
+    function skinPreview() {
+        const cv = $('#skinPrev');
+        if (!cv)
+            return;
+        const c = cv.getContext('2d'), me = MP.players.find(p => p.player_id === MP.pid);
+        const col = MP.skin.color || '#' + FIG_COL[(me ? me.seat : 0) % 4].toString(16).padStart(6, '0');
+        c.clearRect(0, 0, 300, 300);
+        c.fillStyle = col;
+        c.beginPath();
+        c.arc(150, 150, 118, 0, 6.283);
+        c.fill();
+        c.fillStyle = '#050403';
+        c.beginPath();
+        c.ellipse(150, 154, 86, 80, 0, 0, 6.283);
+        c.fill();
+        const fc = document.createElement('canvas');
+        fc.width = fc.height = 128;
+        if (MP.skinImg)
+            paintCustomFace(fc.getContext('2d'), { hp: 1, max: 1, alive: true }, MP.skinImg, 128);
+        else
+            paintFace(fc.getContext('2d'), { hp: 1, max: 1, alive: true }, 128);
+        c.drawImage(fc, 80, 84, 140, 140);
+        $('#skinColor').value = MP.skin.color || col;
+        document.querySelectorAll('#skinSwatches button').forEach(b => b.classList.toggle('sel', b.dataset.c === MP.skin.color));
+    }
+    let skinColorTimer = 0;
+    function setMyColor(col) {
+        MP.skin.color = col;
+        mySkinSave();
+        skinPreview();
+        mpRenderRoom();
+        clearTimeout(skinColorTimer);
+        skinColorTimer = setTimeout(() => mpSendSkin(true), 350);
+    }
+    function mpSkinTab(which) {
+        $('#mpPaneLobby').style.display = which === 'lobby' ? 'block' : 'none';
+        $('#mpPaneSkin').style.display = which === 'skin' ? 'block' : 'none';
+        $('#mpTabLobby').classList.toggle('on', which === 'lobby');
+        $('#mpTabSkin').classList.toggle('on', which === 'skin');
+        if (which === 'skin')
+            skinPreview();
+    }
+    SKIN_COLORS.forEach(col => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.dataset.c = col;
+        b.style.background = col;
+        b.setAttribute('aria-label', 'Skin color ' + col);
+        b.onclick = () => setMyColor(col);
+        $('#skinSwatches').appendChild(b);
+    });
+    $('#skinColor').addEventListener('input', e => setMyColor(e.target.value));
+    $('#mpTabLobby').onclick = () => mpSkinTab('lobby');
+    $('#mpTabSkin').onclick = () => mpSkinTab('skin');
+    $('#faceImport').onclick = () => $('#faceFile').click();
+    $('#faceReset').onclick = () => {
+        MP.skin.face = null;
+        MP.skinImg = null;
+        mySkinSave();
+        skinPreview();
+        mpRenderRoom();
+        mpSendSkin(false);
+    };
+    $('#faceFile').addEventListener('change', e => {
+        const file = e.target.files && e.target.files[0];
+        e.target.value = '';
+        if (!file)
+            return;
+        if (!file.type.startsWith('image/') || file.size > 15 * 1024 * 1024) {
+            mpMsg('Pick an image file under 15 MB.', true);
+            return;
+        }
+        const url = URL.createObjectURL(file), im = new Image();
+        im.onload = () => {
+            const c = document.createElement('canvas');
+            c.width = c.height = 128;
+            const x = c.getContext('2d'), side = Math.min(im.naturalWidth, im.naturalHeight);
+            x.fillStyle = '#e8e2d0';
+            x.fillRect(0, 0, 128, 128);
+            x.drawImage(im, (im.naturalWidth - side) / 2, (im.naturalHeight - side) / 2, side, side, 0, 0, 128, 128);
+            URL.revokeObjectURL(url);
+            let q = .75, data = c.toDataURL('image/jpeg', q);
+            while (data.length > 30000 && q > .3) {
+                q -= .1;
+                data = c.toDataURL('image/jpeg', q);
+            }
+            MP.skin.face = data;
+            mySkinSave();
+            loadMyFaceImg();
+            mpMsg('');
+            mpSendSkin(false);
+        };
+        im.onerror = () => { URL.revokeObjectURL(url); mpMsg('Could not read that image.', true); };
+        im.src = url;
+    });
+    loadMyFaceImg();
     function mpRenderRoom() {
         if (MP.started)
             return;
@@ -3499,7 +3728,14 @@ html.mobile #chatSend{min-height:44px}
         for (let i = 0; i < 4; i++) {
             const p = MP.players[i], d = document.createElement('div');
             d.className = 'mpSlot' + (p ? '' : ' empty');
-            d.textContent = p ? `${i + 1}. ${p.name}${p.player_id === MP.pid ? ' (you)' : ''}${p.player_id === MP.hostId ? ' ★ host' : ''}` : `${i + 1}. waiting for player…`;
+            if (p) {
+                d.appendChild(skinBadge(p.player_id, p.seat));
+                const t = document.createElement('span');
+                t.textContent = `${i + 1}. ${p.name}${p.player_id === MP.pid ? ' (you)' : ''}${p.player_id === MP.hostId ? ' ★ host' : ''}`;
+                d.appendChild(t);
+            }
+            else
+                d.textContent = `${i + 1}. waiting for player…`;
             box.appendChild(d);
         }
         const st = $('#mpStart');
@@ -3573,6 +3809,18 @@ html.mobile #chatSend{min-height:44px}
         chatSync();
     }
     chatEls.btn.onclick = () => chatSetOpen(true);
+    window.addEventListener('keydown', e => {
+        if (e.key !== '/' || e.ctrlKey || e.metaKey || e.altKey || e.repeat)
+            return;
+        const t = e.target;
+        if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable))
+            return;
+        if (!MP.code || chatOpen)
+            return;
+        e.preventDefault();
+        chatSetOpen(true);
+    }, true);
+    chatEls.inp.addEventListener('keydown', e => { if (e.key === 'Escape') { e.preventDefault(); chatEls.inp.blur(); chatSetOpen(false); } });
     $('#chatClose').onclick = () => chatSetOpen(false);
     ['keydown', 'keyup', 'keypress'].forEach(ev => chatEls.inp.addEventListener(ev, e => e.stopPropagation()));
     $('#chatForm').onsubmit = async e => {
@@ -3610,7 +3858,7 @@ html.mobile #chatSend{min-height:44px}
         mpMsg('Starting…');
         await mpPoll();
         const { error } = await MP.sb.rpc('mp_start_lobby', { p_code: MP.code, p_player: MP.pid });
-        if (error) {
+        if (error && !MP.played) {
             mpMsg(mpErr(error), true);
             mpRenderRoom();
             return;
@@ -3641,15 +3889,18 @@ html.mobile #chatSend{min-height:44px}
             return;
         MP.polling = true;
         try {
-            const [lb, pl, ev, ch, lk] = await Promise.all([
+            const [lb, pl, ev, ch, lk, sks] = await Promise.all([
                 MP.sb.from('mp_lobbies').select('*').eq('code', MP.code).maybeSingle(),
                 MP.sb.from('mp_players').select('*').eq('lobby_code', MP.code).order('seat'),
                 MP.sb.from('mp_events').select('*').eq('lobby_code', MP.code).gte('seq', MP.nextSeq).order('seq'),
                 MP.sb.from('mp_chat').select('*').eq('lobby_code', MP.code).gt('id', MP.chatLast || 0).order('id').limit(100),
-                MP.sb.from('mp_look').select('*').eq('lobby_code', MP.code)
+                MP.sb.from('mp_look').select('*').eq('lobby_code', MP.code),
+                MP.sb.from('mp_skins').select('player_id,color,rev').eq('lobby_code', MP.code)
             ]);
             if (lk && lk.data)
                 lk.data.forEach(mpLookRow);
+            if (sks && sks.data)
+                sks.data.forEach(mpSkinRow);
             if (ch && ch.data && ch.data.length)
                 chatIngest(ch.data);
             if (!lb.error && !lb.data && !MP.started) {
@@ -3660,14 +3911,16 @@ html.mobile #chatSend{min-height:44px}
                 mpMsg('The lobby was closed.', true);
                 return;
             }
-            if (lb.data) {
+            if (lb.data)
                 MP.hostId = lb.data.host_id;
-                MP.host = lb.data.host_id === MP.pid;
+            if (pl.data)
+                MP.players = pl.data.filter(p => !MP.gone.has(p.player_id));
+            if (lb.data || pl.data) {
+                const hostHere = MP.players.some(p => p.player_id === MP.hostId);
+                MP.host = MP.hostId === MP.pid || (!hostHere && !!MP.players[0] && MP.players[0].player_id === MP.pid);
             }
-            if (pl.data) {
-                MP.players = pl.data;
+            if (pl.data)
                 mpRenderRoom();
-            }
             if (ev.data)
                 mpIngest(ev.data);
             if (MP.S && MP.host && MP.S.needLoad && !MP.S.loadSent && !MP.over && MP.pending === 0)
@@ -3731,7 +3984,11 @@ html.mobile #chatSend{min-height:44px}
         return from;
     }
     async function mpApply(ev) {
+        if (ev.type === 'leave' && ev.player_id !== MP.pid)
+            MP.gone.add(ev.player_id);
         if (ev.type === 'start') {
+            if (MP.started && MP.over)
+                MP.started = false;
             await mpBegin(ev.payload);
             return;
         }
@@ -3757,6 +4014,7 @@ html.mobile #chatSend{min-height:44px}
         if (MP.started)
             return;
         MP.started = true;
+        MP.played = true;
         MP.over = false;
         $('#mpLobby').style.display = 'none';
         audio();
@@ -4020,10 +4278,35 @@ html.mobile #chatSend{min-height:44px}
             mpSend('gameover', { winner: winId || null });
         await sleep(700);
         const win = winId === MP.pid;
-        $('#card').innerHTML = `<h1 style="color:${win ? '#ffd24a' : '#b02020'}">${win ? 'YOU WIN' : 'MATCH OVER'}</h1><h2 id="mpWinner"></h2><p style="text-align:center">Thanks for playing.</p><button id="btnTitle">LEAVE</button>`;
+        $('#card').innerHTML = `<h1 style="color:${win ? '#ffd24a' : '#b02020'}">${win ? 'YOU WIN' : 'MATCH OVER'}</h1><h2 id="mpWinner"></h2><p style="text-align:center">Thanks for playing.</p><button id="btnKeep">KEEP PLAYING</button> <button id="btnTitle">QUIT TO TITLE SCREEN</button>`;
         $('#mpWinner').textContent = (winId ? S.P[winId].name.toUpperCase() : 'NOBODY') + ' IS THE LAST ONE STANDING';
         $('#overlay').style.display = 'flex';
-        $('#btnTitle').onclick = () => location.reload();
+        $('#btnKeep').onclick = mpKeepPlaying;
+        $('#btnTitle').onclick = mpQuitToTitle;
+    }
+    function mpKeepPlaying() {
+        MP.started = false;
+        MP.busy = false;
+        $('#overlay').style.display = 'none';
+        mpFigs.visible = false;
+        mpItemsKey = '';
+        $('#mpLobby').style.display = 'flex';
+        showMpView('room');
+        mpSkinTab('lobby');
+        mpMsg('');
+        mpRenderRoom();
+        chatSync();
+        mpPoll();
+    }
+    async function mpQuitToTitle() {
+        const b = $('#btnTitle');
+        if (b)
+            b.disabled = true;
+        try { MP.ch && MP.ch.send({ type: 'broadcast', event: 'quit', payload: { pid: MP.pid } }); }
+        catch (e) { }
+        try { await Promise.race([MP.sb.rpc('mp_leave_lobby', { p_code: MP.code, p_player: MP.pid }), sleep(1200)]); }
+        catch (e) { }
+        location.reload();
     }
     /* ----- player input ----- */
     function mpCan() {
@@ -4188,6 +4471,40 @@ html.mobile #chatSend{min-height:44px}
     mpFigs.visible = false;
     scene.add(mpFigs);
     const FIG_COL = [0x3a2a52, 0x24493a, 0x55372a, 0x2a3f5a];
+    function paintCustomFace(c, P, img, size) {
+        c.setTransform(1, 0, 0, 1, 0, 0);
+        c.clearRect(0, 0, size, size);
+        c.save();
+        c.beginPath();
+        c.arc(size / 2, size / 2, size / 2 - 3, 0, 6.283);
+        c.clip();
+        c.drawImage(img, 0, 0, size, size);
+        if (!P.alive) {
+            c.fillStyle = 'rgba(15,15,15,.7)';
+            c.fillRect(0, 0, size, size);
+        }
+        else if (P.max && P.hp < P.max) {
+            c.fillStyle = 'rgba(200,0,0,' + ((1 - P.hp / P.max) * .45).toFixed(2) + ')';
+            c.fillRect(0, 0, size, size);
+        }
+        c.restore();
+        c.lineWidth = 5;
+        c.strokeStyle = '#2a2000';
+        c.beginPath();
+        c.arc(size / 2, size / 2, size / 2 - 3, 0, 6.283);
+        c.stroke();
+        if (!P.alive) {
+            c.strokeStyle = '#c03030';
+            c.lineWidth = 8;
+            c.lineCap = 'round';
+            c.beginPath();
+            c.moveTo(size * .28, size * .28);
+            c.lineTo(size * .72, size * .72);
+            c.moveTo(size * .72, size * .28);
+            c.lineTo(size * .28, size * .72);
+            c.stroke();
+        }
+    }
     function paintFace(c, P, size) {
         const k = size / 256;
         c.setTransform(k, 0, 0, k, 0, 0);
@@ -4265,7 +4582,7 @@ html.mobile #chatSend{min-height:44px}
         spr.position.set(0, 2.8, 0);
         spr.renderOrder = 5;
         g.add(spr);
-        Object.assign(g.userData, { head, fc, ftex, lc, ltex });
+        Object.assign(g.userData, { head, fc, ftex, lc, ltex, hoodC });
         return g;
     }
     const SEAT_ACROSS = { x: 0, z: -1.75, rot: 0 }, SEAT_LEFT = { x: -2.2, z: -.4, rot: Math.PI / 2 }, SEAT_RIGHT = { x: 2.2, z: -.4, rot: -Math.PI / 2 };
@@ -4297,10 +4614,19 @@ html.mobile #chatSend{min-height:44px}
         if (!g || !S)
             return;
         const P = S.P[pid], u = g.userData;
-        const fk = P.hp + '/' + P.max + (P.alive ? '' : 'x');
+        const sk = MP.skins[pid];
+        const col = sk && sk.color ? sk.color : null;
+        if (u.col !== col) {
+            u.col = col;
+            u.hoodC.color.set(col || FIG_COL[P.seat % 4]);
+        }
+        const fk = P.hp + '/' + P.max + (P.alive ? '' : 'x') + '|' + (sk ? sk.v : 0);
         if (fk !== u.key) {
             u.key = fk;
-            paintFace(u.fc.getContext('2d'), P, 128);
+            if (sk && sk.img)
+                paintCustomFace(u.fc.getContext('2d'), P, sk.img, 128);
+            else
+                paintFace(u.fc.getContext('2d'), P, 128);
             u.ftex.needsUpdate = true;
         }
         const turn = S.turn === pid && !MP.over, lk = P.name + (turn ? '*' : '') + (P.alive ? '' : 'x');
