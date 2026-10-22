@@ -4170,14 +4170,15 @@ html.mobile #chatSend{min-height:44px}
             const P = S.P[id], fig = MP.figs[id];
             if (!P || !P.alive || !fig)
                 return;
-            const bx = fig.userData.base.x * .95;
+            const hd = fig.userData.holder;
             P.items.forEach((t, i) => {
                 if (!t)
                     return;
                 const m = buildItem(t);
                 m.scale.setScalar(.7);
-                m.position.set(bx + (i - 2) * .19, 1.005, -.55);
-                m.rotation.y = Math.PI + ((i * 37 % 10) - 5) * .05;
+                hd.updateMatrixWorld(true);
+                m.position.copy(hd.localToWorld(new THREE.Vector3((i - 2) * .19, 1.005, 1.2)));
+                m.rotation.y = hd.rotation.y + Math.PI + ((i * 37 % 10) - 5) * .05;
                 m.userData = { kind: 'otherItem', owner: id, idx: i, type: t };
                 mpOtherItems.add(m);
             });
@@ -4267,21 +4268,26 @@ html.mobile #chatSend{min-height:44px}
         Object.assign(g.userData, { head, fc, ftex, lc, ltex });
         return g;
     }
+    const SEAT_ACROSS = { x: 0, z: -1.75, rot: 0 }, SEAT_LEFT = { x: -2.2, z: -.4, rot: Math.PI / 2 }, SEAT_RIGHT = { x: 2.2, z: -.4, rot: -Math.PI / 2 };
     function mpBuildFigs() {
         while (mpFigs.children.length)
             mpFigs.remove(mpFigs.children[0]);
         MP.figs = {};
         const n = MP.others.length;
-        const POS = { 1: [[0, -1.75]], 2: [[-.8, -1.75], [.8, -1.75]], 3: [[-1.25, -1.75], [0, -1.9], [1.25, -1.75]] }[n] || [];
-        const sc = n === 3 ? .85 : n === 2 ? .92 : 1;
+        const SEATS = { 1: [SEAT_ACROSS], 2: [SEAT_LEFT, SEAT_ACROSS], 3: [SEAT_LEFT, SEAT_ACROSS, SEAT_RIGHT] }[n] || [];
         MP.others.forEach((pid, i) => {
-            if (!POS[i])
+            const st = SEATS[i];
+            if (!st)
                 return;
+            const holder = new THREE.Group();
+            holder.position.set(st.x, 0, st.z);
+            holder.rotation.y = st.rot;
             const g = mpMakeFig(pid, MP.S.P[pid]);
-            g.position.set(POS[i][0], 0, POS[i][1]);
-            g.scale.setScalar(sc);
-            g.userData.base = V(POS[i][0], 0, POS[i][1]);
-            mpFigs.add(g);
+            g.scale.setScalar(.95);
+            g.userData.base = V(st.x, 0, st.z);
+            g.userData.holder = holder;
+            holder.add(g);
+            mpFigs.add(holder);
             MP.figs[pid] = g;
         });
         mpFigs.visible = true;
@@ -4315,7 +4321,7 @@ html.mobile #chatSend{min-height:44px}
     function mpIdle(t) {
         if (!mpFigs.visible)
             return;
-        for (const g of mpFigs.children) {
+        for (const g of Object.values(MP.figs)) {
             const u = g.userData;
             if (u.dead)
                 continue;
