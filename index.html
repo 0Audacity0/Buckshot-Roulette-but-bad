@@ -959,6 +959,8 @@ html.mobile #btnSettings{top:max(12px,env(safe-area-inset-top));right:max(12px,e
 html.mobile #btnCodeList{top:max(12px,env(safe-area-inset-top));left:max(12px,env(safe-area-inset-left));bottom:auto;min-height:44px}
 html.mobile #codeListPanel{left:12px;right:12px;bottom:auto;top:calc(max(12px,env(safe-area-inset-top)) + 62px);width:auto;max-height:70vh;max-height:70dvh}
 html.mobile #topL{font-size:9px;line-height:1.3}
+html.mobile body:not(.mp) #topL{top:max(6px,env(safe-area-inset-top));left:max(6px,env(safe-area-inset-left))}
+html.mobile body:not(.mp) #oppBox{left:auto;right:max(6px,env(safe-area-inset-right));transform:none}
 html.mobile #topL .live,html.mobile #topL .blank{margin-right:8px}
 
 /* ---------- Multiplayer ---------- */
@@ -1012,6 +1014,33 @@ body.mp #turn{right:90px}
 button{text-transform:none}
 #btnOpp,#btnSelf{text-transform:uppercase}
 
+
+/* ---------- Multiplayer chat ---------- */
+#chatBtn{position:fixed;right:max(12px,env(safe-area-inset-right));bottom:max(12px,env(safe-area-inset-bottom));z-index:40;display:none;width:auto;min-height:0;padding:10px 16px;font-size:13px;letter-spacing:.15em;background:rgba(10,9,7,.94);border:1px solid #6aa7ff;color:#bcd6ff}
+#chatBtn.show{display:block}
+#chatBtn.hide{display:none}
+#chatDot{position:absolute;top:-10px;left:-10px;width:22px;height:22px;border-radius:50%;background:#ffd24a;color:#000;font-weight:bold;font-size:15px;line-height:22px;text-align:center;box-shadow:0 0 10px #ffb400;display:none}
+#chatBtn.unread #chatDot{display:block}
+#chatPanel{position:fixed;right:max(12px,env(safe-area-inset-right));bottom:max(12px,env(safe-area-inset-bottom));z-index:41;display:none;flex-direction:column;width:min(340px,calc(100vw - 24px));height:min(420px,60vh);background:rgba(10,12,16,.97);border:1px solid #6aa7ff;box-shadow:0 0 18px #000}
+#chatPanel.open{display:flex}
+#chatHead{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;border-bottom:1px solid #26344a;color:#bcd6ff;letter-spacing:.2em;font-size:12px}
+#chatClose{width:auto;min-height:0;padding:4px 10px;font-size:12px}
+#chatMsgs{flex:1;overflow-y:auto;padding:10px;display:flex;flex-direction:column;gap:8px;-webkit-overflow-scrolling:touch;user-select:text;-webkit-user-select:text}
+#chatMsgs .empty{margin:auto;color:#6d7686;font-size:12px;text-align:center}
+.cMsg{max-width:82%;display:flex;flex-direction:column;gap:2px}
+.cMsg .who{font-size:10px;letter-spacing:.1em;color:#8a95a8;padding:0 4px}
+.cMsg .bub{padding:7px 11px;border-radius:14px;font-size:13px;line-height:1.35;word-break:break-word;background:#222a36;color:#e8ecf4;border-bottom-left-radius:4px}
+.cMsg.me{align-self:flex-end;align-items:flex-end}
+.cMsg.me .bub{background:#2f6fd0;color:#fff;border-bottom-left-radius:14px;border-bottom-right-radius:4px}
+.cMsg.sys{align-self:center;max-width:100%}
+.cMsg.sys .bub{background:none;color:#7d8798;font-size:11px;padding:2px}
+#chatForm{display:flex;gap:6px;padding:8px;border-top:1px solid #26344a}
+#chatIn{flex:1;min-width:0;background:#10151d;border:1px solid #33425a;color:#e8ecf4;padding:9px 10px;font-size:14px;font-family:inherit;border-radius:16px;user-select:text;-webkit-user-select:text}
+#chatSend{width:auto;min-height:0;padding:8px 14px;font-size:13px;border-radius:16px}
+html.mobile #chatBtn{bottom:auto;top:46%;right:max(8px,env(safe-area-inset-right));padding:12px 14px;min-height:44px}
+html.mobile #chatPanel{left:max(8px,env(safe-area-inset-left));right:max(8px,env(safe-area-inset-right));bottom:max(8px,env(safe-area-inset-bottom));width:auto;height:min(52vh,52dvh)}
+html.mobile #chatIn{font-size:16px;padding:11px 12px}
+html.mobile #chatSend{min-height:44px}
   </style>
  </head>
  <body class="title">
@@ -1301,6 +1330,12 @@ button{text-transform:none}
      BACK
     </button>
    </div>
+  </div>
+  <button id="chatBtn" type="button" aria-label="Open chat">CHAT<span id="chatDot">!</span></button>
+  <div id="chatPanel" role="dialog" aria-label="Chat">
+   <div id="chatHead"><span>CHAT</span><button id="chatClose" type="button">CLOSE</button></div>
+   <div id="chatMsgs"></div>
+   <form id="chatForm" autocomplete="off"><input id="chatIn" maxlength="200" placeholder="Type a message…" autocomplete="off" spellcheck="false"/><button id="chatSend" type="submit">SEND</button></form>
   </div>
   <div class="panel" id="mpPick">
   </div>
@@ -1820,8 +1855,6 @@ button{text-transform:none}
     opp.add(head);
     head.scale.setScalar(1.3);
     mesh(new THREE.SphereGeometry(.31, 18, 14), hoodM, 0, 0, 0, head);
-    const cone = mesh(new THREE.ConeGeometry(.3, .5, 14), hoodM, 0, .3, -.06, head);
-    cone.rotation.x = -.2;
     const voidM = mat(0x030304, { roughness: 1 });
     const faceV = mesh(new THREE.SphereGeometry(.24, 16, 12), voidM, 0, -.01, .1, head);
     faceV.scale.z = .9;
@@ -2543,6 +2576,7 @@ button{text-transform:none}
         mode = 'play';
         paused = false;
         document.body.classList.remove('title');
+        syncCodeListButton();
         $('#title').style.display = 'none';
         $('#overlay').style.display = 'none';
         $('#pause').style.display = 'none';
@@ -2709,17 +2743,19 @@ button{text-transform:none}
     };
     const CODE_DESCRIPTIONS = [
         ['CodeAll', 'Unlocks the CODES button in the bottom-left, showing every current code.'],
-        ['AdministratorMe', 'Toggles administrator mode, including rigged luck, infinite items, and infinite cash.'],
-        ['OnlyMe', 'Admin option (needs AdministratorMe on): only you take turns, The Dealer never does.'],
+        ['OnlyMe', 'Admin-only option: only you take turns, The Dealer never does.'],
         ['Payday', 'Adds $500 to your bank.'],
-        ['Stocked', 'Fills your stash with 5 items.'],
-        ['GodMode', 'Toggles protection from live shots.'],
-        ['Quick', 'Toggles 2x game speed.'],
-        ['Peek', 'Toggles always showing the chamber contents.'],
+        ['Stocked', 'Fills your stash with 5 items. Admins also get full items each reload in multiplayer.'],
+        ['GodMode', 'Toggles protection from live shots. Admins can also use it in multiplayer.'],
+        ['Quick', 'Toggles 2x game speed (single player only).'],
+        ['Peek', 'Toggles always showing the chamber contents. Admins can also use it in multiplayer.'],
         ['ResetStats', 'Resets your game statistics.']
     ];
     function syncCodeListButton() {
-        $('#btnCodeList').style.display = SAVE.codesUnlocked ? 'block' : 'none';
+        const inGame = typeof mode !== 'undefined' && (mode === 'play' || mode === 'mp' || mode === 'end');
+        $('#btnCodeList').style.display = (SAVE.codesUnlocked && !inGame) ? 'block' : 'none';
+        if (inGame)
+            $('#codeListPanel').style.display = 'none';
     }
     function renderCodeList() {
         $('#codeListEntries').innerHTML = CODE_DESCRIPTIONS.map(([name, desc]) => `<div class="codeEntry"><b>${name}</b><span>${desc}</span></div>`).join('');
@@ -3146,7 +3182,7 @@ button{text-transform:none}
     // players see the same game. The host is the only client that generates random shell loads.
     const MP_OK = !!SUPABASE_URL && !!SUPABASE_ANON_KEY && !/YOUR-PROJECT|YOUR-ANON/.test(SUPABASE_URL + SUPABASE_ANON_KEY);
     const MP = { sb: null, pid: null, name: '', code: null, host: false, hostId: null, players: [], ch: null, poll: 0, polling: false,
-        nextSeq: 1, buf: new Map(), chain: Promise.resolve(), pending: 0, started: false, over: false, busy: false, S: null, others: [], figs: {} };
+        nextSeq: 1, buf: new Map(), chain: Promise.resolve(), pending: 0, started: false, over: false, busy: false, S: null, others: [], figs: {}, flags: {}, flagTimer: 0 };
     try { MP.pid = sessionStorage.getItem('lastshell_mp_pid'); } catch (e) { }
     if (!MP.pid) {
         MP.pid = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : 'p' + Math.random().toString(36).slice(2) + Date.now().toString(36);
@@ -3224,7 +3260,21 @@ button{text-transform:none}
             return mpMsg(mpErr(error), true);
         mpEnter(code);
     }
+    function mpMyFlags() {
+        const a = !!SAVE.admin;
+        return { god: a && !!SAVE.cheats.god, peek: a && !!SAVE.cheats.peek, stocked: a && !!SAVE.stockedActive };
+    }
+    function mpSendFlags() {
+        MP.flags[MP.pid] = mpMyFlags();
+        if (MP.ch) {
+            try { MP.ch.send({ type: 'broadcast', event: 'flags', payload: { pid: MP.pid, f: MP.flags[MP.pid] } }); }
+            catch (e) { }
+        }
+    }
     function mpCleanup() {
+        if (MP.flagTimer)
+            clearInterval(MP.flagTimer);
+        MP.flagTimer = 0;
         if (MP.poll)
             clearInterval(MP.poll);
         MP.poll = 0;
@@ -3233,6 +3283,14 @@ button{text-transform:none}
             catch (e) { }
         }
         MP.ch = null;
+    }
+    let mpLastBack = 0;
+    function mpSendFlagsBack(pid) {
+        const n = Date.now();
+        if (pid === MP.pid || n - mpLastBack < 1500)
+            return;
+        mpLastBack = n;
+        mpSendFlags();
     }
     function mpEnter(code) {
         mpCleanup();
@@ -3254,7 +3312,15 @@ button{text-transform:none}
             .on('postgres_changes', { event: '*', schema: 'public', table: 'mp_lobbies', filter: 'code=eq.' + code }, () => mpPoll())
             .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'mp_events', filter: f }, p => { if (p && p.new)
             mpIngest([p.new]); })
-            .subscribe();
+            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'mp_chat', filter: f }, p => { if (p && p.new) chatIngest([p.new]); })
+            .on('broadcast', { event: 'flags' }, m => { const d = m && m.payload; if (d && d.pid && d.f) { MP.flags[d.pid] = { god: !!d.f.god, peek: !!d.f.peek, stocked: !!d.f.stocked }; mpSendFlagsBack(d.pid); } })
+            .subscribe(st => { if (st === 'SUBSCRIBED') mpSendFlags(); });
+        MP.flags = {};
+        MP.flags[MP.pid] = mpMyFlags();
+        MP.flagTimer = setInterval(mpSendFlags, 4000);
+        MP.chatLast = 0;
+        chatReset();
+        chatSync();
         MP.poll = setInterval(mpPoll, 1500);
         mpRenderRoom();
         mpPoll();
@@ -3275,6 +3341,88 @@ button{text-transform:none}
         st.disabled = MP.players.length < 2;
         $('#mpWait').textContent = MP.host ? (MP.players.length < 2 ? 'Share the code, you need at least 2 players.' : 'Press "Start Match" to start the match if you have 2 or more people in the lobby.') : 'Waiting for the host to start the match…';
     }
+
+    /* ----- multiplayer chat ----- */
+    const chatEls = { btn: $('#chatBtn'), panel: $('#chatPanel'), msgs: $('#chatMsgs'), inp: $('#chatIn') };
+    let chatOpen = false, chatLast = 0;
+    function chatReset() {
+        chatEls.msgs.innerHTML = '<div class="empty">No messages yet.</div>';
+        chatOpen = false;
+        chatEls.panel.classList.remove('open');
+        chatEls.btn.classList.remove('unread');
+    }
+    function chatSync() {
+        const on = !!MP.code;
+        chatEls.btn.classList.toggle('show', on);
+        chatEls.btn.classList.toggle('hide', !on || chatOpen);
+        if (!on) {
+            chatOpen = false;
+            chatEls.panel.classList.remove('open');
+        }
+    }
+    function chatAdd(name, text, mine, sys) {
+        const e = chatEls.msgs.querySelector('.empty');
+        if (e)
+            e.remove();
+        const d = document.createElement('div');
+        d.className = 'cMsg' + (mine ? ' me' : '') + (sys ? ' sys' : '');
+        if (!mine && !sys) {
+            const w = document.createElement('div');
+            w.className = 'who';
+            w.textContent = name;
+            d.appendChild(w);
+        }
+        const b = document.createElement('div');
+        b.className = 'bub';
+        b.textContent = text;
+        d.appendChild(b);
+        chatEls.msgs.appendChild(d);
+        while (chatEls.msgs.children.length > 100)
+            chatEls.msgs.firstChild.remove();
+        chatEls.msgs.scrollTop = chatEls.msgs.scrollHeight;
+    }
+    function chatIngest(rows) {
+        for (const r of rows) {
+            if (!r || typeof r.id !== 'number' || r.id <= (MP.chatLast || 0))
+                continue;
+            MP.chatLast = r.id;
+            if (r.player_id === MP.pid)
+                continue;
+            chatAdd(String(r.name || 'Player').slice(0, 14), String(r.body || '').slice(0, 200), false, false);
+            if (!chatOpen) {
+                chatEls.btn.classList.add('unread');
+                try { SFX.click(); }
+                catch (e) { }
+            }
+        }
+    }
+    function chatSetOpen(b) {
+        chatOpen = b;
+        chatEls.panel.classList.toggle('open', b);
+        if (b) {
+            chatEls.btn.classList.remove('unread');
+            chatEls.msgs.scrollTop = chatEls.msgs.scrollHeight;
+            setTimeout(() => { if (!window.IS_PHONE) chatEls.inp.focus(); }, 30);
+        }
+        chatSync();
+    }
+    chatEls.btn.onclick = () => chatSetOpen(true);
+    $('#chatClose').onclick = () => chatSetOpen(false);
+    ['keydown', 'keyup', 'keypress'].forEach(ev => chatEls.inp.addEventListener(ev, e => e.stopPropagation()));
+    $('#chatForm').onsubmit = async e => {
+        e.preventDefault();
+        const text = chatEls.inp.value.trim().slice(0, 200), n = Date.now();
+        if (!text || !MP.code || !MP.sb || n - chatLast < 400)
+            return;
+        chatLast = n;
+        chatEls.inp.value = '';
+        const name = (MP.S && MP.S.P[MP.pid] && MP.S.P[MP.pid].name) || (MP.players.find(p => p.player_id === MP.pid) || {}).name || MP.name || 'Player';
+        chatAdd(name, text, true, false);
+        const { error } = await MP.sb.rpc('mp_send_chat', { p_code: MP.code, p_player: MP.pid, p_body: text });
+        if (error)
+            chatAdd('', 'Message failed to send.', false, true);
+        setTimeout(mpPoll, 150);
+    };
     async function mpBack() {
         if (MP.code && !MP.started) {
             try { await MP.sb.rpc('mp_leave_lobby', { p_code: MP.code, p_player: MP.pid }); }
@@ -3282,6 +3430,7 @@ button{text-transform:none}
             mpCleanup();
             MP.code = null;
             MP.players = [];
+            chatSync();
             showMpView('menu');
             mpMsg('');
             return;
@@ -3326,14 +3475,18 @@ button{text-transform:none}
             return;
         MP.polling = true;
         try {
-            const [lb, pl, ev] = await Promise.all([
+            const [lb, pl, ev, ch] = await Promise.all([
                 MP.sb.from('mp_lobbies').select('*').eq('code', MP.code).maybeSingle(),
                 MP.sb.from('mp_players').select('*').eq('lobby_code', MP.code).order('seat'),
-                MP.sb.from('mp_events').select('*').eq('lobby_code', MP.code).gte('seq', MP.nextSeq).order('seq')
+                MP.sb.from('mp_events').select('*').eq('lobby_code', MP.code).gte('seq', MP.nextSeq).order('seq'),
+                MP.sb.from('mp_chat').select('*').eq('lobby_code', MP.code).gt('id', MP.chatLast || 0).order('id').limit(100)
             ]);
+            if (ch && ch.data && ch.data.length)
+                chatIngest(ch.data);
             if (!lb.error && !lb.data && !MP.started) {
                 mpCleanup();
                 MP.code = null;
+                chatSync();
                 showMpView('menu');
                 mpMsg('The lobby was closed.', true);
                 return;
@@ -3444,6 +3597,7 @@ button{text-transform:none}
         paused = false;
         document.body.classList.remove('title');
         document.body.classList.add('mp');
+        syncCodeListButton();
         for (const id of ['#title', '#overlay', '#pause', '#btnPause', '#codeListPanel', '#btnCodeList', '#settingsPanel', '#shop'])
             $(id).style.display = 'none';
         $('#fade').style.transition = 'none';
@@ -3495,6 +3649,14 @@ button{text-transform:none}
                 if (k >= 0 && ITEMS[t])
                     P.items[k] = t;
             }
+        }
+        for (const id of S.seatOrder) {
+            const P = S.P[id];
+            if (!P || !P.alive || !(MP.flags[id] && MP.flags[id].stocked))
+                continue;
+            for (let k = 0; k < P.items.length; k++)
+                if (!P.items[k])
+                    P.items[k] = TYPES[(k + S.loadNo) % TYPES.length];
         }
         G.players.p.items = S.P[MP.pid].items;
         rebuildItems();
@@ -3608,8 +3770,10 @@ button{text-transform:none}
             burst(target === me, pose.muzzle);
             screenFlash(target === me ? '#ffb080' : '#fff');
             shake = target === me ? .35 : .12;
-            T.hp = Math.max(0, T.hp - dmg);
-            if (target === me) {
+            const godT = !!(MP.flags[target] && MP.flags[target].god);
+            if (!godT)
+                T.hp = Math.max(0, T.hp - dmg);
+            if (target === me && !godT) {
                 hurtFx();
                 SFX.hurt();
             }
@@ -3621,7 +3785,7 @@ button{text-transform:none}
         setSawn(false);
         S.sawn = false;
         mpHUD();
-        await say(live ? `${nm(target)} ${target === me ? 'lose' : 'loses'} ${dmg} charge${dmg > 1 ? 's' : ''}.` : 'A blank.', 1500, live ? 'live' : 'blank');
+        await say(live ? (MP.flags[target] && MP.flags[target].god ? `${nm(target)} ${target === me ? 'are' : 'is'} untouchable.` : `${nm(target)} ${target === me ? 'lose' : 'loses'} ${dmg} charge${dmg > 1 ? 's' : ''}.`) : 'A blank.', 1500, live ? 'live' : 'blank');
         await moveGun(POSE.rest, 500);
         SFX.pump();
         if (rec)
@@ -3746,7 +3910,10 @@ button{text-transform:none}
         $('#roundInfo').textContent = 'MULTIPLAYER · ' + MP.code;
         pips('#youPips', me);
         $('#shellInfo').innerHTML = `<span class="live">${S.liveLeft} LIVE</span><span class="blank">${S.blankLeft} BLANK</span><span class="dim">${S.shells.length} left</span>`;
-        const k = S.known[MP.pid], pk = $('#peek');
+        let k = S.known[MP.pid];
+        const pk = $('#peek');
+        if (mpMyFlags().peek && S.shells.length && !S.needLoad)
+            k = S.shells[0];
         pk.textContent = (k === undefined || k === null) ? '' : (k ? 'CHAMBERED: LIVE' : 'CHAMBERED: BLANK');
         pk.style.color = k ? '#ff5a48' : '#6aa7ff';
         $('#modes').textContent = me.alive ? '' : 'SPECTATING';
@@ -3868,7 +4035,6 @@ button{text-transform:none}
         head.scale.setScalar(1.15);
         g.add(head);
         mesh(new THREE.SphereGeometry(.31, 18, 14), hoodC, 0, 0, 0, head);
-        mesh(new THREE.ConeGeometry(.3, .5, 14), hoodC, 0, .3, -.06, head).rotation.x = -.2;
         mesh(new THREE.SphereGeometry(.24, 16, 12), voidM, 0, -.01, .1, head).scale.z = .9;
         const fc = document.createElement('canvas');
         fc.width = fc.height = 128;
