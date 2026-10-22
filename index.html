@@ -960,6 +960,50 @@ html.mobile #btnCodeList{top:max(12px,env(safe-area-inset-top));left:max(12px,en
 html.mobile #codeListPanel{left:12px;right:12px;bottom:auto;top:calc(max(12px,env(safe-area-inset-top)) + 62px);width:auto;max-height:70vh;max-height:70dvh}
 html.mobile #topL{font-size:9px;line-height:1.3}
 html.mobile #topL .live,html.mobile #topL .blank{margin-right:8px}
+
+/* ---------- Multiplayer ---------- */
+.tMid{display:flex;flex-direction:column;align-items:center;gap:12px}
+#btnMulti{font-size:clamp(13px,1.6vw,18px);padding:12px 0;width:0;min-width:100%;white-space:nowrap;overflow:hidden;border:2px solid #8a8a8a;color:#d0d0d0;letter-spacing:.2em;background:rgba(60,60,60,.85)}
+#btnMulti:hover:not(:disabled){filter:drop-shadow(0 0 8px #aaa);background:linear-gradient(180deg,#555,#2a2a2a)}
+html.mobile #btnMulti{width:100%;min-height:56px;font-size:18px;padding:14px 0}
+#mpLobby{position:fixed;inset:0;z-index:12;align-items:center;justify-content:center;background:rgba(0,0,0,.88);padding:16px}
+#mpCard{width:min(440px,100%)}
+#mpCard h1{font-size:clamp(26px,5vw,40px)}
+#mpCard button{display:block;width:100%}
+.mpInput{width:100%;background:#0d0c0a;border:1px solid #6b6552;color:#e8e2d0;font-family:inherit;padding:12px;font-size:16px;margin-top:8px;letter-spacing:.08em;text-align:center}
+.mpInput:focus{outline:none;border-color:#ffd24a}
+.mpRow{display:flex;gap:8px;margin-top:8px}
+.mpRow .mpInput{margin-top:0;flex:1;min-width:0;text-transform:uppercase}
+#mpCard .mpRow button{width:auto;margin-top:0;padding:12px 22px}
+.mpSep{margin:14px 0 4px;font-size:11px;letter-spacing:.3em;color:#8a846f}
+.mpCode{font-size:clamp(32px,9vw,48px);letter-spacing:.3em;color:#ffd24a;margin:6px 0 10px;text-shadow:0 0 14px #a60}
+.mpSlot{text-align:left;padding:10px 12px;border:1px solid #4a4638;margin-bottom:6px;font-size:14px;background:rgba(255,210,74,.05)}
+.mpSlot.empty{opacity:.4;border-style:dashed}
+#mpWait{font-size:12px;color:#8a846f;margin:8px 0 2px;text-align:center}
+#mpMsg{min-height:1.4em;margin-top:10px;font-size:12px;color:#7ad07a;text-align:center;line-height:1.5}
+#mpMsg.bad{color:#ff6a5a}
+#mpBar{position:fixed;top:10px;left:50%;transform:translateX(-50%);display:none;gap:8px;z-index:3;justify-content:center}
+body.mp #mpBar{display:flex}
+body.mp #oppBox,body.mp #btnOpp{display:none!important}
+.mpChip{min-width:104px;padding:6px 10px;min-height:0;display:flex;flex-direction:column;align-items:center;gap:3px}
+.mpChip .n{font-size:12px;letter-spacing:.12em;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mpChip .it{font-size:14px;min-height:17px}
+.mpChip:disabled{opacity:.9}
+.mpChip:not(:disabled){border-color:#ff3b2f}
+.mpChip.turn{border-color:#ffd24a;box-shadow:0 0 14px rgba(255,210,74,.6)}
+.mpChip.dead{opacity:.35;text-decoration:line-through}
+#btnLeaveMp{position:fixed;top:8px;right:10px;width:auto;height:38px;padding:0 10px;font-size:12px;z-index:6;display:none}
+body.mp #btnLeaveMp{display:block}
+body.mp #turn{right:90px}
+@media (max-width:820px){
+  body.mp #mpBar{left:6px;right:84px;transform:none;flex-wrap:wrap}
+  .mpChip{min-width:84px;padding:5px 6px}
+  .mpChip .n{max-width:80px}
+}
+@media (max-width:600px){
+  body.mp #turn{right:8px}
+}
+
   </style>
  </head>
  <body class="title">
@@ -1032,6 +1076,9 @@ html.mobile #topL .live,html.mobile #topL .blank{margin-right:8px}
     <div class="tMid">
      <button id="btnPlay">
       PLAY
+     </button>
+     <button id="btnMulti" type="button">
+      MULTIPLAYER
      </button>
     </div>
     <div class="tBot">
@@ -1148,6 +1195,11 @@ html.mobile #topL .live,html.mobile #topL .blank{margin-right:8px}
   </div>
   <div id="turn">
   </div>
+  <div id="mpBar">
+  </div>
+  <button id="btnLeaveMp" type="button">
+   LEAVE
+  </button>
   <div id="toast">
   </div>
   <div id="log">
@@ -1197,6 +1249,50 @@ html.mobile #topL .live,html.mobile #topL .blank{margin-right:8px}
    <button id="btnLeave">
     CONTINUE ▶
    </button>
+  </div>
+  <div id="mpLobby" style="display:none">
+   <div class="card" id="mpCard">
+    <h1>
+     MULTIPLAYER
+    </h1>
+    <h2 id="mpSub">
+     UP TO 4 PLAYERS
+    </h2>
+    <div id="mpMenu">
+     <input autocomplete="off" class="mpInput" id="mpName" maxlength="14" placeholder="Your name" spellcheck="false"/>
+     <button id="mpCreate" type="button">
+      CREATE LOBBY
+     </button>
+     <div class="mpSep">
+      — OR JOIN WITH A CODE —
+     </div>
+     <div class="mpRow">
+      <input autocapitalize="characters" autocomplete="off" class="mpInput" id="mpCodeIn" maxlength="5" placeholder="CODE" spellcheck="false"/>
+      <button id="mpJoin" type="button">
+       JOIN
+      </button>
+     </div>
+    </div>
+    <div id="mpRoom" style="display:none">
+     <div class="mpSep">
+      LOBBY CODE
+     </div>
+     <div class="mpCode" id="mpCodeShow">
+     </div>
+     <div id="mpList">
+     </div>
+     <div id="mpWait">
+     </div>
+     <button id="mpStart" type="button">
+      START MATCH
+     </button>
+    </div>
+    <div id="mpMsg">
+    </div>
+    <button class="ghost" id="mpBack" type="button">
+     BACK
+    </button>
+   </div>
   </div>
   <div id="flash">
   </div>
@@ -1277,11 +1373,17 @@ html.mobile #topL .live,html.mobile #topL .blank{margin-right:8px}
     </button>
    </div>
   </div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
+  </script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js">
   </script>
   <script>
    (() => {
     'use strict';
+    // ===== MULTIPLAYER CONFIG: paste your Supabase project values here (Project Settings -> API) =====
+    const SUPABASE_URL = 'https://ujicivcbaiwonteshsgl.supabase.co/rest/v1/';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVqaWNpdmNiYWl3b250ZXNoc2dsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI2MzIzMTYsImV4cCI6MjEwODIwODMxNn0.taGRdvUq0M6y9P3YgILfmW0by9F5kqV3cAVTzs27YqY';
+    // ================================================================================================
     if (!window.THREE) {
         document.getElementById('card').innerHTML = '<h1 style="font-size:28px">Could not load 3D engine</h1><p>This game loads Three.js from a CDN, so it needs an internet connection the first time.</p>';
         return;
@@ -2698,6 +2800,20 @@ html.mobile #topL .live,html.mobile #topL .blank{margin-right:8px}
             setPaused(!paused);
             return;
         }
+        if (mode === 'mp') {
+            if ($('#overlay').style.display !== 'none')
+                return;
+            if (k === 's' || k === 'arrowdown')
+                mpShoot(MP.pid);
+            else if (k === 'w' || k === 'arrowup') {
+                const t = MP.others.find(id => MP.S.P[id].alive);
+                if (t)
+                    mpShoot(t);
+            }
+            else if (/^[1-5]$/.test(k))
+                mpUseItem(+k - 1);
+            return;
+        }
         if (mode !== 'play' || paused || $('#overlay').style.display !== 'none')
             return;
         if (k === 'w' || k === 'arrowup')
@@ -2711,7 +2827,7 @@ html.mobile #topL .live,html.mobile #topL .blank{margin-right:8px}
     function pick(e) {
         ndc.set(e.clientX / innerWidth * 2 - 1, -(e.clientY / innerHeight) * 2 + 1);
         ray.setFromCamera(ndc, camera);
-        const hits = ray.intersectObjects([opp, itemsGroup], true);
+        const hits = ray.intersectObjects([mode === 'mp' ? mpFigs : opp, itemsGroup], true);
         if (!hits.length)
             return null;
         let o = hits[0].object;
@@ -2724,6 +2840,10 @@ html.mobile #topL .live,html.mobile #topL .blank{margin-right:8px}
         const h = pick(e);
         if (!h)
             return;
+        if (mode === 'mp') {
+            mpPointer(e, h);
+            return;
+        }
         if (h.kind === 'opp') {
             if (e.pointerType === 'mouse' || performance.now() - armedAt < 2500) {
                 armedAt = 0;
@@ -2762,9 +2882,11 @@ html.mobile #topL .live,html.mobile #topL .blank{margin-right:8px}
         const a = innerWidth / innerHeight;
         camera.aspect = a;
         if (a < 1) {
-            camBase.set(0, 2.7, 3.7);
-            lookTarget.set(0, .55, -.3);
-            camera.fov = 80;
+            // Portrait phones: keep the horizontal field of view roughly constant (~40deg)
+            // and move the camera much closer so the table fills the screen.
+            camBase.set(0, 2.35, 3.0);
+            lookTarget.set(0, 1.1, -.5);
+            camera.fov = Math.max(52, Math.min(78, 2 * Math.atan(Math.tan(20 * Math.PI / 180) / a) * 180 / Math.PI));
         }
         else if (innerHeight < 520) {
             camBase.set(0, 2.1, 2.5);
@@ -2938,11 +3060,11 @@ html.mobile #topL .live,html.mobile #topL .blank{margin-right:8px}
     const sparks = new THREE.Points(spG, spM);
     sparks.frustumCulled = false;
     scene.add(sparks);
-    function burst(self) {
+    function burst(self, at) {
         for (let i = 0; i < SP; i++) {
-            spP[i * 3] = (Math.random() - .5) * .2;
-            spP[i * 3 + 1] = 1.25;
-            spP[i * 3 + 2] = self ? .9 : -.3;
+            spP[i * 3] = (at ? at.x : 0) + (Math.random() - .5) * .2;
+            spP[i * 3 + 1] = at ? at.y : 1.25;
+            spP[i * 3 + 2] = at ? at.z : (self ? .9 : -.3);
             const a = Math.random() * 6.28, s = 1 + Math.random() * 3.5;
             spV[i * 3] = Math.cos(a) * s;
             spV[i * 3 + 1] = 1 + Math.random() * 3;
@@ -3000,6 +3122,7 @@ html.mobile #topL .live,html.mobile #topL .blank{margin-right:8px}
         if (oppState.hit > 0) {
             oppState.hit = Math.max(0, oppState.hit - dt * 1.6);
         }
+        mpIdle(t);
         flashLight.intensity *= Math.pow(.002, dt);
         shake *= Math.pow(.02, dt);
         window._dust.rotation.y += dt * .03;
@@ -3009,6 +3132,822 @@ html.mobile #topL .live,html.mobile #topL .blank{margin-right:8px}
         renderer.render(scene, camera);
         requestAnimationFrame(frame);
     }
+    /* ---------------- MULTIPLAYER (Supabase) ---------------- */
+    // Every action (shoot / use item / leave / reload) is written to the mp_events table via an RPC.
+    // Every client (including the sender) receives the rows back in seq order and replays them, so all
+    // players see the same game. The host is the only client that generates random shell loads.
+    const MP_OK = !!SUPABASE_URL && !!SUPABASE_ANON_KEY && !/YOUR-PROJECT|YOUR-ANON/.test(SUPABASE_URL + SUPABASE_ANON_KEY);
+    const MP = { sb: null, pid: null, name: '', code: null, host: false, hostId: null, players: [], ch: null, poll: 0, polling: false,
+        nextSeq: 1, buf: new Map(), chain: Promise.resolve(), pending: 0, started: false, over: false, busy: false, S: null, others: [], figs: {} };
+    try { MP.pid = sessionStorage.getItem('lastshell_mp_pid'); } catch (e) { }
+    if (!MP.pid) {
+        MP.pid = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : 'p' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+        try { sessionStorage.setItem('lastshell_mp_pid', MP.pid); } catch (e) { }
+    }
+    try { MP.name = localStorage.getItem('lastshell_mp_name') || ''; } catch (e) { }
+    let mpArm = { pid: null, t: 0 };
+    function mpClient() {
+        if (MP.sb) return MP.sb;
+        if (!MP_OK || !window.supabase || !window.supabase.createClient) return null;
+        MP.sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, { realtime: { params: { eventsPerSecond: 10 } } });
+        return MP.sb;
+    }
+    /* ----- lobby UI ----- */
+    function mpMsg(t, bad) { const m = $('#mpMsg'); m.textContent = t || ''; m.className = bad ? 'bad' : ''; }
+    function mpErr(e) {
+        const t = String((e && (e.message || e.details)) || e);
+        if (/lobby_not_found/.test(t)) return 'No lobby with that code.';
+        if (/lobby_full/.test(t)) return 'That lobby is full (4 players max).';
+        if (/lobby_started/.test(t)) return 'That match has already started.';
+        if (/need_two_players/.test(t)) return 'You need at least 2 players to start.';
+        if (/not_host/.test(t)) return 'Only the host can start the match.';
+        if (/not_in_lobby/.test(t)) return 'You are not in that lobby.';
+        return 'Error: ' + t;
+    }
+    function showMpView(v) {
+        $('#mpMenu').style.display = v === 'menu' ? 'block' : 'none';
+        $('#mpRoom').style.display = v === 'room' ? 'block' : 'none';
+        $('#mpSub').textContent = v === 'room' ? 'LOBBY · UP TO 4 PLAYERS' : 'UP TO 4 PLAYERS';
+        $('#mpBack').textContent = v === 'room' ? 'LEAVE LOBBY' : 'BACK';
+    }
+    function mpNameVal() {
+        const n = ($('#mpName').value || '').trim().slice(0, 14) || 'Player';
+        MP.name = n;
+        try { localStorage.setItem('lastshell_mp_name', n); } catch (e) { }
+        return n;
+    }
+    function openMpLobby() {
+        $('#mpLobby').style.display = 'flex';
+        $('#mpName').value = MP.name;
+        showMpView(MP.code && !MP.started ? 'room' : 'menu');
+        const ok = !!mpClient();
+        $('#mpCreate').disabled = $('#mpJoin').disabled = !ok;
+        if (!MP_OK)
+            mpMsg('Multiplayer is not set up yet. Put your Supabase URL and anon key at the top of the script and run supabase_setup.sql.', true);
+        else if (!ok)
+            mpMsg('Could not load the Supabase library (needs an internet connection).', true);
+        else
+            mpMsg('');
+    }
+    async function mpCreate() {
+        const sb = mpClient();
+        if (!sb)
+            return;
+        $('#mpCreate').disabled = true;
+        mpMsg('Creating lobby…');
+        const { data, error } = await sb.rpc('mp_create_lobby', { p_player: MP.pid, p_name: mpNameVal() });
+        $('#mpCreate').disabled = false;
+        if (error)
+            return mpMsg(mpErr(error), true);
+        mpEnter(data);
+    }
+    async function mpJoin() {
+        const sb = mpClient();
+        if (!sb)
+            return;
+        const code = ($('#mpCodeIn').value || '').trim().toUpperCase();
+        if (code.length < 4)
+            return mpMsg('Enter the lobby code.', true);
+        $('#mpJoin').disabled = true;
+        mpMsg('Joining…');
+        const { error } = await sb.rpc('mp_join_lobby', { p_code: code, p_player: MP.pid, p_name: mpNameVal() });
+        $('#mpJoin').disabled = false;
+        if (error)
+            return mpMsg(mpErr(error), true);
+        mpEnter(code);
+    }
+    function mpCleanup() {
+        if (MP.poll)
+            clearInterval(MP.poll);
+        MP.poll = 0;
+        if (MP.ch && MP.sb) {
+            try { MP.sb.removeChannel(MP.ch); }
+            catch (e) { }
+        }
+        MP.ch = null;
+    }
+    function mpEnter(code) {
+        mpCleanup();
+        MP.code = code;
+        MP.nextSeq = 1;
+        MP.buf.clear();
+        MP.S = null;
+        MP.started = false;
+        MP.over = false;
+        MP.players = [];
+        MP.pending = 0;
+        MP.chain = Promise.resolve();
+        showMpView('room');
+        mpMsg('');
+        $('#mpCodeShow').textContent = code;
+        const f = 'lobby_code=eq.' + code;
+        MP.ch = MP.sb.channel('lobby-' + code + '-' + MP.pid.slice(0, 8))
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'mp_players', filter: f }, () => mpPoll())
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'mp_lobbies', filter: 'code=eq.' + code }, () => mpPoll())
+            .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'mp_events', filter: f }, p => { if (p && p.new)
+            mpIngest([p.new]); })
+            .subscribe();
+        MP.poll = setInterval(mpPoll, 1500);
+        mpRenderRoom();
+        mpPoll();
+    }
+    function mpRenderRoom() {
+        if (MP.started)
+            return;
+        const box = $('#mpList');
+        box.innerHTML = '';
+        for (let i = 0; i < 4; i++) {
+            const p = MP.players[i], d = document.createElement('div');
+            d.className = 'mpSlot' + (p ? '' : ' empty');
+            d.textContent = p ? `${i + 1}. ${p.name}${p.player_id === MP.pid ? ' (you)' : ''}${p.player_id === MP.hostId ? ' ★ host' : ''}` : `${i + 1}. waiting for player…`;
+            box.appendChild(d);
+        }
+        const st = $('#mpStart');
+        st.style.display = MP.host ? 'block' : 'none';
+        st.disabled = MP.players.length < 2;
+        $('#mpWait').textContent = MP.host ? (MP.players.length < 2 ? 'Share the code. You need at least 2 players.' : 'Ready when you are.') : 'Waiting for the host to start the match…';
+    }
+    async function mpBack() {
+        if (MP.code && !MP.started) {
+            try { await MP.sb.rpc('mp_leave_lobby', { p_code: MP.code, p_player: MP.pid }); }
+            catch (e) { }
+            mpCleanup();
+            MP.code = null;
+            MP.players = [];
+            showMpView('menu');
+            mpMsg('');
+            return;
+        }
+        $('#mpLobby').style.display = 'none';
+    }
+    async function mpStartMatch() {
+        if (!MP.host || MP.started)
+            return;
+        $('#mpStart').disabled = true;
+        mpMsg('Starting…');
+        await mpPoll();
+        const { error } = await MP.sb.rpc('mp_start_lobby', { p_code: MP.code, p_player: MP.pid });
+        if (error) {
+            mpMsg(mpErr(error), true);
+            mpRenderRoom();
+            return;
+        }
+        await mpPoll();
+        const list = MP.players.map(p => ({ pid: p.player_id, name: p.name, seat: p.seat }));
+        const ld = mpGenLoad(list.map(p => p.pid));
+        await mpSend('start', Object.assign({ players: list, first: list[rand(0, list.length - 1)].pid, ver: 1 }, ld));
+    }
+    /* ----- networking ----- */
+    async function mpSend(type, payload) {
+        const { data, error } = await MP.sb.rpc('mp_send_event', { p_code: MP.code, p_player: MP.pid, p_type: type, p_payload: payload || {} });
+        if (error) {
+            MP.busy = false;
+            if (MP.S) {
+                say('Network error: ' + (error.message || error), 2000);
+                mpHUD();
+            }
+            else
+                mpMsg(mpErr(error), true);
+            return null;
+        }
+        setTimeout(mpPoll, 120);
+        return data;
+    }
+    async function mpPoll() {
+        if (!MP.code || MP.polling || !MP.sb)
+            return;
+        MP.polling = true;
+        try {
+            const [lb, pl, ev] = await Promise.all([
+                MP.sb.from('mp_lobbies').select('*').eq('code', MP.code).maybeSingle(),
+                MP.sb.from('mp_players').select('*').eq('lobby_code', MP.code).order('seat'),
+                MP.sb.from('mp_events').select('*').eq('lobby_code', MP.code).gte('seq', MP.nextSeq).order('seq')
+            ]);
+            if (!lb.error && !lb.data && !MP.started) {
+                mpCleanup();
+                MP.code = null;
+                showMpView('menu');
+                mpMsg('The lobby was closed.', true);
+                return;
+            }
+            if (lb.data) {
+                MP.hostId = lb.data.host_id;
+                MP.host = lb.data.host_id === MP.pid;
+            }
+            if (pl.data) {
+                MP.players = pl.data;
+                mpRenderRoom();
+            }
+            if (ev.data)
+                mpIngest(ev.data);
+            if (MP.S && MP.host && MP.S.needLoad && !MP.S.loadSent && !MP.over && MP.pending === 0)
+                mpSendLoad();
+        }
+        catch (e) { }
+        finally {
+            MP.polling = false;
+        }
+    }
+    function mpIngest(rows) {
+        for (const r of rows)
+            if (r.seq >= MP.nextSeq && !MP.buf.has(r.seq))
+                MP.buf.set(r.seq, r);
+        while (MP.buf.has(MP.nextSeq)) {
+            const ev = MP.buf.get(MP.nextSeq);
+            MP.buf.delete(MP.nextSeq);
+            MP.nextSeq++;
+            mpEnqueue(ev);
+        }
+    }
+    function mpEnqueue(ev) {
+        MP.pending++;
+        MP.chain = MP.chain.then(() => mpApply(ev)).catch(e => console.error('multiplayer event failed', e)).then(() => {
+            MP.pending--;
+            if (MP.pending === 0)
+                MP.busy = false;
+            if (MP.S)
+                mpHUD();
+        });
+    }
+    /* ----- game rules (identical on every client) ----- */
+    function mpGenLoad(pids) {
+        const total = rand(2, 8);
+        const live = Math.max(1, Math.min(total - 1, Math.round(total / 2) + rand(-1, 1)));
+        const arr = [...Array(live).fill(true), ...Array(total - live).fill(false)];
+        for (let i = arr.length - 1; i > 0; i--) {
+            const j = rand(0, i);
+            [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+        const grants = {};
+        pids.forEach(id => { grants[id] = [TYPES[rand(0, TYPES.length - 1)], TYPES[rand(0, TYPES.length - 1)]]; });
+        return { shells: arr, grants };
+    }
+    function mpSendLoad() {
+        const S = MP.S;
+        if (!S || S.loadSent || MP.over)
+            return;
+        S.loadSent = true;
+        const alive = S.seatOrder.filter(id => S.P[id].alive);
+        mpSend('load', Object.assign({ ver: S.loadNo + 1 }, mpGenLoad(alive))).then(r => { if (r === null)
+            S.loadSent = false; });
+    }
+    function mpNextAlive(from) {
+        const o = MP.S.seatOrder, i = o.indexOf(from);
+        for (let k = 1; k <= o.length; k++) {
+            const id = o[(i + k) % o.length];
+            if (MP.S.P[id].alive)
+                return id;
+        }
+        return from;
+    }
+    async function mpApply(ev) {
+        if (ev.type === 'start') {
+            await mpBegin(ev.payload);
+            return;
+        }
+        const S = MP.S;
+        if (!S || MP.over)
+            return;
+        if (ev.type === 'load') {
+            await mpLoad(ev.payload);
+            return;
+        }
+        if (ev.type === 'leave') {
+            await mpLeave(ev.player_id);
+            return;
+        }
+        if (ev.player_id !== S.turn || S.needLoad)
+            return; // not that player's turn: ignore
+        if (ev.type === 'item')
+            await mpDoItem(ev.player_id, ev.payload.slot);
+        else if (ev.type === 'shoot')
+            await mpDoShoot(ev.player_id, ev.payload.target);
+    }
+    async function mpBegin(p) {
+        if (MP.started)
+            return;
+        MP.started = true;
+        MP.over = false;
+        $('#mpLobby').style.display = 'none';
+        audio();
+        drone();
+        setMusic('game');
+        mode = 'mp';
+        paused = false;
+        document.body.classList.remove('title');
+        document.body.classList.add('mp');
+        for (const id of ['#title', '#overlay', '#pause', '#btnPause', '#codeListPanel', '#btnCodeList', '#settingsPanel', '#shop'])
+            $(id).style.display = 'none';
+        $('#fade').style.transition = 'none';
+        $('#fade').style.opacity = 0;
+        G.running = true;
+        G.roundOver = false;
+        const S = { P: {}, seatOrder: [], shells: [], liveLeft: 0, blankLeft: 0, sawn: false, known: {}, turn: p.first, needLoad: false, loadNo: 0, loadSent: false };
+        p.players.slice().sort((a, b) => a.seat - b.seat).forEach(q => {
+            S.seatOrder.push(q.pid);
+            S.P[q.pid] = { name: q.name, seat: q.seat, hp: 5, max: 5, items: Array(5).fill(null), alive: true };
+        });
+        MP.S = S;
+        const i = Math.max(0, S.seatOrder.indexOf(MP.pid));
+        MP.others = S.seatOrder.slice(i + 1).concat(S.seatOrder.slice(0, i));
+        G.players.p.items = S.P[MP.pid].items;
+        G.players.o.items = Array(5).fill(null);
+        opp.visible = false;
+        gunRest();
+        hideTray();
+        rebuildItems();
+        mpBuildFigs();
+        $('#cash').style.display = 'none';
+        $('#bottom').style.display = 'flex';
+        $('#log').innerHTML = '';
+        mpHUD();
+        await say('MULTIPLAYER MATCH', 1400, 'big');
+        await say('Last one standing wins. 5 charges each.', 1500);
+        await mpLoad(p);
+    }
+    async function mpLoad(p) {
+        const S = MP.S;
+        if (p.ver && p.ver !== S.loadNo + 1)
+            return; // duplicate load
+        S.loadNo = p.ver || S.loadNo + 1;
+        S.shells = p.shells.slice();
+        S.liveLeft = S.shells.filter(Boolean).length;
+        S.blankLeft = S.shells.length - S.liveLeft;
+        S.known = {};
+        S.sawn = false;
+        S.needLoad = false;
+        S.loadSent = false;
+        setSawn(false);
+        for (const id in p.grants) {
+            const P = S.P[id];
+            if (!P || !P.alive)
+                continue;
+            for (const t of p.grants[id]) {
+                const k = P.items.indexOf(null);
+                if (k >= 0 && ITEMS[t])
+                    P.items[k] = t;
+            }
+        }
+        G.players.p.items = S.P[MP.pid].items;
+        rebuildItems();
+        mpHUD();
+        SFX.load();
+        showTray(S.liveLeft, S.blankLeft);
+        await say(`${S.liveLeft} LIVE · ${S.blankLeft} BLANK`, 2600, 'big');
+        hideTray();
+        if (S.turn === MP.pid)
+            say('YOUR TURN', 900);
+        mpHUD();
+    }
+    async function mpDoItem(pid, slot) {
+        const S = MP.S, P = S.P[pid], me = MP.pid;
+        const t = P && P.items[slot];
+        if (!t)
+            return;
+        if (t === 'beer' && P.hp >= P.max)
+            return;
+        if (t === 'knife' && S.sawn)
+            return;
+        say(`${pid === me ? 'You use' : P.name + ' uses'} the ${ITEMS[t].name}.`, 1100);
+        const m = pid === me ? itemsGroup.children.find(c => c.userData.owner === 'p' && c.userData.idx === slot) : null;
+        if (m) {
+            const y0 = m.position.y;
+            await tween(500, e => { m.position.y = y0 + e * .55; m.rotation.y += .22; m.scale.setScalar(Math.max(.05, 1 - e * .9)); });
+        }
+        else
+            await sleep(500);
+        P.items[slot] = null;
+        if (pid === me)
+            rebuildItems();
+        mpHUD();
+        if (t === 'lens') {
+            SFX.lens();
+            S.known[pid] = S.shells[0];
+            if (pid === me)
+                await say(S.shells[0] ? 'The chamber holds a LIVE shell.' : 'The chamber holds a BLANK.', 1700, S.shells[0] ? 'live' : 'blank');
+            else
+                await say(`${P.name} peeks at the chamber.`, 1200);
+        }
+        else if (t === 'beer') {
+            SFX.heal();
+            P.hp = Math.min(P.max, P.hp + 1);
+            await say(`${pid === me ? 'You gain' : P.name + ' gains'} 1 charge.`, 1000);
+        }
+        else if (t === 'knife') {
+            SFX.saw();
+            S.sawn = true;
+            setSawn(true);
+            await say('Barrel cut: a live shot now takes 2 charges.', 1400);
+        }
+        mpHUD();
+        await sleep(250);
+    }
+    function mpAnchor(pid) {
+        if (pid === MP.pid)
+            return V(0, 1.6, 1.5);
+        const b = MP.figs[pid].userData.base;
+        return V(b.x, 1.6, b.z);
+    }
+    function mpPose(shooter, target) {
+        if (target === MP.pid)
+            return POSE.you;
+        const T = mpAnchor(target);
+        if (shooter === target) {
+            let fx = -T.x, fz = -T.z;
+            const l = Math.hypot(fx, fz) || 1;
+            fx /= l;
+            fz /= l;
+            return { pos: V(T.x + fx * .67, 1.55, T.z + fz * .67), rot: Math.atan2(fz, -fx), muzzle: V(T.x + fx * .2, 1.55, T.z + fz * .2) };
+        }
+        const S0 = mpAnchor(shooter);
+        let dx = T.x - S0.x, dz = T.z - S0.z;
+        const l = Math.hypot(dx, dz) || 1;
+        dx /= l;
+        dz /= l;
+        const M = V(T.x - dx * .7, 1.6, T.z - dz * .7);
+        return { pos: V(M.x - dx * .8, 1.6, M.z - dz * .8), rot: Math.atan2(-dz, dx), muzzle: M };
+    }
+    async function figRecoil(g) {
+        await tween(450, e => { g.rotation.x = -.75 * e; });
+        await sleep(1000);
+        await tween(650, e => { g.rotation.x = -.75 * (1 - e); });
+    }
+    async function figFall(g) {
+        g.userData.dead = true;
+        await tween(1300, e => { g.rotation.x = -Math.PI / 2 * e; g.position.y = -.12 * e; });
+    }
+    async function mpDoShoot(shooter, target) {
+        const S = MP.S, T = S.P[target], A = S.P[shooter], me = MP.pid;
+        if (!T || !T.alive || !A || !A.alive)
+            return;
+        const live = S.shells.shift();
+        live ? S.liveLeft-- : S.blankLeft--;
+        const dmg = S.sawn ? 2 : 1, self = shooter === target;
+        const nm = id => id === me ? 'You' : S.P[id].name;
+        S.known = {};
+        mpHUD();
+        say(shooter === me ? (self ? 'You turn the barrel on yourself…' : `You aim at ${T.name}…`)
+            : (self ? `${A.name} turns the barrel on themselves…` : (target === me ? `${A.name} aims at you…` : `${A.name} aims at ${T.name}…`)), 2600);
+        SFX.pump();
+        const pose = mpPose(shooter, target);
+        await moveGun(pose, 600);
+        await sleep(1000);
+        flashLight.position.copy(pose.muzzle);
+        let rec = null;
+        if (live) {
+            SFX.shot();
+            flashLight.intensity = 9;
+            burst(target === me, pose.muzzle);
+            screenFlash(target === me ? '#ffb080' : '#fff');
+            shake = target === me ? .35 : .12;
+            T.hp = Math.max(0, T.hp - dmg);
+            if (target === me) {
+                hurtFx();
+                SFX.hurt();
+            }
+            else if (T.hp > 0 && MP.figs[target])
+                rec = figRecoil(MP.figs[target]);
+        }
+        else
+            SFX.click();
+        setSawn(false);
+        S.sawn = false;
+        mpHUD();
+        await say(live ? `${nm(target)} ${target === me ? 'lose' : 'loses'} ${dmg} charge${dmg > 1 ? 's' : ''}.` : 'A blank.', 1500, live ? 'live' : 'blank');
+        await moveGun(POSE.rest, 500);
+        SFX.pump();
+        if (rec)
+            await rec;
+        if (T.hp <= 0) {
+            T.alive = false;
+            mpHUD();
+            if (target === me)
+                await tween(900, e => { $('#fade').style.opacity = .55 * e; });
+            else if (MP.figs[target])
+                await figFall(MP.figs[target]);
+            await say(`${nm(target)} ${target === me ? 'are' : 'is'} out.`, 1500);
+        }
+        const alive = S.seatOrder.filter(id => S.P[id].alive);
+        if (alive.length <= 1) {
+            await mpGameOver(alive[0]);
+            return;
+        }
+        S.turn = (self && !live && A.alive) ? shooter : mpNextAlive(shooter);
+        if (S.shells.length === 0) {
+            S.needLoad = true;
+            if (MP.host)
+                mpSendLoad();
+        }
+        mpHUD();
+        if (S.turn === me && !S.needLoad)
+            say('YOUR TURN', 900);
+    }
+    async function mpLeave(pid) {
+        const S = MP.S, P = S.P[pid];
+        if (!P || !P.alive)
+            return;
+        P.alive = false;
+        P.hp = 0;
+        const f = MP.figs[pid];
+        if (f) {
+            f.userData.dead = true;
+            f.visible = false;
+        }
+        say(`${P.name} left the match.`, 1500);
+        const alive = S.seatOrder.filter(id => S.P[id].alive);
+        if (alive.length <= 1) {
+            await mpGameOver(alive[0]);
+            return;
+        }
+        if (S.turn === pid)
+            S.turn = mpNextAlive(pid);
+        mpHUD();
+    }
+    async function mpGameOver(winId) {
+        const S = MP.S;
+        MP.over = true;
+        mpHUD();
+        if (MP.host)
+            mpSend('gameover', { winner: winId || null });
+        await sleep(700);
+        const win = winId === MP.pid;
+        $('#card').innerHTML = `<h1 style="color:${win ? '#ffd24a' : '#b02020'}">${win ? 'YOU WIN' : 'MATCH OVER'}</h1><h2 id="mpWinner"></h2><p style="text-align:center">Thanks for playing.</p><button id="btnTitle">LEAVE</button>`;
+        $('#mpWinner').textContent = (winId ? S.P[winId].name.toUpperCase() : 'NOBODY') + ' IS THE LAST ONE STANDING';
+        $('#overlay').style.display = 'flex';
+        $('#btnTitle').onclick = () => location.reload();
+    }
+    /* ----- player input ----- */
+    function mpCan() {
+        const S = MP.S;
+        return !!S && !MP.over && !MP.busy && MP.pending === 0 && !S.needLoad && S.turn === MP.pid && S.P[MP.pid].alive;
+    }
+    function mpShoot(target) {
+        if (!mpCan())
+            return;
+        const P = MP.S.P[target];
+        if (!P || !P.alive)
+            return;
+        MP.busy = true;
+        mpHUD();
+        mpSend('shoot', { target });
+    }
+    function mpUseItem(i) {
+        if (!mpCan())
+            return;
+        const S = MP.S, P = S.P[MP.pid], t = P.items[i];
+        if (!t)
+            return;
+        if (t === 'beer' && P.hp >= P.max) {
+            say('Already at full charge.', 1000);
+            return;
+        }
+        if (t === 'knife' && S.sawn) {
+            say('The barrel is already cut.', 1100);
+            return;
+        }
+        MP.busy = true;
+        mpHUD();
+        mpSend('item', { slot: i });
+    }
+    function mpPointer(e, h) {
+        if (h.kind === 'fig') {
+            if (!MP.S || !MP.S.P[h.pid] || !MP.S.P[h.pid].alive)
+                return;
+            if (e.pointerType === 'mouse' || (mpArm.pid === h.pid && performance.now() - mpArm.t < 2500)) {
+                mpArm.pid = null;
+                mpShoot(h.pid);
+            }
+            else if (mpCan()) {
+                mpArm = { pid: h.pid, t: performance.now() };
+                const tip = $('#tip');
+                tip.textContent = 'Tap again to shoot ' + MP.S.P[h.pid].name;
+                setTimeout(() => { if (performance.now() - mpArm.t >= 2400)
+                    tip.textContent = ''; }, 2500);
+            }
+        }
+        else if (h.kind === 'item' && h.owner === 'p')
+            mpUseItem(h.idx);
+    }
+    /* ----- HUD ----- */
+    function mpHUD() {
+        const S = MP.S;
+        if (!S)
+            return;
+        const me = S.P[MP.pid], can = mpCan();
+        $('#roundInfo').textContent = 'MULTIPLAYER · ' + MP.code;
+        pips('#youPips', me);
+        $('#shellInfo').innerHTML = `<span class="live">${S.liveLeft} LIVE</span><span class="blank">${S.blankLeft} BLANK</span><span class="dim">${S.shells.length} left</span>`;
+        const k = S.known[MP.pid], pk = $('#peek');
+        pk.textContent = (k === undefined || k === null) ? '' : (k ? 'CHAMBERED: LIVE' : 'CHAMBERED: BLANK');
+        pk.style.color = k ? '#ff5a48' : '#6aa7ff';
+        $('#modes').textContent = me.alive ? '' : 'SPECTATING';
+        $('#youTags').textContent = (S.sawn ? ' 🪚 x2' : '') + (me.alive ? '' : ' ☠');
+        const mine = me.items;
+        invEl.style.display = mine.some(Boolean) ? 'flex' : 'none';
+        [...invEl.children].forEach((b, i) => {
+            const t = mine[i];
+            if (t) {
+                b.innerHTML = `<span class="k">${i + 1}</span>${ITEMS[t].icon}<small>${ITEMS[t].name}</small>`;
+                b.classList.remove('empty');
+            }
+            else {
+                b.innerHTML = `<span class="k">${i + 1}</span>`;
+                b.classList.add('empty');
+            }
+            b.disabled = !can || !t;
+        });
+        $('#btnSelf').disabled = !can;
+        $('#turn').textContent = MP.over ? '' : (S.turn === MP.pid ? 'YOUR TURN' : S.P[S.turn].name.toUpperCase() + "'S TURN");
+        const bar = $('#mpBar');
+        bar.innerHTML = '';
+        for (const id of MP.others) {
+            const P = S.P[id], b = document.createElement('button');
+            b.className = 'mpChip' + (S.turn === id && !MP.over ? ' turn' : '') + (P.alive ? '' : ' dead');
+            const n = document.createElement('div');
+            n.className = 'n';
+            n.textContent = P.name;
+            const pp = document.createElement('div');
+            pp.className = 'pips';
+            let h = '';
+            for (let i = 0; i < P.max; i++)
+                h += `<i class="${i < P.hp ? 'on' : ''}"></i>`;
+            pp.innerHTML = h;
+            const it = document.createElement('div');
+            it.className = 'it';
+            it.textContent = P.items.filter(Boolean).map(t => ITEMS[t].icon).join(' ');
+            b.append(n, pp, it);
+            b.disabled = !can || !P.alive;
+            b.title = 'Shoot ' + P.name;
+            b.onclick = () => mpShoot(id);
+            bar.appendChild(b);
+            mpFigState(id);
+        }
+    }
+    /* ----- figures for the other players ----- */
+    const mpFigs = new THREE.Group();
+    mpFigs.visible = false;
+    scene.add(mpFigs);
+    const FIG_COL = [0x3a2a52, 0x24493a, 0x55372a, 0x2a3f5a];
+    function paintFace(c, P, size) {
+        const k = size / 256;
+        c.setTransform(k, 0, 0, k, 0, 0);
+        c.clearRect(0, 0, 256, 256);
+        const curv = P.max ? 2 * (P.hp / P.max) - 1 : 1;
+        c.fillStyle = P.alive ? '#ffd93b' : '#8a8a80';
+        c.beginPath();
+        c.arc(128, 128, 122, 0, 6.283);
+        c.fill();
+        c.lineWidth = 8;
+        c.strokeStyle = '#2a2000';
+        c.stroke();
+        c.strokeStyle = '#1a1400';
+        c.fillStyle = '#1a1400';
+        c.lineCap = 'round';
+        if (!P.alive) {
+            c.lineWidth = 10;
+            for (const x of [88, 168]) {
+                c.beginPath();
+                c.moveTo(x - 16, 90);
+                c.lineTo(x + 16, 122);
+                c.moveTo(x + 16, 90);
+                c.lineTo(x - 16, 122);
+                c.stroke();
+            }
+            c.beginPath();
+            c.moveTo(80, 190);
+            c.lineTo(176, 190);
+            c.stroke();
+            return;
+        }
+        for (const x of [88, 168]) {
+            c.beginPath();
+            c.ellipse(x, 106, 14, 21, 0, 0, 6.283);
+            c.fill();
+        }
+        if (curv < .5) {
+            const tilt = (.5 - curv) / 1.5, inner = 70 + 22 * tilt;
+            c.lineWidth = 10;
+            c.beginPath();
+            c.moveTo(58, 70);
+            c.lineTo(116, inner);
+            c.moveTo(198, 70);
+            c.lineTo(140, inner);
+            c.stroke();
+        }
+        const baseY = 168 + 14 * (1 - curv);
+        c.lineWidth = 11;
+        c.beginPath();
+        c.moveTo(70, baseY);
+        c.quadraticCurveTo(128, baseY + 70 * curv, 186, baseY);
+        c.stroke();
+    }
+    function mpMakeFig(pid, P) {
+        const g = new THREE.Group();
+        g.userData = { kind: 'fig', pid, ph: Math.random() * 6, key: '', lkey: '' };
+        const hoodC = mat(FIG_COL[P.seat % 4], { roughness: .95 });
+        const head = new THREE.Group();
+        head.position.set(0, 1.95, 0);
+        head.scale.setScalar(1.15);
+        g.add(head);
+        mesh(new THREE.SphereGeometry(.31, 18, 14), hoodC, 0, 0, 0, head);
+        mesh(new THREE.ConeGeometry(.3, .5, 14), hoodC, 0, .3, -.06, head).rotation.x = -.2;
+        mesh(new THREE.SphereGeometry(.24, 16, 12), voidM, 0, -.01, .1, head).scale.z = .9;
+        const fc = document.createElement('canvas');
+        fc.width = fc.height = 128;
+        const ftex = new THREE.CanvasTexture(fc);
+        mesh(new THREE.CircleGeometry(.2, 32), new THREE.MeshBasicMaterial({ map: ftex, transparent: true }), 0, 0, .33, head, false);
+        mesh(new THREE.CylinderGeometry(.26, .5, 1.25, 14), hoodC, 0, 1.2, 0, g);
+        const lc = document.createElement('canvas');
+        lc.width = 256;
+        lc.height = 64;
+        const ltex = new THREE.CanvasTexture(lc);
+        const spr = new THREE.Sprite(new THREE.SpriteMaterial({ map: ltex, transparent: true, depthTest: false }));
+        spr.scale.set(1.3, .325, 1);
+        spr.position.set(0, 2.8, 0);
+        spr.renderOrder = 5;
+        g.add(spr);
+        Object.assign(g.userData, { head, fc, ftex, lc, ltex });
+        return g;
+    }
+    function mpBuildFigs() {
+        while (mpFigs.children.length)
+            mpFigs.remove(mpFigs.children[0]);
+        MP.figs = {};
+        const n = MP.others.length;
+        const POS = { 1: [[0, -1.75]], 2: [[-.8, -1.75], [.8, -1.75]], 3: [[-1.25, -1.75], [0, -1.9], [1.25, -1.75]] }[n] || [];
+        const sc = n === 3 ? .85 : n === 2 ? .92 : 1;
+        MP.others.forEach((pid, i) => {
+            if (!POS[i])
+                return;
+            const g = mpMakeFig(pid, MP.S.P[pid]);
+            g.position.set(POS[i][0], 0, POS[i][1]);
+            g.scale.setScalar(sc);
+            g.userData.base = V(POS[i][0], 0, POS[i][1]);
+            mpFigs.add(g);
+            MP.figs[pid] = g;
+        });
+        mpFigs.visible = true;
+    }
+    function mpFigState(pid) {
+        const g = MP.figs[pid], S = MP.S;
+        if (!g || !S)
+            return;
+        const P = S.P[pid], u = g.userData;
+        const fk = P.hp + '/' + P.max + (P.alive ? '' : 'x');
+        if (fk !== u.key) {
+            u.key = fk;
+            paintFace(u.fc.getContext('2d'), P, 128);
+            u.ftex.needsUpdate = true;
+        }
+        const turn = S.turn === pid && !MP.over, lk = P.name + (turn ? '*' : '') + (P.alive ? '' : 'x');
+        if (lk !== u.lkey) {
+            u.lkey = lk;
+            const c = u.lc.getContext('2d');
+            c.clearRect(0, 0, 256, 64);
+            c.fillStyle = 'rgba(0,0,0,.55)';
+            c.fillRect(0, 8, 256, 48);
+            c.font = 'bold 30px "Courier New",monospace';
+            c.textAlign = 'center';
+            c.textBaseline = 'middle';
+            c.fillStyle = turn ? '#ffd24a' : (P.alive ? '#e8e2d0' : '#777');
+            c.fillText(P.name, 128, 33, 240);
+            u.ltex.needsUpdate = true;
+        }
+    }
+    function mpIdle(t) {
+        if (!mpFigs.visible)
+            return;
+        for (const g of mpFigs.children) {
+            const u = g.userData;
+            if (u.dead)
+                continue;
+            g.position.y = Math.sin(t * .0015 + u.ph) * .015;
+            u.head.rotation.y = mx * .3 + Math.sin(t * .0007 + u.ph) * .05;
+            u.head.rotation.x = .22 + Math.sin(t * .0011 + u.ph) * .02;
+        }
+    }
+    /* ----- wiring ----- */
+    $('#btnMulti').onclick = openMpLobby;
+    $('#mpCreate').onclick = mpCreate;
+    $('#mpJoin').onclick = mpJoin;
+    $('#mpStart').onclick = mpStartMatch;
+    $('#mpBack').onclick = mpBack;
+    $('#mpCodeIn').addEventListener('keydown', e => { if (e.key === 'Enter')
+        mpJoin(); });
+    $('#mpCodeIn').addEventListener('input', e => { e.target.value = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, ''); });
+    $('#btnSelf').addEventListener('click', () => { if (mode === 'mp')
+        mpShoot(MP.pid); });
+    [...invEl.children].forEach((b, i) => b.addEventListener('click', () => { if (mode === 'mp')
+        mpUseItem(i); }));
+    $('#btnLeaveMp').onclick = async () => {
+        if (!confirm('Leave the match?'))
+            return;
+        if (MP.S && !MP.over) {
+            try { await mpSend('leave'); }
+            catch (e) { }
+        }
+        location.reload();
+    };
     const settingsPanel = $('#settingsPanel');
     $('#btnSettings').addEventListener('click', () => { applyGraphicsQuality(graphicsQuality, false); settingsPanel.style.display = 'flex'; });
     $('#qualityHigh').addEventListener('click', () => applyGraphicsQuality('high'));
