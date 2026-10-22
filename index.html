@@ -3273,7 +3273,7 @@ button{text-transform:none}
         const st = $('#mpStart');
         st.style.display = MP.host ? 'block' : 'none';
         st.disabled = MP.players.length < 2;
-        $('#mpWait').textContent = MP.host ? (MP.players.length < 2 ? 'Share the code. You need at least 2 players.' : 'Ready when you are.') : 'Waiting for the host to start the match…';
+        $('#mpWait').textContent = MP.host ? (MP.players.length < 2 ? 'Share the code, you need at least 2 players.' : 'Press "Start Match" to start the match if you have 2 or more people in the lobby.') : 'Waiting for the host to start the match…';
     }
     async function mpBack() {
         if (MP.code && !MP.started) {
