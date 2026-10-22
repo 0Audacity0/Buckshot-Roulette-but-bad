@@ -968,7 +968,8 @@ html.mobile body:not(.mp) #oppBox{top:max(6px,env(safe-area-inset-top));left:50%
 html.mobile body:not(.mp) #oppBox .lbl{font-size:11px;letter-spacing:.1em}
 html.mobile body:not(.mp) #oppBox .pips i{width:13px;height:21px;margin-right:2px}
 html.mobile body:not(.mp) #oppItems{font-size:17px}
-html.mobile body.mp #mpBar{top:max(6px,env(safe-area-inset-top));left:122px;right:66px;transform:none;flex-wrap:nowrap;gap:4px;justify-content:center}
+html.mobile body.mp #mpBar{top:max(6px,env(safe-area-inset-top));left:50%;right:auto;transform:translateX(-50%);width:fit-content;max-width:calc(100vw - 140px);flex-wrap:nowrap;gap:4px;justify-content:center}
+html.mobile body.mp3 #topL{top:calc(max(6px,env(safe-area-inset-top)) + 74px)}
 html.mobile body.mp .mpChip{flex:1 1 0;min-width:0;max-width:64px;padding:5px 3px;gap:3px}
 html.mobile body.mp .mpChip .n{font-size:11px;letter-spacing:0;max-width:100%}
 html.mobile body.mp .mpChip .pips{white-space:nowrap}
@@ -976,21 +977,22 @@ html.mobile body.mp .mpChip .pips i{width:8px;height:15px;margin-right:1px}
 html.mobile body.mp .mpChip .it{font-size:11px;min-height:13px;white-space:nowrap;overflow:hidden;max-width:100%}
 html.mobile body.mp #turn{top:calc(max(6px,env(safe-area-inset-top)) + 84px);left:50%;right:auto;transform:translateX(-50%);font-size:11px}
 @media (max-width:600px){
-  body #topL{top:max(6px,env(safe-area-inset-top));left:max(6px,env(safe-area-inset-left));font-size:11px;line-height:1.35;padding:5px 7px;max-width:106px;z-index:4}
-  body #topL #roundInfo{font-size:8px;letter-spacing:0;white-space:nowrap;color:#b9b19a}
-  body #topL #shellInfo span{display:block;margin-right:0;font-weight:bold}
-  body #topL #cash,body #topL #modes{font-size:10px}
-  body:not(.mp) #oppBox{top:max(6px,env(safe-area-inset-top));left:50%;right:auto;transform:translateX(-50%);width:fit-content;margin:0;min-width:0;padding:6px 8px;text-align:center}
-  body:not(.mp) #oppBox .lbl{font-size:11px;letter-spacing:.1em}
-  body:not(.mp) #oppBox .pips i{width:13px;height:21px;margin-right:2px}
-  body:not(.mp) #oppItems{font-size:17px}
-  body.mp #mpBar{top:max(6px,env(safe-area-inset-top));left:122px;right:66px;transform:none;flex-wrap:nowrap;gap:4px;justify-content:center}
-  body.mp .mpChip{flex:1 1 0;min-width:0;max-width:64px;padding:5px 3px;gap:3px}
-  body.mp .mpChip .n{font-size:11px;letter-spacing:0;max-width:100%}
-  body.mp .mpChip .pips{white-space:nowrap}
-  body.mp .mpChip .pips i{width:8px;height:15px;margin-right:1px}
-  body.mp .mpChip .it{font-size:11px;min-height:13px;white-space:nowrap;overflow:hidden;max-width:100%}
-  body.mp #turn{top:calc(max(6px,env(safe-area-inset-top)) + 84px);left:50%;right:auto;transform:translateX(-50%);font-size:11px}
+  html body #topL{top:max(6px,env(safe-area-inset-top));left:max(6px,env(safe-area-inset-left));font-size:11px;line-height:1.35;padding:5px 7px;max-width:106px;z-index:4}
+  html body #topL #roundInfo{font-size:8px;letter-spacing:0;white-space:nowrap;color:#b9b19a}
+  html body #topL #shellInfo span{display:block;margin-right:0;font-weight:bold}
+  html body #topL #cash,html body #topL #modes{font-size:10px}
+  html body:not(.mp) #oppBox{top:max(6px,env(safe-area-inset-top));left:50%;right:auto;transform:translateX(-50%);width:fit-content;margin:0;min-width:0;padding:6px 8px;text-align:center}
+  html body:not(.mp) #oppBox .lbl{font-size:11px;letter-spacing:.1em}
+  html body:not(.mp) #oppBox .pips i{width:13px;height:21px;margin-right:2px}
+  html body:not(.mp) #oppItems{font-size:17px}
+  html body.mp #mpBar{top:max(6px,env(safe-area-inset-top));left:50%;right:auto;transform:translateX(-50%);width:fit-content;max-width:calc(100vw - 140px);flex-wrap:nowrap;gap:4px;justify-content:center}
+  html body.mp3 #topL{top:calc(max(6px,env(safe-area-inset-top)) + 74px)}
+  html body.mp .mpChip{flex:1 1 0;min-width:0;max-width:64px;padding:5px 3px;gap:3px}
+  html body.mp .mpChip .n{font-size:11px;letter-spacing:0;max-width:100%}
+  html body.mp .mpChip .pips{white-space:nowrap}
+  html body.mp .mpChip .pips i{width:8px;height:15px;margin-right:1px}
+  html body.mp .mpChip .it{font-size:11px;min-height:13px;white-space:nowrap;overflow:hidden;max-width:100%}
+  html body.mp #turn{top:calc(max(6px,env(safe-area-inset-top)) + 84px);left:50%;right:auto;transform:translateX(-50%);font-size:11px}
 }
 
 /* ---------- Multiplayer ---------- */
@@ -3205,6 +3207,8 @@ html.mobile #chatSend{min-height:44px}
             oppState.hit = Math.max(0, oppState.hit - dt * 1.6);
         }
         mpIdle(t);
+        if (mode === 'mp')
+            mpSendLook(false);
         flashLight.intensity *= Math.pow(.002, dt);
         shake *= Math.pow(.02, dt);
         window._dust.rotation.y += dt * .03;
@@ -3231,7 +3235,7 @@ html.mobile #chatSend{min-height:44px}
     // players see the same game. The host is the only client that generates random shell loads.
     const MP_OK = !!SUPABASE_URL && !!SUPABASE_ANON_KEY && !/YOUR-PROJECT|YOUR-ANON/.test(SUPABASE_URL + SUPABASE_ANON_KEY);
     const MP = { sb: null, pid: null, name: '', code: null, host: false, hostId: null, players: [], ch: null, poll: 0, polling: false,
-        nextSeq: 1, buf: new Map(), chain: Promise.resolve(), pending: 0, started: false, over: false, busy: false, S: null, others: [], figs: {}, flags: {}, flagTimer: 0 };
+        nextSeq: 1, buf: new Map(), chain: Promise.resolve(), pending: 0, started: false, over: false, busy: false, S: null, others: [], figs: {}, flags: {}, flagTimer: 0, look: {} };
     try { MP.pid = sessionStorage.getItem('lastshell_mp_pid'); } catch (e) { }
     if (!MP.pid) {
         MP.pid = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : 'p' + Math.random().toString(36).slice(2) + Date.now().toString(36);
@@ -3314,11 +3318,24 @@ html.mobile #chatSend{min-height:44px}
         return { god: a && !!SAVE.cheats.god, peek: a && !!SAVE.cheats.peek, stocked: a && !!SAVE.stockedActive };
     }
     function mpSendFlags() {
+        mpSendLook(true);
         MP.flags[MP.pid] = mpMyFlags();
         if (MP.ch) {
             try { MP.ch.send({ type: 'broadcast', event: 'flags', payload: { pid: MP.pid, f: MP.flags[MP.pid] } }); }
             catch (e) { }
         }
+    }
+    let lookSent = 0, lookSentAt = 0;
+    function mpSendLook(force) {
+        if (!MP.ch || !MP.S)
+            return;
+        const n = performance.now();
+        if (!force && (n - lookSentAt < 120 || Math.abs(yaw - lookSent) < .015))
+            return;
+        lookSent = yaw;
+        lookSentAt = n;
+        try { MP.ch.send({ type: 'broadcast', event: 'look', payload: { pid: MP.pid, y: Math.round(yaw * 1000) / 1000 } }); }
+        catch (e) { }
     }
     function mpCleanup() {
         if (MP.flagTimer)
@@ -3362,9 +3379,11 @@ html.mobile #chatSend{min-height:44px}
             .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'mp_events', filter: f }, p => { if (p && p.new)
             mpIngest([p.new]); })
             .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'mp_chat', filter: f }, p => { if (p && p.new) chatIngest([p.new]); })
+            .on('broadcast', { event: 'look' }, m => { const d = m && m.payload; if (d && d.pid && d.pid !== MP.pid && typeof d.y === 'number' && isFinite(d.y)) MP.look[d.pid] = Math.max(-.75, Math.min(.75, d.y)); })
             .on('broadcast', { event: 'flags' }, m => { const d = m && m.payload; if (d && d.pid && d.f) { MP.flags[d.pid] = { god: !!d.f.god, peek: !!d.f.peek, stocked: !!d.f.stocked }; mpSendFlagsBack(d.pid); } })
             .subscribe(st => { if (st === 'SUBSCRIBED') mpSendFlags(); });
         MP.flags = {};
+        MP.look = {};
         MP.flags[MP.pid] = mpMyFlags();
         MP.flagTimer = setInterval(mpSendFlags, 4000);
         MP.chatLast = 0;
@@ -3964,6 +3983,7 @@ html.mobile #chatSend{min-height:44px}
         if (!S)
             return;
         mpSyncOtherItems();
+        document.body.classList.toggle('mp3', MP.others.length >= 3);
         const me = S.P[MP.pid], can = mpCan();
         $('#roundInfo').textContent = 'MULTIPLAYER · ' + MP.code;
         pips('#youPips', me);
@@ -4199,7 +4219,9 @@ html.mobile #chatSend{min-height:44px}
             if (u.dead)
                 continue;
             g.position.y = Math.sin(t * .0015 + u.ph) * .015;
-            u.head.rotation.y = mx * .3 + Math.sin(t * .0007 + u.ph) * .05;
+            const tgt = -(MP.look[u.pid] || 0);
+            u.hy = (u.hy || 0) + (tgt - (u.hy || 0)) * .15;
+            u.head.rotation.y = u.hy + Math.sin(t * .0007 + u.ph) * .05;
             u.head.rotation.x = .22 + Math.sin(t * .0011 + u.ph) * .02;
         }
     }
