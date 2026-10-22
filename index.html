@@ -768,6 +768,8 @@ body:not(.title) #btnSettings {
 #turn {
   right: 64px
 }
+#btnPause .pbars{display:inline-flex;gap:5px;align-items:center;justify-content:center;pointer-events:none}
+#btnPause .pbars i{display:block;width:5px;height:16px;background:currentColor;border-radius:1px}
 #pause {
   position: fixed;
   inset: 0;
@@ -958,10 +960,16 @@ html.mobile #codeMsg{flex:1 1 100%;text-align:center}
 html.mobile #btnSettings{top:max(12px,env(safe-area-inset-top));right:max(12px,env(safe-area-inset-right));width:50px;height:50px}
 html.mobile #btnCodeList{top:max(12px,env(safe-area-inset-top));left:max(12px,env(safe-area-inset-left));bottom:auto;min-height:44px}
 html.mobile #codeListPanel{left:12px;right:12px;bottom:auto;top:calc(max(12px,env(safe-area-inset-top)) + 62px);width:auto;max-height:70vh;max-height:70dvh}
-html.mobile #topL{font-size:9px;line-height:1.3}
-html.mobile body:not(.mp) #topL{top:max(6px,env(safe-area-inset-top));left:max(6px,env(safe-area-inset-left))}
-html.mobile body:not(.mp) #oppBox{left:auto;right:max(6px,env(safe-area-inset-right));transform:none}
-html.mobile #topL .live,html.mobile #topL .blank{margin-right:8px}
+html.mobile body #topL{top:max(6px,env(safe-area-inset-top));left:max(6px,env(safe-area-inset-left));font-size:8px;line-height:1.3;padding:4px 6px;max-width:112px;z-index:4}
+html.mobile body #topL .live,html.mobile body #topL .blank{margin-right:5px}
+html.mobile body #topL .lbl{font-size:8px}
+html.mobile body:not(.mp) #oppBox{top:max(6px,env(safe-area-inset-top));left:50%;right:auto;transform:translateX(-50%);min-width:96px}
+html.mobile body.mp #mpBar{top:max(6px,env(safe-area-inset-top));left:118px;right:84px;transform:none;flex-wrap:nowrap;gap:4px;justify-content:center}
+html.mobile body.mp .mpChip{flex:0 1 50px;min-width:0;width:50px;padding:4px 3px;gap:2px}
+html.mobile body.mp .mpChip .n{font-size:9px;letter-spacing:0;max-width:46px}
+html.mobile body.mp .mpChip .pips i{width:7px;height:12px;margin-right:1px}
+html.mobile body.mp .mpChip .it{font-size:9px;min-height:11px;white-space:nowrap;overflow:hidden;max-width:46px}
+html.mobile body.mp #turn{top:calc(max(6px,env(safe-area-inset-top)) + 70px);left:50%;right:auto;transform:translateX(-50%);font-size:10px}
 
 /* ---------- Multiplayer ---------- */
 .tMid{display:flex;flex-direction:column;align-items:center;gap:12px}
@@ -1016,8 +1024,9 @@ button{text-transform:none}
 
 
 /* ---------- Multiplayer chat ---------- */
-#chatBtn{position:fixed;right:max(12px,env(safe-area-inset-right));bottom:max(12px,env(safe-area-inset-bottom));z-index:40;display:none;width:auto;min-height:0;padding:10px 16px;font-size:13px;letter-spacing:.15em;background:rgba(10,9,7,.94);border:1px solid #6aa7ff;color:#bcd6ff}
-#chatBtn.show{display:block}
+#chatBtn{position:fixed;right:max(12px,env(safe-area-inset-right));bottom:max(12px,env(safe-area-inset-bottom));z-index:40;display:none;width:auto;min-height:0;width:46px;height:46px;padding:0;align-items:center;justify-content:center;background:rgba(10,9,7,.94);border:1px solid #6aa7ff;color:#bcd6ff}
+#chatBtn svg{width:24px;height:24px;display:block;pointer-events:none}
+#chatBtn.show{display:flex}
 #chatBtn.hide{display:none}
 #chatDot{position:absolute;top:-10px;left:-10px;width:22px;height:22px;border-radius:50%;background:#ffd24a;color:#000;font-weight:bold;font-size:15px;line-height:22px;text-align:center;box-shadow:0 0 10px #ffb400;display:none}
 #chatBtn.unread #chatDot{display:block}
@@ -1037,7 +1046,7 @@ button{text-transform:none}
 #chatForm{display:flex;gap:6px;padding:8px;border-top:1px solid #26344a}
 #chatIn{flex:1;min-width:0;background:#10151d;border:1px solid #33425a;color:#e8ecf4;padding:9px 10px;font-size:14px;font-family:inherit;border-radius:16px;user-select:text;-webkit-user-select:text}
 #chatSend{width:auto;min-height:0;padding:8px 14px;font-size:13px;border-radius:16px}
-html.mobile #chatBtn{bottom:auto;top:46%;right:max(8px,env(safe-area-inset-right));padding:12px 14px;min-height:44px}
+html.mobile #chatBtn{bottom:auto;top:calc(max(8px,env(safe-area-inset-top)) + 46px);right:10px;width:46px;height:46px;min-height:0;padding:0}
 html.mobile #chatPanel{left:max(8px,env(safe-area-inset-left));right:max(8px,env(safe-area-inset-right));bottom:max(8px,env(safe-area-inset-bottom));width:auto;height:min(52vh,52dvh)}
 html.mobile #chatIn{font-size:16px;padding:11px 12px}
 html.mobile #chatSend{min-height:44px}
@@ -1142,8 +1151,8 @@ html.mobile #chatSend{min-height:44px}
     </div>
    </form>
   </div>
-  <button id="btnPause" style="display:none" title="Pause (Esc)">
-   ⏸
+  <button id="btnPause" style="display:none" title="Pause (Esc)" aria-label="Pause">
+   <span class="pbars"><i></i><i></i></span>
   </button>
   <button id="btnCodeList" type="button">
    CODES
@@ -1331,7 +1340,7 @@ html.mobile #chatSend{min-height:44px}
     </button>
    </div>
   </div>
-  <button id="chatBtn" type="button" aria-label="Open chat">CHAT<span id="chatDot">!</span></button>
+  <button id="chatBtn" type="button" aria-label="Open chat" title="Chat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"><path d="M5 4h14a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-8l-5 4v-4H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/></svg><span id="chatDot">!</span></button>
   <div id="chatPanel" role="dialog" aria-label="Chat">
    <div id="chatHead"><span>CHAT</span><button id="chatClose" type="button">CLOSE</button></div>
    <div id="chatMsgs"></div>
