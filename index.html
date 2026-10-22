@@ -984,7 +984,12 @@ html.mobile #btnMulti{width:100%;min-height:56px;font-size:18px;padding:14px 0}
 #mpMsg.bad{color:#ff6a5a}
 #mpBar{position:fixed;top:10px;left:50%;transform:translateX(-50%);display:none;gap:8px;z-index:3;justify-content:center}
 body.mp #mpBar{display:flex}
-body.mp #oppBox,body.mp #btnOpp{display:none!important}
+body.mp #oppBox{display:none!important}
+#mpPick{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);display:none;flex-direction:column;gap:6px;z-index:9;min-width:240px;max-width:92vw;max-height:70vh;overflow:auto;padding:12px}
+#mpPick .lbl{text-align:center;margin-bottom:4px}
+#mpPick button{display:flex;justify-content:space-between;align-items:center;gap:12px;width:100%;text-align:left}
+#mpPick button .it{font-size:13px}
+#mpPick button.me{border-color:#2ae0ff;color:#a8f0ff}
 .mpChip{min-width:104px;padding:6px 10px;min-height:0;display:flex;flex-direction:column;align-items:center;gap:3px}
 .mpChip .n{font-size:12px;letter-spacing:.12em;max-width:110px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .mpChip .it{font-size:14px;min-height:17px}
@@ -1003,6 +1008,9 @@ body.mp #turn{right:90px}
 @media (max-width:600px){
   body.mp #turn{right:8px}
 }
+/* only the shoot buttons are all caps */
+button{text-transform:none}
+#btnOpp,#btnSelf{text-transform:uppercase}
 
   </style>
  </head>
@@ -1294,6 +1302,8 @@ body.mp #turn{right:90px}
     </button>
    </div>
   </div>
+  <div class="panel" id="mpPick">
+  </div>
   <div id="flash">
   </div>
   <div id="hurt">
@@ -1381,8 +1391,8 @@ body.mp #turn{right:90px}
    (() => {
     'use strict';
     // ===== MULTIPLAYER CONFIG: paste your Supabase project values here (Project Settings -> API) =====
-    const SUPABASE_URL = 'https://ujicivcbaiwonteshsgl.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVqaWNpdmNiYWl3b250ZXNoc2dsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI2MzIzMTYsImV4cCI6MjEwODIwODMxNn0.taGRdvUq0M6y9P3YgILfmW0by9F5kqV3cAVTzs27YqY';
+    const SUPABASE_URL = 'https://YOUR-PROJECT.supabase.co';
+    const SUPABASE_ANON_KEY = 'YOUR-ANON-KEY';
     // ================================================================================================
     if (!window.THREE) {
         document.getElementById('card').innerHTML = '<h1 style="font-size:28px">Could not load 3D engine</h1><p>This game loads Three.js from a CDN, so it needs an internet connection the first time.</p>';
@@ -2365,7 +2375,7 @@ body.mp #turn{right:90px}
             updateHUD();
             if (tw === 'o') {
                 await oppFall();
-                await say('Wow Goodings Job.', 1600);
+                await say('The Dealer "sleeps".', 1600);
             }
             else {
                 await tween(1200, e => { $('#fade').style.opacity = e; });
@@ -2806,9 +2816,7 @@ body.mp #turn{right:90px}
             if (k === 's' || k === 'arrowdown')
                 mpShoot(MP.pid);
             else if (k === 'w' || k === 'arrowup') {
-                const t = MP.others.find(id => MP.S.P[id].alive);
-                if (t)
-                    mpShoot(t);
+                mpShootMenu();
             }
             else if (/^[1-5]$/.test(k))
                 mpUseItem(+k - 1);
@@ -3687,6 +3695,7 @@ body.mp #turn{right:90px}
         const P = MP.S.P[target];
         if (!P || !P.alive)
             return;
+        mpClosePick();
         MP.busy = true;
         mpHUD();
         mpSend('shoot', { target });
@@ -3757,6 +3766,15 @@ body.mp #turn{right:90px}
             b.disabled = !can || !t;
         });
         $('#btnSelf').disabled = !can;
+        const bo = $('#btnOpp'), aliveO = MP.others.filter(id => S.P[id].alive);
+        bo.textContent = aliveO.length === 1 ? 'SHOOT ' + S.P[aliveO[0]].name.toUpperCase() : 'SHOOT A PLAYER ▾';
+        const hint = document.createElement('span');
+        hint.className = 'hint';
+        hint.textContent = ' [W]';
+        bo.appendChild(hint);
+        bo.disabled = !can || aliveO.length === 0;
+        if (!can)
+            mpClosePick();
         $('#turn').textContent = MP.over ? '' : (S.turn === MP.pid ? 'YOUR TURN' : S.P[S.turn].name.toUpperCase() + "'S TURN");
         const bar = $('#mpBar');
         bar.innerHTML = '';
@@ -3926,6 +3944,53 @@ body.mp #turn{right:90px}
             u.head.rotation.x = .22 + Math.sin(t * .0011 + u.ph) * .02;
         }
     }
+    /* ----- shoot-a-player picker ----- */
+    function mpClosePick() { $('#mpPick').style.display = 'none'; }
+    function mpShootMenu() {
+        if (!mpCan())
+            return;
+        const S = MP.S, alive = MP.others.filter(id => S.P[id].alive);
+        if (alive.length === 0)
+            return;
+        if (alive.length === 1) {
+            mpShoot(alive[0]);
+            return;
+        }
+        const box = $('#mpPick');
+        if (box.style.display === 'flex') {
+            mpClosePick();
+            return;
+        }
+        box.innerHTML = '';
+        const l = document.createElement('div');
+        l.className = 'lbl';
+        l.textContent = 'WHO DO YOU WANT TO SHOOT?';
+        box.appendChild(l);
+        for (const id of S.seatOrder) {
+            const P = S.P[id];
+            if (!P.alive)
+                continue;
+            const b = document.createElement('button');
+            if (id === MP.pid)
+                b.className = 'me';
+            const n = document.createElement('span');
+            n.textContent = P.name + (id === MP.pid ? ' (you)' : '') + '  ' + '♥'.repeat(P.hp);
+            const it = document.createElement('span');
+            it.className = 'it';
+            it.textContent = P.items.filter(Boolean).map(t => ITEMS[t].icon).join(' ');
+            b.append(n, it);
+            b.onclick = () => mpShoot(id);
+            box.appendChild(b);
+        }
+        const c = document.createElement('button');
+        c.textContent = 'CANCEL';
+        c.style.justifyContent = 'center';
+        c.onclick = mpClosePick;
+        box.appendChild(c);
+        box.style.display = 'flex';
+    }
+    $('#btnOpp').addEventListener('click', () => { if (mode === 'mp')
+        mpShootMenu(); });
     /* ----- wiring ----- */
     $('#btnMulti').onclick = openMpLobby;
     $('#mpCreate').onclick = mpCreate;
