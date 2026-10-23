@@ -1120,29 +1120,35 @@ html body *:not(#toast.live):not(#toast.blank) {
 }
 /* Mobile title alignment only: align each line to the viewport center,
    without changing its existing vertical position. */
+/* iPhone/mobile title alignment: use the exact same full-width content column
+   as the HOW TO PLAY button. This changes horizontal alignment only. */
 @media (max-width: 900px) {
-  html.mobile body.title .tTop {
-    width: 100%;
-    box-sizing: border-box;
-    align-items: center;
-    text-align: center;
+  html.mobile body.title #title .tTop {
+    width: 100% !important;
+    box-sizing: border-box !important;
+    align-items: stretch !important;
+    text-align: center !important;
   }
-  html.mobile body.title .tTop h1,
-  html.mobile body.title .tTop h2 {
-    position: relative;
-    left: 50%;
-    top: auto;
-    transform: translateX(-50%);
-    width: max-content;
-    max-width: calc(100vw - 24px);
-    box-sizing: border-box;
-    margin-left: 0;
-    margin-right: 0;
-    text-align: center;
+  html.mobile body.title #title .tTop h1,
+  html.mobile body.title #title .tTop h2 {
+    position: static !important;
+    left: auto !important;
+    right: auto !important;
+    transform: none !important;
+    align-self: stretch !important;
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    text-align: center !important;
   }
-  html.mobile body.title .tTop h1 {
+  html.mobile body.title #title .tTop h1 {
     font-family: "Courier New", ui-monospace, monospace !important;
-    font-size: clamp(30px, 11vw, 54px);
+    font-size: clamp(30px, 11vw, 54px) !important;
     letter-spacing: -0.035em !important;
   }
 }
