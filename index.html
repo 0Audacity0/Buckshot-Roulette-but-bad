@@ -1118,8 +1118,8 @@ html body *:not(#toast.live):not(#toast.blank) {
   letter-spacing: -0.035em !important;
   line-height: 1.25;
 }
-/* Mobile title alignment only: center the title and subtitle horizontally,
-   while leaving their original top position and height unchanged. */
+/* Mobile title alignment only: align each line to the viewport center,
+   without changing its existing vertical position. */
 @media (max-width: 900px) {
   html.mobile body.title .tTop {
     width: 100%;
@@ -1129,12 +1129,12 @@ html body *:not(#toast.live):not(#toast.blank) {
   }
   html.mobile body.title .tTop h1,
   html.mobile body.title .tTop h2 {
-    position: static;
-    left: auto;
+    position: relative;
+    left: 50%;
     top: auto;
-    transform: none;
-    width: 100%;
-    max-width: 100%;
+    transform: translateX(-50%);
+    width: max-content;
+    max-width: calc(100vw - 24px);
     box-sizing: border-box;
     margin-left: 0;
     margin-right: 0;
