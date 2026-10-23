@@ -455,6 +455,20 @@ canvas {
 body.title #topL,body.title #oppBox,body.title #turn,body.title #log,body.title #tip,body.title #bottom,body.title #shop,body.title #btnPause {
   display: none!important
 }
+#versionNumber {
+  position: fixed;
+  top: max(14px, env(safe-area-inset-top));
+  left: max(14px, env(safe-area-inset-left));
+  z-index: 40;
+  color: #e8e2d0;
+  font: 12px/1.2 "Courier New", ui-monospace, monospace;
+  letter-spacing: .08em;
+  opacity: .78;
+  pointer-events: none;
+  user-select: none;
+  text-shadow: 0 1px 4px #000;
+}
+body:not(.title) #versionNumber { display: none !important; }
 #title {
   position: fixed;
   inset: 0;
@@ -1157,6 +1171,7 @@ html body *:not(#toast.live):not(#toast.blank) {
  <body class="title">
   <canvas id="c">
   </canvas>
+  <div id="versionNumber" aria-label="Version 2.1.0">v2.1.0</div>
   <button aria-controls="settingsPanel" aria-haspopup="dialog" aria-label="Open graphics settings" id="btnSettings" title="Settings" type="button">
    <svg aria-hidden="true" fill="none" height="30" stroke="currentColor" viewBox="0 0 24 24" width="30">
     <circle cx="12" cy="12" r="6.2" stroke-width="2.6"/>
@@ -1171,17 +1186,21 @@ html body *:not(#toast.live):not(#toast.blank) {
     <p>
      Choose the graphics quality for your device. Your choice is saved on this browser.
     </p>
+    <button class="qualityChoice" id="qualityUltra" type="button">
+     ULTRA
+     <small>Maximum detail, sharper shadows, dramatic lighting and extra glow</small>
+    </button>
     <button class="qualityChoice" id="qualityHigh" type="button">
      HIGH
-     <small>
-      Current graphics, shadows enabled
-     </small>
+     <small>Original graphics with shadows and effects</small>
     </button>
     <button class="qualityChoice" id="qualityLow" type="button">
      LOW
-     <small>
-      Much lower resolution, no shadows, no dust, glow, neon or colored lights
-     </small>
+     <small>Reduced resolution, no shadows or atmosphere effects</small>
+    </button>
+    <button class="qualityChoice" id="qualityPotato" type="button">
+     POTATO
+     <small>No room, dust, glow, shadows or fancy lighting. Silly blocky gun and wood slab table.</small>
     </button>
     <button class="ghost" id="btnCloseSettings" style="margin-top:16px" type="button">
      CLOSE
@@ -1753,24 +1772,31 @@ html body *:not(#toast.live):not(#toast.blank) {
     let graphicsQuality = 'high';
     try {
         const savedQ = localStorage.getItem(GRAPHICS_KEY);
-        graphicsQuality = savedQ === 'low' || savedQ === 'high' ? savedQ : (window.IS_PHONE ? 'low' : 'high');
+        graphicsQuality = ['potato','low','high','ultra'].includes(savedQ) ? savedQ : (window.IS_PHONE ? 'low' : 'high');
     }
     catch (e) { if (window.IS_PHONE) graphicsQuality = 'low'; }
     function applyGraphicsQuality(quality, save = true) {
-        graphicsQuality = quality === 'low' ? 'low' : 'high';
-        const low = graphicsQuality === 'low';
-        renderer.setPixelRatio(low ? 0.6 : Math.min(window.devicePixelRatio || 1, 2));
+        graphicsQuality = ['potato','low','high','ultra'].includes(quality) ? quality : 'high';
+        const potato = graphicsQuality === 'potato';
+        const low = graphicsQuality === 'low' || potato;
+        const ultra = graphicsQuality === 'ultra';
+        renderer.setPixelRatio(potato ? 0.38 : low ? 0.6 : ultra ? Math.min(window.devicePixelRatio || 1, 3) : Math.min(window.devicePixelRatio || 1, 2));
         renderer.shadowMap.enabled = !low;
+        renderer.shadowMap.type = ultra ? THREE.PCFSoftShadowMap : THREE.PCFSoftShadowMap;
         lamp.castShadow = !low;
-        try { lowFx(low); } catch (e) { }
+        lamp.shadow.mapSize.set(ultra ? 2048 : 1024, ultra ? 2048 : 1024);
+        lamp.intensity = ultra ? 2.5 : 1.7;
+        scene.background = new THREE.Color(potato ? 0x78a8d8 : 0x040404);
+        scene.fog = potato ? null : new THREE.FogExp2(ultra ? 0x100a12 : 0x050403, ultra ? 0.065 : 0.1);
+        renderer.toneMapping = potato ? THREE.NoToneMapping : ultra ? THREE.ACESFilmicToneMapping : THREE.ACESFilmicToneMapping;
+        renderer.toneMappingExposure = potato ? 1 : ultra ? 1.42 : 1.15;
+        try { lowFx(low, potato, ultra); } catch (e) { }
+        try { applyRoomStyle(potato, ultra); } catch (e) { }
         renderer.setSize(window.innerWidth, window.innerHeight, false);
-        $('#qualityHigh').classList.toggle('selected', !low);
-        $('#qualityLow').classList.toggle('selected', low);
+        for (const id of ['qualityPotato','qualityLow','qualityHigh','qualityUltra'])
+            $('#' + id).classList.toggle('selected', id.toLowerCase().replace('quality','') === graphicsQuality);
         if (save) {
-            try {
-                localStorage.setItem(GRAPHICS_KEY, graphicsQuality);
-            }
-            catch (e) { }
+            try { localStorage.setItem(GRAPHICS_KEY, graphicsQuality); } catch (e) { }
         }
     }
     const faceLight = new THREE.PointLight(0x44e0ff, 0.7, 4.5);
@@ -1924,6 +1950,9 @@ html body *:not(#toast.live):not(#toast.blank) {
         mesh(new THREE.CylinderGeometry(.18, .18, 5.2, 10), M.dark, x, 2.6, z);
     for (let i = 0; i < 5; i++)
         mesh(new THREE.BoxGeometry(.3, 3.6, .1), mat(0x1c1815), -3.2 + i * 1.6, 2.1, -4.45);
+    // Keep room props grouped for the Potato preset.
+    const roomExtras = scene.children.slice();
+    let floorMesh = null;
     // Table
     const table = new THREE.Group();
     scene.add(table);
@@ -1931,7 +1960,8 @@ html body *:not(#toast.live):not(#toast.blank) {
     mesh(new THREE.BoxGeometry(3.1, .01, 2.1), mat(0xffffff, { map: dFelt, roughness: .95 }), 0, 1.002, 0, table);
     for (const [x, z] of [[-1.55, -1.05], [1.55, -1.05], [-1.55, 1.05], [1.55, 1.05]])
         mesh(new THREE.BoxGeometry(.14, .9, .14), mat(0x20150d), x, .47, z, table);
-    mesh(new THREE.PlaneGeometry(9, 9), mat(0xffffff, { map: dFloor, roughness: .3, metalness: .5 }), 0, 0, 0).rotation.x = -Math.PI / 2;
+    floorMesh = mesh(new THREE.PlaneGeometry(9, 9), mat(0xffffff, { map: dFloor, roughness: .3, metalness: .5 }), 0, 0, 0);
+    floorMesh.rotation.x = -Math.PI / 2;
     // Detail
     {
         const B = THREE.BoxGeometry, trim = mat(0x1d140e, { roughness: .7 }), leather = mat(0x3a1a12, { roughness: .5 }), gold = mat(0xb8923f, { metalness: .8, roughness: .35 }), iron = mat(0x2a2d31, { metalness: .8, roughness: .5 }), crate = mat(0x4a331f, { roughness: .9 });
@@ -2005,6 +2035,8 @@ html body *:not(#toast.live):not(#toast.blank) {
     mesh(new THREE.CylinderGeometry(.012, .012, 1.5, 6), M.dark, 0, 4.45, 0, scene, false);
     const shade = mesh(new THREE.ConeGeometry(.4, .3, 18, 1, true), mat(0x222018, { side: THREE.DoubleSide }), 0, 3.72, 0, scene, false);
     mesh(new THREE.SphereGeometry(.09, 12, 10), new THREE.MeshBasicMaterial({ color: 0xffeeaa }), 0, 3.62, 0, scene, false);
+    // Everything in the scene so far is room/background scenery (excluding the table group).
+    const potatoHideObjects = scene.children.filter(o => o !== table);
     // Dust
     {
         const n = 160, pos = new Float32Array(n * 3);
@@ -2074,6 +2106,31 @@ html body *:not(#toast.live):not(#toast.blank) {
     };
     function gunRest() { gun.position.copy(POSE.rest.pos); gun.rotation.y = POSE.rest.rot; setSawn(false); }
     gunRest();
+    const tableNormalMaterials = table.children.map(o => o.material);
+    const tableChildNormalVisibility = table.children.map(o => o.visible);
+    const gunChildNormalVisibility = gun.children.map(o => o.visible);
+    const gunNormalMaterials = gun.children.map(o => o.material);
+    const potatoWood = new THREE.MeshStandardMaterial({ color: 0x986b3c, roughness: 1, metalness: 0 });
+    const potatoGun = new THREE.MeshStandardMaterial({ color: 0x777777, roughness: 1, metalness: 0 });
+    function applyRoomStyle(potato, ultra) {
+        for (const o of potatoHideObjects) o.visible = !potato;
+        if (floorMesh) floorMesh.visible = !potato;
+        table.children.forEach((o, i) => {
+            o.visible = potato ? (i === 0 || (i >= 2 && i <= 5)) : tableChildNormalVisibility[i];
+            if (i === 0) o.material = potato ? potatoWood : tableNormalMaterials[i];
+            if (i === 1) o.visible = !potato;
+        });
+        gun.children.forEach((o, i) => {
+            o.visible = potato ? [0, 6, 16, 18].includes(i) : gunChildNormalVisibility[i];
+            if (potato && o.material) o.material = potatoGun;
+            else if (o.material) o.material = gunNormalMaterials[i];
+        });
+        // Ultra adds stronger, punchier lighting while retaining the room's detail.
+        faceLight.intensity = potato ? 0 : ultra ? 1.25 : .7;
+        flashLight.intensity = potato ? 0 : flashLight.intensity;
+        rimR.intensity = ultra ? 1.65 : .9;
+        rimB.intensity = ultra ? 1.65 : .9;
+    }
     // Opponent
     const opp = new THREE.Group();
     opp.position.set(0, 0, -1.75);
@@ -3324,13 +3381,24 @@ html body *:not(#toast.live):not(#toast.blank) {
     glow.scale.set(1, 1, 1);
     glow.position.set(0, 3.6, 0);
     scene.add(glow);
-    function lowFx(low) {
+    function lowFx(low, potato = false, ultra = false) {
         window._dust.visible = !low;
-        for (const m of beamMats) m.visible = !low;
+        window._dust.material.size = ultra ? .04 : .025;
+        window._dust.material.opacity = ultra ? .72 : .45;
+        for (const m of beamMats) { m.visible = !low; m.opacity = ultra ? (m.userData.o || .14) * 1.7 : (m.userData.o || .14); }
         for (const n of neon) n.m.visible = !low;
         glow.visible = !low;
+        glow.material.opacity = ultra ? 1 : .8;
         pool.visible = !low;
+        pool.material.opacity = ultra ? .8 : .5;
         rimR.visible = rimB.visible = !low;
+        if (potato) {
+            // Potato mode deliberately removes the atmosphere and theatrical lighting.
+            window._dust.visible = false; glow.visible = false; pool.visible = false;
+            for (const m of beamMats) m.visible = false;
+            for (const n of neon) n.m.visible = false;
+            rimR.visible = rimB.visible = false;
+        }
     }
     const SP = 90, spP = new Float32Array(SP * 3), spV = new Float32Array(SP * 3);
     let spLife = 0, punch = 0;
@@ -4913,8 +4981,10 @@ html body *:not(#toast.live):not(#toast.blank) {
     };
     const settingsPanel = $('#settingsPanel');
     $('#btnSettings').addEventListener('click', () => { applyGraphicsQuality(graphicsQuality, false); settingsPanel.style.display = 'flex'; });
+    $('#qualityUltra').addEventListener('click', () => applyGraphicsQuality('ultra'));
     $('#qualityHigh').addEventListener('click', () => applyGraphicsQuality('high'));
     $('#qualityLow').addEventListener('click', () => applyGraphicsQuality('low'));
+    $('#qualityPotato').addEventListener('click', () => applyGraphicsQuality('potato'));
     $('#btnCloseSettings').addEventListener('click', () => settingsPanel.style.display = 'none');
     settingsPanel.addEventListener('click', e => { if (e.target === settingsPanel)
         settingsPanel.style.display = 'none'; });
