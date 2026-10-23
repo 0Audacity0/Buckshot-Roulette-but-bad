@@ -1092,6 +1092,25 @@ html.mobile #chatBtn{bottom:auto;top:calc(max(8px,env(safe-area-inset-top)) + 46
 html.mobile #chatPanel{left:max(8px,env(safe-area-inset-left));right:max(8px,env(safe-area-inset-right));bottom:max(8px,env(safe-area-inset-bottom));width:auto;height:min(52vh,52dvh)}
 html.mobile #chatIn{font-size:16px;padding:11px 12px}
 html.mobile #chatSend{min-height:44px}
+
+
+/* Administrator multiplayer Fun tab */
+/* Preserve the original Shotbuck Courier New interface font in the added FUN tab. */
+#mpPaneFun, #mpPaneFun button, #mpPaneFun input, #mpPaneFun label, #mpPaneFun small, #mpPaneFun b { font-family: inherit; }
+.funOption{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:11px 10px;margin:7px 0;border:1px solid rgba(255,210,74,.28);background:rgba(255,210,74,.035);font-size:12px;letter-spacing:.04em}
+.funOption span{display:flex;flex-direction:column;gap:4px}
+.funOption b{color:#ffd24a;letter-spacing:.12em}
+.funOption small{font-size:10px;line-height:1.4;color:#a8a08b}
+.funOption input[type=checkbox]{appearance:none;-webkit-appearance:none;flex:none;width:42px;height:23px;border:1px solid #6b6552;background:#16130d;position:relative;cursor:pointer;transition:.15s}
+.funOption input[type=checkbox]:before{content:"";position:absolute;left:3px;top:3px;width:15px;height:15px;background:#8a846f;transition:.15s}
+.funOption input[type=checkbox]:checked{border-color:#ffd24a;background:rgba(255,210,74,.2);box-shadow:0 0 9px #ffd24a44}
+.funOption input[type=checkbox]:checked:before{left:22px;background:#ffd24a;box-shadow:0 0 8px #ffd24a}
+.funSlider{margin:14px 2px}
+.funSlider label{display:flex;justify-content:space-between;gap:8px;font-size:11px;letter-spacing:.13em;color:#cfc8b2;margin-bottom:9px}
+.funSlider label b{color:#ffd24a}
+.funSlider input[type=range]{appearance:none;-webkit-appearance:none;width:100%;height:6px;border:1px solid #6b6552;background:linear-gradient(90deg,#ffd24a,#6b4d12);outline:none}
+.funSlider input[type=range]::-webkit-slider-thumb{appearance:none;-webkit-appearance:none;width:16px;height:20px;background:#ffd24a;border:2px solid #120f08;box-shadow:0 0 8px #ffd24a88;cursor:pointer}
+.funSlider input[type=range]::-moz-range-thumb{width:13px;height:17px;background:#ffd24a;border:2px solid #120f08;box-shadow:0 0 8px #ffd24a88;cursor:pointer}
   </style>
  </head>
  <body class="title">
@@ -1366,6 +1385,7 @@ html.mobile #chatSend{min-height:44px}
     <div id="mpRoom" style="display:none">
      <div class="mpTabs">
       <button class="on" id="mpTabLobby" type="button">LOBBY</button>
+      <button id="mpTabFun" type="button" style="display:none">FUN</button>
       <button id="mpTabSkin" type="button">CUSTOMIZE</button>
      </div>
      <div id="mpPaneLobby">
@@ -1382,6 +1402,17 @@ html.mobile #chatSend{min-height:44px}
       START MATCH
      </button>
     </div>
+     <div id="mpPaneFun" style="display:none">
+      <div class="mpSep">ADMINISTRATOR FUN MODES</div>
+      <div class="mpNote">These effects are shared with everyone in this multiplayer lobby.</div>
+      <label class="funOption"><span><b>BOUNCY</b><small>Players bounce when they get shot.</small></span><input id="funBouncy" type="checkbox"/></label>
+      <label class="funOption"><span><b>PINBALL</b><small>More sideways movement during the bounce.</small></span><input id="funPinball" type="checkbox"/></label>
+      <label class="funOption"><span><b>SPIN CYCLE</b><small>Players spin while bouncing.</small></span><input id="funSpin" type="checkbox"/></label>
+      <label class="funOption"><span><b>LOW GRAVITY</b><small>Higher, floatier bounces.</small></span><input id="funLowGravity" type="checkbox"/></label>
+      <div class="funSlider"><label for="funPower">BOUNCE POWER <b id="funPowerVal">1.5×</b></label><input id="funPower" type="range" min="0.5" max="3" step="0.1" value="1.5"/></div>
+      <div class="funSlider"><label for="funDuration">DURATION <b id="funDurationVal">4.0s</b></label><input id="funDuration" type="range" min="1" max="8" step="0.5" value="4"/></div>
+      <button class="ghost" id="funReset" type="button">RESET FUN SETTINGS</button>
+     </div>
      <div id="mpPaneSkin" style="display:none">
       <canvas height="300" id="skinPrev" width="300"></canvas>
       <div class="mpSep">SKIN COLOR</div>
@@ -2864,8 +2895,7 @@ html.mobile #chatSend{min-height:44px}
     const CODES = {
         codeall: () => { SAVE.codesUnlocked = !SAVE.codesUnlocked; syncCodeListButton(); if (!SAVE.codesUnlocked)
             $('#codeListPanel').style.display = 'none'; return SAVE.codesUnlocked ? 'Code list enabled. Click CODES in the bottom-left to view every code.' : 'Code list disabled.'; },
-        administratorme: () => { SAVE.admin = !SAVE.admin; if (!SAVE.admin)
-            SAVE.cheats.solo = false; return SAVE.admin ? 'ADMIN ON: rigged luck, infinite items, infinite cash.' : 'Admin OFF. Back to normal.'; },
+        administratorme: () => { SAVE.admin = !SAVE.admin; if (!SAVE.admin) { SAVE.cheats.solo = false; if ($('#mpPaneFun')) mpSkinTab('lobby'); } if ($('#mpTabFun')) $('#mpTabFun').style.display = SAVE.admin ? '' : 'none'; return SAVE.admin ? 'ADMIN ON: rigged luck, infinite items, infinite cash.' : 'Admin OFF. Back to normal.'; },
         onlyme: () => { if (!SAVE.admin)
             return 'Turn on AdministratorMe first.'; SAVE.cheats.solo = !SAVE.cheats.solo; return 'Only-me turns ' + onOff(SAVE.cheats.solo) + (SAVE.cheats.solo ? ': The Dealer never gets a turn.' : '.'); },
         payday: () => { SAVE.bank += 500; return '+$500 added to your bank.'; },
@@ -3369,7 +3399,7 @@ html.mobile #chatSend{min-height:44px}
     // players see the same game. The host is the only client that generates random shell loads.
     const MP_OK = !!SUPABASE_URL && !!SUPABASE_ANON_KEY && !/YOUR-PROJECT|YOUR-ANON/.test(SUPABASE_URL + SUPABASE_ANON_KEY);
     const MP = { sb: null, pid: null, name: '', code: null, host: false, hostId: null, players: [], ch: null, poll: 0, polling: false,
-        nextSeq: 1, buf: new Map(), chain: Promise.resolve(), pending: 0, started: false, over: false, busy: false, S: null, others: [], figs: {}, flags: {}, flagTimer: 0, look: {} };
+        nextSeq: 1, buf: new Map(), chain: Promise.resolve(), pending: 0, started: false, over: false, busy: false, S: null, others: [], figs: {}, flags: {}, flagTimer: 0, look: {}, fun: {bouncy:false,pinball:false,spin:false,lowGravity:false,power:1.5,duration:4} };
     try { MP.pid = sessionStorage.getItem('lastshell_mp_pid'); } catch (e) { }
     if (!MP.pid) {
         MP.pid = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : 'p' + Math.random().toString(36).slice(2) + Date.now().toString(36);
@@ -3507,6 +3537,7 @@ html.mobile #chatSend{min-height:44px}
         MP.pending = 0;
         MP.chain = Promise.resolve();
         showMpView('room');
+        $('#mpTabFun').style.display = SAVE.admin ? '' : 'none';
         mpMsg('');
         $('#mpCodeShow').textContent = code;
         const f = 'lobby_code=eq.' + code;
@@ -3520,7 +3551,7 @@ html.mobile #chatSend{min-height:44px}
             .on('postgres_changes', { event: '*', schema: 'public', table: 'mp_skins', filter: f }, p => { if (p && p.new) mpSkinRow(p.new); })
             .on('broadcast', { event: 'flags' }, m => { const d = m && m.payload; if (d && d.pid && d.f) { MP.gone.delete(d.pid); MP.flags[d.pid] = { god: !!d.f.god, peek: !!d.f.peek, stocked: !!d.f.stocked }; mpSendFlagsBack(d.pid); } })
             .on('broadcast', { event: 'quit' }, m => { const d = m && m.payload; if (d && d.pid && d.pid !== MP.pid) { MP.gone.add(d.pid); mpRenderRoom(); } })
-            .subscribe(st => { if (st === 'SUBSCRIBED') { mpSendFlags(); if (MP.skin.color || MP.skin.face) mpSendSkin(false); } });
+            .subscribe(st => { if (st === 'SUBSCRIBED') { mpSendFlags(); if (MP.skin.color || MP.skin.face) mpSendSkin(false); if (SAVE.admin) setTimeout(() => mpSend('funconfig', MP.fun), 350); } });
         MP.flags = {};
         MP.look = {};
         MP.flags[MP.pid] = mpMyFlags();
@@ -3666,12 +3697,16 @@ html.mobile #chatSend{min-height:44px}
         skinColorTimer = setTimeout(() => mpSendSkin(true), 350);
     }
     function mpSkinTab(which) {
+        if (which === 'fun' && !SAVE.admin) which = 'lobby';
         $('#mpPaneLobby').style.display = which === 'lobby' ? 'block' : 'none';
         $('#mpPaneSkin').style.display = which === 'skin' ? 'block' : 'none';
+        $('#mpPaneFun').style.display = which === 'fun' ? 'block' : 'none';
         $('#mpTabLobby').classList.toggle('on', which === 'lobby');
         $('#mpTabSkin').classList.toggle('on', which === 'skin');
-        if (which === 'skin')
-            skinPreview();
+        $('#mpTabFun').classList.toggle('on', which === 'fun');
+        $('#mpTabFun').style.display = SAVE.admin ? '' : 'none';
+        if (which === 'skin') skinPreview();
+        if (which === 'fun') renderFunControls();
     }
     SKIN_COLORS.forEach(col => {
         const b = document.createElement('button');
@@ -3684,6 +3719,7 @@ html.mobile #chatSend{min-height:44px}
     });
     $('#skinColor').addEventListener('input', e => setMyColor(e.target.value));
     $('#mpTabLobby').onclick = () => mpSkinTab('lobby');
+    $('#mpTabFun').onclick = () => mpSkinTab('fun');
     $('#mpTabSkin').onclick = () => mpSkinTab('skin');
     $('#faceImport').onclick = () => $('#faceFile').click();
     $('#faceReset').onclick = () => {
@@ -3999,6 +4035,11 @@ html.mobile #chatSend{min-height:44px}
             await mpBegin(ev.payload);
             return;
         }
+        if (ev.type === 'funconfig') {
+            MP.fun = Object.assign({}, MP.fun, ev.payload || {});
+            renderFunControls();
+            return;
+        }
         const S = MP.S;
         if (!S || MP.over)
             return;
@@ -4215,6 +4256,8 @@ html.mobile #chatSend{min-height:44px}
             const godT = !!(MP.flags[target] && MP.flags[target].god);
             if (!godT)
                 T.hp = Math.max(0, T.hp - dmg);
+            if (!godT && (MP.fun.bouncy || MP.fun.pinball || MP.fun.spin || MP.fun.lowGravity))
+                mpStartBounce(target);
             if (target === me && !godT) {
                 hurtFx();
                 SFX.hurt();
@@ -4667,13 +4710,85 @@ html.mobile #chatSend{min-height:44px}
             const u = g.userData;
             if (u.dead)
                 continue;
-            g.position.y = Math.sin(t * .0015 + u.ph) * .015;
+            if (u.bounceUntil && performance.now() < u.bounceUntil) {
+                const elapsed = (u.bounceUntil - performance.now()) / 1000;
+                const k = Math.min(1, elapsed / Math.max(.1, MP.fun.duration || 4));
+                const power = (MP.fun.power || 1.5) * (MP.fun.lowGravity ? 1.7 : 1);
+                const tt = t * (MP.fun.pinball ? .012 : .008) + u.bouncePhase;
+                g.position.y = Math.abs(Math.sin(tt * 1.8)) * 1.5 * power * k;
+                g.position.x = (u.baseX || 0) + (MP.fun.pinball ? Math.sin(tt * 2.3) * 1.2 * power * k : Math.sin(tt) * .45 * power * k);
+                g.position.z = (u.baseZ || 0) + Math.cos(tt * 1.7) * .55 * power * k;
+                g.rotation.y = MP.fun.spin ? tt * 2.5 : Math.sin(tt) * .15;
+                g.rotation.z = MP.fun.spin ? Math.sin(tt * 2) * .45 : 0;
+            } else {
+                if (u.bounceUntil) { u.bounceUntil = 0; g.position.set(0, 0, 0); g.rotation.set(0,0,0); }
+                g.position.y = Math.sin(t * .0015 + u.ph) * .015;
+                g.position.x = 0; g.position.z = 0;
+            }
             const tgt = -(MP.look[u.pid] || 0);
             u.hy = (u.hy || 0) + (tgt - (u.hy || 0)) * .15;
             u.head.rotation.y = u.hy + Math.sin(t * .0007 + u.ph) * .05;
             u.head.rotation.x = .22 + Math.sin(t * .0011 + u.ph) * .02;
         }
     }
+    /* ----- administrator multiplayer fun modes ----- */
+    function renderFunControls() {
+        const tab = $('#mpTabFun');
+        if (tab) tab.style.display = SAVE.admin ? '' : 'none';
+        const f = MP.fun || {};
+        for (const [id,key] of [['funBouncy','bouncy'],['funPinball','pinball'],['funSpin','spin'],['funLowGravity','lowGravity']]) {
+            const el = $('#'+id); if (el) el.checked = !!f[key];
+        }
+        const power = $('#funPower'), duration = $('#funDuration');
+        if (power) { power.value = f.power || 1.5; $('#funPowerVal').textContent = Number(power.value).toFixed(1)+'×'; }
+        if (duration) { duration.value = f.duration || 4; $('#funDurationVal').textContent = Number(duration.value).toFixed(1)+'s'; }
+    }
+    function mpFunConfig() {
+        if (!SAVE.admin || !MP.code || !MP.sb) return;
+        MP.fun = {
+            bouncy: $('#funBouncy').checked, pinball: $('#funPinball').checked,
+            spin: $('#funSpin').checked, lowGravity: $('#funLowGravity').checked,
+            power: Number($('#funPower').value), duration: Number($('#funDuration').value)
+        };
+        mpSend('funconfig', MP.fun);
+    }
+    function mpStartBounce(pid) {
+        const fig = MP.figs[pid];
+        if (fig) {
+            const u = fig.userData;
+            u.bounceUntil = performance.now() + (MP.fun.duration || 4) * 1000;
+            u.bouncePhase = Math.random() * 10;
+        }
+        if (pid === MP.pid) {
+            // Keep the hit player's camera involved in the gag, then let the normal camera settle.
+            const until = performance.now() + (MP.fun.duration || 4) * 1000;
+            const original = camera.position.clone();
+            const tick = () => {
+                if (performance.now() >= until || !MP.S || MP.over) {
+                    camera.position.copy(original);
+                    return;
+                }
+                const t = performance.now() * .01, pow = (MP.fun.power || 1.5) * (MP.fun.lowGravity ? 1.7 : 1);
+                camera.position.x = original.x + Math.sin(t * (MP.fun.pinball ? 2.8 : 1.8)) * .16 * pow;
+                camera.position.y = original.y + Math.abs(Math.sin(t * 1.6)) * .12 * pow;
+                camera.position.z = original.z + Math.cos(t * 1.3) * .1 * pow;
+                requestAnimationFrame(tick);
+            };
+            tick();
+        }
+    }
+    for (const id of ['funBouncy','funPinball','funSpin','funLowGravity']) {
+        const el = $('#'+id); if (el) el.addEventListener('change', mpFunConfig);
+    }
+    const funPower = $('#funPower'), funDuration = $('#funDuration'), funReset = $('#funReset');
+    if (funPower) funPower.addEventListener('input', () => { $('#funPowerVal').textContent = Number(funPower.value).toFixed(1)+'×'; mpFunConfig(); });
+    if (funDuration) funDuration.addEventListener('input', () => { $('#funDurationVal').textContent = Number(funDuration.value).toFixed(1)+'s'; mpFunConfig(); });
+    if (funReset) funReset.onclick = () => {
+        if (!SAVE.admin) return;
+        MP.fun = {bouncy:false,pinball:false,spin:false,lowGravity:false,power:1.5,duration:4};
+        renderFunControls(); mpFunConfig();
+    };
+    renderFunControls();
     /* ----- shoot-a-player picker ----- */
     function mpClosePick() { $('#mpPick').style.display = 'none'; }
     function mpShootMenu() {
