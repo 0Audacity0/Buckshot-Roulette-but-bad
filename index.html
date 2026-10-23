@@ -1111,7 +1111,15 @@ html.mobile #chatSend{min-height:44px}
 .funSlider input[type=range]{appearance:none;-webkit-appearance:none;width:100%;height:6px;border:1px solid #6b6552;background:linear-gradient(90deg,#ffd24a,#6b4d12);outline:none}
 .funSlider input[type=range]::-webkit-slider-thumb{appearance:none;-webkit-appearance:none;width:16px;height:20px;background:#ffd24a;border:2px solid #120f08;box-shadow:0 0 8px #ffd24a88;cursor:pointer}
 .funSlider input[type=range]::-moz-range-thumb{width:13px;height:17px;background:#ffd24a;border:2px solid #120f08;box-shadow:0 0 8px #ffd24a88;cursor:pointer}
-  </style>
+  
+/* Restore the original game's typeface across the entire interface.
+   Tighten character spacing and line spacing, preserving life/blank announcements. */
+html body *:not(#toast.live):not(#toast.blank) {
+  font-family: "Courier New", ui-monospace, monospace !important;
+  letter-spacing: -0.035em !important;
+  line-height: 1.25;
+}
+</style>
  </head>
  <body class="title">
   <canvas id="c">
@@ -3376,13 +3384,25 @@ html.mobile #chatSend{min-height:44px}
         shake *= Math.pow(.02, dt);
         window._dust.rotation.y += dt * .03;
         camera.position.set(camBase.x + mx * .2 + (Math.random() - .5) * shake, camBase.y - my * .08 + (Math.random() - .5) * shake, camBase.z + (Math.random() - .5) * shake * .5);
+        let bounceCameraTarget = null;
+        if (mode === 'mp') {
+            // Follow the currently bouncing figure so its full motion stays in view.
+            const bouncing = Object.values(MP.figs || {}).find(g => g && g.userData && g.userData.bounceUntil && performance.now() < g.userData.bounceUntil);
+            if (bouncing) {
+                bounceCameraTarget = bouncing.getWorldPosition(new THREE.Vector3());
+                const desired = new THREE.Vector3(bounceCameraTarget.x, bounceCameraTarget.y + 2.1, bounceCameraTarget.z + 4.6);
+                camera.position.lerp(desired, Math.min(1, dt * 4.5));
+            }
+        }
         if (mode === 'mp')
             yaw += (yawT - yaw) * Math.min(1, dt * 7);
         else {
             yaw = 0;
             yawT = 0;
         }
-        if (yaw) {
+        if (bounceCameraTarget) {
+            camera.lookAt(bounceCameraTarget.x, bounceCameraTarget.y + 1.05, bounceCameraTarget.z);
+        } else if (yaw) {
             const ddx = lookTarget.x - camera.position.x, ddz = lookTarget.z - camera.position.z, cy = Math.cos(yaw), sy = Math.sin(yaw);
             camera.lookAt(camera.position.x + ddx * cy - ddz * sy, lookTarget.y, camera.position.z + ddx * sy + ddz * cy);
         }
