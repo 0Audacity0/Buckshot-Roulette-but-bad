@@ -1179,6 +1179,14 @@ body:not(.title) #btnWhatsNew{display:none!important}
 html.mobile #btnCodeList{top:calc(max(12px,env(safe-area-inset-top)) + 62px);left:max(12px,env(safe-area-inset-left));bottom:auto}
 html.mobile #codeListPanel{top:calc(max(12px,env(safe-area-inset-top)) + 106px)}
 html.mobile .tTop{padding-top:124px}
+
+#chatBtn.inCard{position:relative;margin:8px 0 0 0;width:46px;height:46px}
+html.mobile #chatBtn.inCard{position:relative;top:auto;right:auto;margin:8px 0 0 0;width:46px;height:46px}
+html.mobile body.inLobby #btnCodeList,html.mobile body.inLobby #codeListPanel{display:none!important}
+#mpPublicList{max-height:150px;overflow:auto}
+.mpPubRow{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 10px;border:1px solid rgba(255,210,74,.28);margin:6px 0;font-size:13px}
+.mpPubRow small{color:#a8a08b;display:block;font-size:10px}
+#mpMenuTabs{margin-bottom:10px}
 </style>
  </head>
  <body class="title">
@@ -1187,20 +1195,23 @@ html.mobile .tTop{padding-top:124px}
   <div id="discoOv" style="display:none;position:fixed;inset:0;pointer-events:none;z-index:45;opacity:.13;mix-blend-mode:overlay"></div>
   <div id="topLeftBar">
    <button aria-label="What's New" class="ghost" id="btnWhatsNew" title="What's New" type="button"><svg aria-hidden="true" fill="none" height="22" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewBox="0 0 24 24" width="22"><path d="M4 5h13v14H6a2 2 0 0 1-2-2z"/><path d="M17 9h3v8a2 2 0 0 1-2 2h-1"/><path d="M7 8.5h7M7 12h7M7 15.5h4"/></svg><span id="wnBadge">!</span></button>
-   <div id="versionNumber" aria-label="Version 2.2.2">v2.2.2</div>
+   <div id="versionNumber" aria-label="Version 2.2.6">v2.2.6</div>
   </div>
   <div id="whatsNewPanel">
    <div id="whatsNewCard">
-    <h2>WHAT'S NEW IN v2.2.2</h2>
+    <h2>WHAT'S NEW IN v2.2.6</h2>
+    <ul>
+     <li><b>Open lobbies:</b> see public multiplayer lobbies and join without giving people the code each time you make a lobby. You can private lobbies when creating to hide yours.</li>
+     <li><b>Customize before joining:</b> the multiplayer menu now has a CUSTOMIZE tab for your color and face.</li>
+     <li><b>Chat button</b> sits under LOBBY while you wait, then goes back under settings once the match starts.</li>
+     <li><b>Fun tab for everybody</b> fun tab was originally meant for Administrators only, but I realized that it would be more fun to have it public instead of private.</li>
+    </ul>
+    <h3>EARLIER (v2.2.2)</h3>
     <ul>
      <li><b>Family_Friendly code:</b> the shotgun becomes a confetti cannon, the knife a butter knife, and the beer apple juice in a sippy cup lol</li>
      <li><b>Original font restored:</b> Courier New with 'Impact headlines', and button text is spaced out a little more.</li>
-     <li><b>What's New button</b> and the version number now sit in the top left. On phones, CODES sits under What's New.</li>
+     <li><b>What's New button</b> and the version number now sit in the top left.</li>
     </ul>
-    <h3>EARLIER (v2.1.0)</h3>
-    <ul><li>Fun tab (only available to Administrators) with Bouncy, Pinball, Spin Cycle and Low Gravity.</li></ul>
-    <ul><li>Added Multiplayer (up to 4 people, still is 4 people).</li></ul>
-    <ul><li>Character customization for Multiplayer.</li></ul>
     <button class="ghost" id="btnCloseWhatsNew" type="button">CLOSE</button>
    </div>
   </div>
@@ -1461,19 +1472,24 @@ html.mobile .tTop{padding-top:124px}
      UP TO 4 PLAYERS
     </h2>
     <div id="mpMenu">
-     <input autocomplete="off" class="mpInput" id="mpName" maxlength="14" placeholder="Your name" spellcheck="false"/>
-     <button id="mpCreate" type="button">
-      CREATE LOBBY
-     </button>
-     <div class="mpSep">
-      — OR JOIN WITH A CODE —
+     <div class="mpTabs" id="mpMenuTabs">
+      <button class="on" id="mpMTabPlay" type="button">PLAY</button>
+      <button id="mpMTabSkin" type="button">CUSTOMIZE</button>
      </div>
-     <div class="mpRow">
-      <input autocapitalize="characters" autocomplete="off" class="mpInput" id="mpCodeIn" maxlength="5" placeholder="CODE" spellcheck="false"/>
-      <button id="mpJoin" type="button">
-       JOIN
-      </button>
+     <div id="mpPlayBox">
+      <input autocomplete="off" class="mpInput" id="mpName" maxlength="14" placeholder="Your name" spellcheck="false"/>
+      <button id="mpCreate" type="button">CREATE LOBBY</button>
+      <label class="funOption"><span><b>PRIVATE LOBBY</b><small>Hide it from the open lobbies list and share the code instead.</small></span><input id="mpPrivate" type="checkbox"/></label>
+      <div class="mpSep">— OPEN LOBBIES —</div>
+      <div id="mpPublicList"><div class="mpNote">Loading…</div></div>
+      <button class="ghost" id="mpRefresh" type="button">REFRESH LIST</button>
+      <div class="mpSep">— OR JOIN WITH A CODE —</div>
+      <div class="mpRow">
+       <input autocapitalize="characters" autocomplete="off" class="mpInput" id="mpCodeIn" maxlength="5" placeholder="CODE" spellcheck="false"/>
+       <button id="mpJoin" type="button">JOIN</button>
+      </div>
      </div>
+     <div id="mpSkinHost" style="display:none"></div>
     </div>
     <div id="mpRoom" style="display:none">
      <div class="mpTabs">
@@ -3654,6 +3670,14 @@ html.mobile .tTop{padding-top:124px}
         $('#mpRoom').style.display = v === 'room' ? 'block' : 'none';
         $('#mpSub').textContent = v === 'room' ? 'LOBBY · UP TO 4 PLAYERS' : 'UP TO 4 PLAYERS';
         $('#mpBack').textContent = v === 'room' ? 'LEAVE LOBBY' : 'BACK';
+        if (v === 'room') {
+            const pane = $('#mpPaneSkin');
+            if (pane.parentElement.id !== 'mpRoom') $('#mpRoom').appendChild(pane);
+            pane.style.display = 'none';
+            mpMenuTab('play');
+        }
+        else mpLoadPublic();
+        try { mpUiSync(); } catch (e) { }
     }
     function mpNameVal() {
         const n = ($('#mpName').value || '').trim().slice(0, 14) || 'Player';
@@ -3673,6 +3697,7 @@ html.mobile .tTop{padding-top:124px}
             mpMsg('Could not load the Supabase library (needs an internet connection).', true);
         else
             mpMsg('');
+        mpLoadPublic();
     }
     async function mpCreate() {
         const sb = mpClient();
@@ -3684,6 +3709,7 @@ html.mobile .tTop{padding-top:124px}
         $('#mpCreate').disabled = false;
         if (error)
             return mpMsg(mpErr(error), true);
+        try { sb.rpc('mp_set_lobby_public', { p_code: data, p_player: MP.pid, p_public: !$('#mpPrivate').checked }).then(() => { }, () => { }); } catch (e) { }
         mpEnter(data);
     }
     async function mpJoin() {
@@ -5091,7 +5117,7 @@ html.mobile .tTop{padding-top:124px}
     SFX.shot = function () { if (SAVE.cheats.family) { SFX.horn(); try { mpConfetti(); } catch (e) { } } else _sfxShot.apply(this, arguments); };
     applyFamily();
     const wnPanel = document.getElementById('whatsNewPanel');
-    const WN_VER = '2.2.0', WN_KEY = 'lastshell_whatsnew_seen', wnBtn = document.getElementById('btnWhatsNew');
+    const WN_VER = '2.3.0', WN_KEY = 'lastshell_whatsnew_seen', wnBtn = document.getElementById('btnWhatsNew');
     try { if (localStorage.getItem(WN_KEY) !== WN_VER) wnBtn.classList.add('new'); } catch (e) { wnBtn.classList.add('new'); }
     wnBtn.onclick = () => {
         wnPanel.style.display = 'flex';
@@ -5100,6 +5126,66 @@ html.mobile .tTop{padding-top:124px}
     };
     document.getElementById('btnCloseWhatsNew').onclick = () => { wnPanel.style.display = 'none'; };
     wnPanel.addEventListener('click', e => { if (e.target === wnPanel) wnPanel.style.display = 'none'; });
+    /* ----- v2.3.0: open lobbies, pre-join customize, chat/code button placement ----- */
+    async function mpLoadPublic() {
+        const box = $('#mpPublicList');
+        if (!box) return;
+        const sb = MP.sb || mpClient();
+        if (!sb) { box.innerHTML = '<div class="mpNote">Open lobbies need an internet connection.</div>'; return; }
+        try {
+            const { data, error } = await sb.rpc('mp_list_public_lobbies');
+            if (error) { box.innerHTML = '<div class="mpNote">Open lobby list is not set up yet (run supabase_lobbies_setup.sql).</div>'; return; }
+            if (!data || !data.length) { box.innerHTML = '<div class="mpNote">No open lobbies right now. Create one!</div>'; return; }
+            box.innerHTML = '';
+            data.forEach(r => {
+                const row = document.createElement('div');
+                row.className = 'mpPubRow';
+                const info = document.createElement('span');
+                info.textContent = (r.host_name || 'Host') + "'s lobby";
+                const sm = document.createElement('small');
+                sm.textContent = r.player_count + '/4 players · ' + r.code;
+                info.appendChild(sm);
+                const b = document.createElement('button');
+                b.type = 'button';
+                b.textContent = 'JOIN';
+                b.onclick = () => { $('#mpCodeIn').value = r.code; mpJoin(); };
+                row.appendChild(info);
+                row.appendChild(b);
+                box.appendChild(row);
+            });
+        }
+        catch (e) { }
+    }
+    function mpMenuTab(which) {
+        const skin = which === 'skin', pane = $('#mpPaneSkin'), host = $('#mpSkinHost');
+        $('#mpMTabPlay').classList.toggle('on', !skin);
+        $('#mpMTabSkin').classList.toggle('on', skin);
+        $('#mpPlayBox').style.display = skin ? 'none' : 'block';
+        host.style.display = skin ? 'block' : 'none';
+        if (skin) {
+            host.appendChild(pane);
+            pane.style.display = 'block';
+            skinPreview();
+        }
+    }
+    $('#mpMTabPlay').onclick = () => mpMenuTab('play');
+    $('#mpMTabSkin').onclick = () => mpMenuTab('skin');
+    $('#mpRefresh').onclick = mpLoadPublic;
+    function mpUiSync() {
+        const lob = $('#mpLobby'), lobOpen = lob && lob.style.display !== 'none';
+        document.body.classList.toggle('inLobby', !!MP.code || lobOpen);
+        const btn = $('#chatBtn'), inRoom = !!MP.code && !MP.started && lobOpen;
+        if (inRoom && !btn.classList.contains('inCard')) {
+            $('#mpRoom').querySelector('.mpTabs').after(btn);
+            btn.classList.add('inCard');
+        }
+        else if (!inRoom && btn.classList.contains('inCard')) {
+            document.body.appendChild(btn);
+            btn.classList.remove('inCard');
+        }
+    }
+    setInterval(mpUiSync, 300);
+    setInterval(() => { const l = $('#mpLobby'); if (l && l.style.display !== 'none' && $('#mpMenu').style.display !== 'none' && $('#mpPlayBox').style.display !== 'none') mpLoadPublic(); }, 6000);
     /* ----- shoot-a-player picker ----- */
     function mpClosePick() { $('#mpPick').style.display = 'none'; }
     function mpShootMenu() {
