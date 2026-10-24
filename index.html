@@ -1271,22 +1271,22 @@ body.retro canvas{filter:contrast(1.1) saturate(1.25)}
   <div id="discoOv" style="display:none;position:fixed;inset:0;pointer-events:none;z-index:45;opacity:.13;mix-blend-mode:overlay"></div>
   <div id="topLeftBar">
    <button aria-label="What's New" class="ghost" id="btnWhatsNew" title="What's New" type="button"><svg aria-hidden="true" fill="none" height="22" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewBox="0 0 24 24" width="22"><path d="M4 5h13v14H6a2 2 0 0 1-2-2z"/><path d="M17 9h3v8a2 2 0 0 1-2 2h-1"/><path d="M7 8.5h7M7 12h7M7 15.5h4"/></svg><span id="wnBadge">!</span></button>
-   <div id="versionNumber" aria-label="Version 2.2.6">v2.2.6</div>
+   <div id="versionNumber" aria-label="Version 2.3.0">v2.3.0</div>
   </div>
   <div id="whatsNewPanel">
    <div id="whatsNewCard">
-    <h2>WHAT'S NEW IN v2.2.6</h2>
+    <h2>WHAT'S NEW IN v2.3.0</h2>
+    <ul>
+     <li><b>Hats:</b> You can now buy hats from the customize tab in the multiplayer menu</li>
+     <li><b>Added 2 new codes:</b> The code Jackpot gives 1-1000 dollars and the code FPS shows how many Frames Per Second you get</li>
+     <li><b>More fun options:</b> If you're the host of a lobby you can turn on random fun settings.</li>
+    </ul>
+    <h3>EARLIER (v2.2.2)</h3>
     <ul>
      <li><b>Open lobbies:</b> see public multiplayer lobbies and join without giving people the code each time you make a lobby. You can private lobbies when creating to hide yours.</li>
      <li><b>Customize before joining:</b> the multiplayer menu now has a CUSTOMIZE tab for your color and face.</li>
      <li><b>Chat button</b> sits under LOBBY while you wait, then goes back under settings once the match starts.</li>
      <li><b>Fun tab for everybody</b> fun tab was originally meant for Administrators only, but I realized that it would be more fun to have it public instead of private.</li>
-    </ul>
-    <h3>EARLIER (v2.2.2)</h3>
-    <ul>
-     <li><b>Family_Friendly code:</b> the shotgun becomes a confetti cannon, the knife a butter knife, and the beer apple juice in a sippy cup lol</li>
-     <li><b>Original font restored:</b> Courier New with 'Impact headlines', and button text is spaced out a little more.</li>
-     <li><b>What's New button</b> and the version number now sit in the top left.</li>
     </ul>
     <button class="ghost" id="btnCloseWhatsNew" type="button">CLOSE</button>
    </div>
@@ -1320,7 +1320,7 @@ body.retro canvas{filter:contrast(1.1) saturate(1.25)}
     </button>
     <button class="qualityChoice" id="qualityPotato" type="button">
      POTATO
-     <small>No room, dust, glow, shadows or fancy lighting. Silly blocky gun and wood slab table.</small>
+     <small>No room, dust, glow, shadows or fancy lighting. Blocky gun and a wood slab as a table.</small>
     </button>
     <button class="ghost" id="btnCloseSettings" style="margin-top:16px" type="button">
      CLOSE
@@ -1590,19 +1590,19 @@ body.retro canvas{filter:contrast(1.1) saturate(1.25)}
     </div>
      <div id="mpPaneFun" style="display:none">
       <div class="mpSep">FUN MODES</div>
-      <div class="mpNote">These effects are shared with everyone in this multiplayer lobby. Hosts can edit these settings; players with AdministratorMe can also edit them.</div>
-      <label class="funOption"><span><b>BOUNCY</b><small>Players bounce when they get shot.</small></span><input id="funBouncy" type="checkbox"/></label>
-      <label class="funOption"><span><b>PINBALL</b><small>More sideways movement during the bounce.</small></span><input id="funPinball" type="checkbox"/></label>
-      <label class="funOption"><span><b>SPIN CYCLE</b><small>Players spin while bouncing.</small></span><input id="funSpin" type="checkbox"/></label>
-      <label class="funOption"><span><b>LOW GRAVITY</b><small>Higher, floatier bounces.</small></span><input id="funLowGravity" type="checkbox"/></label>
-      <label class="funOption"><span><b>CONFETTI POP</b><small>Every hit makes confetti burst on everyone's screen.</small></span><input id="funConfetti" type="checkbox"/></label>
-      <label class="funOption"><span><b>DISCO LIGHTS</b><small>Colored lights pulse for the whole lobby.</small></span><input id="funDisco" type="checkbox"/></label>
-      <label class="funOption"><span><b>EMOJI RAIN</b><small>Party emojis fall down every screen.</small></span><input id="funRain" type="checkbox"/></label>
-      <label class="funOption"><span><b>GIANT PLAYERS</b><small>Everyone's figure is 1.5x bigger.</small></span><input id="funGiant" type="checkbox"/></label>
-      <label class="funOption"><span><b>TINY PLAYERS</b><small>Everyone's figure shrinks (Giant wins if both are on).</small></span><input id="funTiny" type="checkbox"/></label>
-      <label class="funOption"><span><b>MEGA SHAKE</b><small>Hits shake every screen hard.</small></span><input id="funMegaShake" type="checkbox"/></label>
-      <div class="funSlider"><label for="funPower">BOUNCE POWER <b id="funPowerVal">1.5×</b></label><input id="funPower" type="range" min="0.5" max="3" step="0.1" value="1.5"/></div>
-      <div class="funSlider"><label for="funDuration">DURATION <b id="funDurationVal">4.0s</b></label><input id="funDuration" type="range" min="1" max="8" step="0.5" value="4"/></div>
+      <div class="mpNote">These effects are shared with everyone in this multiplayer lobby. Hosts can edit these settings.</div>
+      <label class="funOption"><span><b>BOUNCY</b><small>Players bounce when they get shot</small></span><input id="funBouncy" type="checkbox"/></label>
+      <label class="funOption"><span><b>PINBALL</b><small>More sideways movement during the 'bounce'</small></span><input id="funPinball" type="checkbox"/></label>
+      <label class="funOption"><span><b>SPIN CYCLE</b><small>Players spin while bouncing</small></span><input id="funSpin" type="checkbox"/></label>
+      <label class="funOption"><span><b>LOW GRAVITY</b><small>Funnier bounces trust</small></span><input id="funLowGravity" type="checkbox"/></label>
+      <label class="funOption"><span><b>CONFETTI</b><small>Every hit makes confetti appear on everyone's screen</small></span><input id="funConfetti" type="checkbox"/></label>
+      <label class="funOption"><span><b>RGB</b><small>Legit just RGB</small></span><input id="funDisco" type="checkbox"/></label>
+      <label class="funOption"><span><b>EMOJI</b><small>Party themed emojis fall down every screen</small></span><input id="funRain" type="checkbox"/></label>
+      <label class="funOption"><span><b>GIANT PLAYERS</b><small>Everyone's figure becomes 1.5x bigger</small></span><input id="funGiant" type="checkbox"/></label>
+      <label class="funOption"><span><b>TINY PLAYERS</b><small>Everyone's figure becomes smaller (Giant wins if both are on)</small></span><input id="funTiny" type="checkbox"/></label>
+      <label class="funOption"><span><b>LOTS O' SHAKE</b><small>Hits shake every screen hard.</small></span><input id="funMegaShake" type="checkbox"/></label>
+      <div class="funSlider"><label for="funPower">BOUNCE POWER <b id="funPowerVal">1.5×</b></label><input id="funPower" type="range" min="0.1" max="20" step="0.1" value="1.5"/></div>
+      <div class="funSlider"><label for="funDuration">DURATION <b id="funDurationVal">4.0s</b></label><input id="funDuration" type="range" min="0.1" max="30" step="0.5" value="4"/></div>
       <button class="ghost" id="funReset" type="button">RESET FUN SETTINGS</button>
      </div>
      <div id="mpPaneSkin" style="display:none">
