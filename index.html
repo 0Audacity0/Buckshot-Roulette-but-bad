@@ -5069,11 +5069,18 @@ body.inLobby #btnWhatsNew { display: none !important; }
             else tab.style.setProperty('display', 'none', 'important');
         }
         if (!canEditFun) {
+            // Refreshes arrive while players customize their skins. Do not force
+            // everyone back to the lobby tab just because they cannot edit FUN.
+            // Only redirect if the FUN tab itself was selected and has become unavailable.
+            const funWasSelected = !!(tab && tab.classList.contains('on'));
             if (pane) pane.style.display = 'none';
-            if ($('#mpPaneLobby')) $('#mpPaneLobby').style.display = 'block';
-            if ($('#mpPaneSkin')) $('#mpPaneSkin').style.display = 'none';
-            if ($('#mpTabLobby')) $('#mpTabLobby').classList.add('on');
-            if ($('#mpTabFun')) $('#mpTabFun').classList.remove('on');
+            if (funWasSelected) {
+                if ($('#mpPaneLobby')) $('#mpPaneLobby').style.display = 'block';
+                if ($('#mpPaneSkin')) $('#mpPaneSkin').style.display = 'none';
+                if ($('#mpTabLobby')) $('#mpTabLobby').classList.add('on');
+                if ($('#mpTabSkin')) $('#mpTabSkin').classList.remove('on');
+                if ($('#mpTabFun')) $('#mpTabFun').classList.remove('on');
+            }
             return;
         }
         const f = MP.fun || {};
