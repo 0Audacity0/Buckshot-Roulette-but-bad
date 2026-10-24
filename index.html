@@ -5282,12 +5282,18 @@ body.retro canvas{filter:contrast(1.1) saturate(1.25)}
     applyFamily();
     window.addEventListener('pageshow', () => { applyFamily(); });
     const wnPanel = document.getElementById('whatsNewPanel');
-    const WN_VER = '2.3.0', WN_KEY = 'lastshell_whatsnew_seen', wnBtn = document.getElementById('btnWhatsNew');
-    try { if (localStorage.getItem(WN_KEY) !== WN_VER) wnBtn.classList.add('new'); } catch (e) { wnBtn.classList.add('new'); }
+    const wnBtn = document.getElementById('btnWhatsNew'), WN_KEY = 'lastshell_whatsnew_sig';
+    const WN_SIG = (() => {
+        const t = (document.getElementById('whatsNewCard').textContent || '') + (document.getElementById('versionNumber').textContent || '');
+        let h = 5381;
+        for (let i = 0; i < t.length; i++) h = ((h << 5) + h + t.charCodeAt(i)) | 0;
+        return String(h);
+    })();
+    try { if (localStorage.getItem(WN_KEY) !== WN_SIG) wnBtn.classList.add('new'); } catch (e) { wnBtn.classList.add('new'); }
     wnBtn.onclick = () => {
         wnPanel.style.display = 'flex';
         wnBtn.classList.remove('new');
-        try { localStorage.setItem(WN_KEY, WN_VER); } catch (e) { }
+        try { localStorage.setItem(WN_KEY, WN_SIG); } catch (e) { }
     };
     document.getElementById('btnCloseWhatsNew').onclick = () => { wnPanel.style.display = 'none'; };
     wnPanel.addEventListener('click', e => { if (e.target === wnPanel) wnPanel.style.display = 'none'; });
