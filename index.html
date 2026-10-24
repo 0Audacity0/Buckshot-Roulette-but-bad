@@ -1761,7 +1761,12 @@ html.mobile .tTop{padding-top:124px}
         o2.start();
     }
     const SFX = {
-        shot() { noise(1, 1.1, 2200); tone(90, .6, 'sine', .9, -60); },
+        shot() {
+            noise(.1, .5, 3200);
+            tone(350, .38, 'sawtooth', .22, 700);
+            tone(700, .38, 'square', .08, 1300);
+            setTimeout(() => { tone(1100, .22, 'sawtooth', .16, -350); tone(1650, .2, 'square', .05, -500); }, 340);
+        },
         click() { tone(1500, .04, 'square', .12); noise(.06, .25, 4000, 'highpass'); },
         pump() { tone(300, .06, 'square', .1); setTimeout(() => tone(220, .08, 'square', .1), 120); },
         heal() { tone(400, .45, 'sine', .15, 300); },
@@ -2129,6 +2134,42 @@ html.mobile .tTop{padding-top:124px}
     const bell = mesh(new THREE.ConeGeometry(.1, .24, 18, 1, true), mat(0xffd24a, { roughness: .4, side: THREE.DoubleSide }), .87, 0, 0, gun);
     bell.rotation.z = Math.PI / 2;
     bell.visible = false;
+    const shotgunParts = gun.children.slice();
+    const cannon = new THREE.Group();
+    gun.add(cannon);
+    const stripeTex = (() => {
+        const c = document.createElement('canvas');
+        c.width = c.height = 128;
+        const x = c.getContext('2d');
+        const cols = ['#ff4fa3', '#ffffff', '#4fc3f7', '#ffffff', '#ffd24a', '#ffffff'];
+        for (let i = -8; i < 16; i++) { x.fillStyle = cols[((i % 6) + 6) % 6]; x.beginPath(); x.moveTo(i * 16, 0); x.lineTo(i * 16 + 16, 0); x.lineTo(i * 16 + 144, 128); x.lineTo(i * 16 + 128, 128); x.fill(); }
+        const t = new THREE.CanvasTexture(c);
+        t.wrapS = t.wrapT = THREE.RepeatWrapping;
+        t.repeat.set(3, 2);
+        return t;
+    })();
+    const cTube = mesh(new THREE.CylinderGeometry(.07, .07, 1, 28), mat(0xffffff, { map: stripeTex, roughness: .55 }), .5, 0, 0, cannon);
+    cTube.rotation.z = Math.PI / 2;
+    const cGold = mat(0xffd24a, { metalness: .6, roughness: .35 });
+    const cDark = mat(0x3a1d6e, { roughness: .6 });
+    const cCap = mesh(new THREE.CylinderGeometry(.076, .076, .05, 28), cDark, -.01, 0, 0, cannon);
+    cCap.rotation.z = Math.PI / 2;
+    mesh(new THREE.CylinderGeometry(.004, .004, .14, 8), cGold, -.1, 0, 0, cannon).rotation.z = Math.PI / 2;
+    const pull = mesh(new THREE.TorusGeometry(.02, .005, 8, 14), cGold, -.19, 0, 0, cannon);
+    pull.rotation.x = Math.PI / 2;
+    for (const px of [.25, .5, .75])
+        mesh(new THREE.TorusGeometry(.073, .007, 8, 28), cGold, px, 0, 0, cannon).rotation.y = Math.PI / 2;
+    mesh(new THREE.TorusGeometry(.074, .012, 8, 28), cGold, 1, 0, 0, cannon).rotation.y = Math.PI / 2;
+    const cMouth = mesh(new THREE.CylinderGeometry(.058, .058, .01, 22), mat(0x0a0a0a, { roughness: 1 }), .995, 0, 0, cannon);
+    cMouth.rotation.z = Math.PI / 2;
+    const confCols = [0xff4fa3, 0x4fc3f7, 0xffd24a, 0x7ad07a, 0xb48cff, 0xff8a3d];
+    for (let i = 0; i < 12; i++) {
+        const a = i * 2.4, r = .02 + (i % 4) * .012;
+        const bit = mesh(new THREE.BoxGeometry(.03, .004, .018), mat(confCols[i % 6], { roughness: .6 }), 1.01 + (i % 3) * .018, Math.sin(a) * r, Math.cos(a) * r, cannon);
+        bit.rotation.set(a, a * 1.7, a * .6);
+    }
+    cannon.position.x = -.3;
+    shotgunParts.forEach(c => { c.visible = false; });
     function setSawn(b) {
         const s = b ? .55 : 1;
         barrel.scale.y = s;
@@ -2140,6 +2181,7 @@ html.mobile .tTop{padding-top:124px}
         bead.position.x = -.25 + s;
         cap.position.x = -.2 + .8 * s;
         bell.position.x = -.25 + s + .12;
+        cannon.scale.x = s;
     }
     const POSE = {
         rest: { pos: V(0, 1.08, .05), rot: .25 },
@@ -5041,12 +5083,6 @@ html.mobile .tTop{padding-top:124px}
         const on = !!SAVE.cheats.family;
         Object.assign(ITEMS.beer, on ? { name: 'Apple Juice', icon: '🧃', desc: 'Sip apple juice from a sippy cup: restore 1 charge.' } : ITEM_BASE.beer);
         Object.assign(ITEMS.knife, on ? { name: 'Butter Knife', icon: '🧈', desc: 'Spread the barrel: a live shot takes 2 charges.' } : ITEM_BASE.knife);
-        steel.color.setHex(on ? 0xff4fa3 : GUN_BASE.steel);
-        steel2.color.setHex(on ? 0x4fc3f7 : GUN_BASE.steel2);
-        walnut.color.setHex(on ? 0xffd24a : GUN_BASE.walnut);
-        rubber.color.setHex(on ? 0x7a4fd0 : GUN_BASE.rubber);
-        rib.visible = !on;
-        bell.visible = on;
         try { rebuildItems(); } catch (e) { }
         try { renderTitle(); } catch (e) { }
     }
