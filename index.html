@@ -1222,6 +1222,43 @@ body.mp #topLeftBar,
 body.mp #btnWhatsNew,
 body.inLobby #topLeftBar,
 body.inLobby #btnWhatsNew { display: none !important; }
+
+
+/* SHOTBUCK custom scrollbars — dark steel with tactical gold accents */
+:root {
+  scrollbar-color: #b88b22 #100e09;
+  scrollbar-width: thin;
+}
+* {
+  scrollbar-color: #b88b22 #100e09;
+  scrollbar-width: thin;
+}
+::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+::-webkit-scrollbar-track {
+  background: linear-gradient(90deg, #080706, #17140d 50%, #080706);
+  border-left: 1px solid #39301a;
+  box-shadow: inset 0 0 5px #000;
+}
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(90deg, #5b4516 0%, #ffd24a 45%, #a87512 100%);
+  border: 2px solid #100e09;
+  border-radius: 2px;
+  box-shadow: inset 0 0 0 1px #ffe38a66, 0 0 7px #ffd24a33;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(90deg, #87651b 0%, #ffe17a 45%, #d99a18 100%);
+  box-shadow: inset 0 0 0 1px #fff0b0, 0 0 10px #ffd24a77;
+}
+::-webkit-scrollbar-thumb:active {
+  background: linear-gradient(90deg, #a87512, #fff0a0, #ffd24a);
+}
+::-webkit-scrollbar-corner {
+  background: #100e09;
+}
+
 </style>
  </head>
  <body class="title">
@@ -1721,6 +1758,9 @@ body.inLobby #btnWhatsNew { display: none !important; }
     /* ---------------- SAVE / CHEATS ---------------- */
     const RULES_HTML = $('#card').innerHTML.replace(/<button id="btnStart">[^<]*<\/button>/, '');
     const SAVE_KEY = 'lastshell_save_v1';
+    // Keep Family Friendly in its own durable preference as well, so the
+    // confetti-cannon model survives closing/reloading the page.
+    const FAMILY_KEY = 'lastshell_family_friendly_v1';
     function defaultSave() {
         return { bank: 150, stash: [], admin: false, codesUnlocked: false, stockedActive: false, cheats: { god: false, quick: false, peek: false, solo: false, family: false },
             stats: { games: 0, wins: 0, losses: 0, rounds: 0, shots: 0, hits: 0, selfBlanks: 0, damageTaken: 0, items: 0, earned: 0, streak: 0, best: 0 } };
@@ -1729,8 +1769,11 @@ body.inLobby #btnWhatsNew { display: none !important; }
         const d = defaultSave();
         try {
             const j = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null');
-            if (j)
-                return Object.assign(d, j, { stats: Object.assign(d.stats, j.stats || {}), cheats: Object.assign(d.cheats, j.cheats || {}), stash: Array.isArray(j.stash) ? j.stash.slice(0, 5) : [] });
+            if (j) Object.assign(d, j, { stats: Object.assign(d.stats, j.stats || {}), cheats: Object.assign(d.cheats, j.cheats || {}), stash: Array.isArray(j.stash) ? j.stash.slice(0, 5) : [] });
+            // The dedicated preference wins when present; otherwise preserve
+            // the value from the existing save for backwards compatibility.
+            const savedFamily = localStorage.getItem(FAMILY_KEY);
+            if (savedFamily !== null) d.cheats.family = savedFamily === '1';
         }
         catch (e) { }
         return d;
@@ -1738,6 +1781,7 @@ body.inLobby #btnWhatsNew { display: none !important; }
     const SAVE = loadSave();
     function persist() { try {
         localStorage.setItem(SAVE_KEY, JSON.stringify(SAVE));
+        localStorage.setItem(FAMILY_KEY, SAVE.cheats.family ? '1' : '0');
     }
     catch (e) { } }
     function applyCheats() { speed = SAVE.cheats.quick ? 2 : 1; }
@@ -3159,7 +3203,7 @@ body.inLobby #btnWhatsNew { display: none !important; }
         quick: () => { SAVE.cheats.quick = !SAVE.cheats.quick; return 'Quick mode ' + onOff(SAVE.cheats.quick) + (SAVE.cheats.quick ? ': game runs at 2x speed.' : '.'); },
         peek: () => { SAVE.cheats.peek = !SAVE.cheats.peek; return 'Peek ' + onOff(SAVE.cheats.peek) + (SAVE.cheats.peek ? ': the chamber is always shown.' : '.'); },
         resetstats: () => { SAVE.stats = defaultSave().stats; return 'Stats reset.'; },
-        family_friendly: () => { SAVE.cheats.family = !SAVE.cheats.family; applyFamily(); return 'Family Friendly ' + onOff(SAVE.cheats.family) + (SAVE.cheats.family ? ': confetti cannon, butter knife and apple juice sippy cup.' : '.'); },
+        family_friendly: () => { SAVE.cheats.family = !SAVE.cheats.family; try { localStorage.setItem(FAMILY_KEY, SAVE.cheats.family ? '1' : '0'); } catch (e) { } applyFamily(); return 'Family Friendly ' + onOff(SAVE.cheats.family) + (SAVE.cheats.family ? ': confetti cannon, butter knife and apple juice sippy cup.' : '.'); },
         familyfriendly: () => CODES.family_friendly()
     };
     $('#tCode').onsubmit = e => {
@@ -5216,6 +5260,7 @@ body.inLobby #btnWhatsNew { display: none !important; }
     const _sfxShot = SFX.shot;
     SFX.shot = function () { if (SAVE.cheats.family) { SFX.horn(); try { mpConfetti(); } catch (e) { } } else _sfxShot.apply(this, arguments); };
     applyFamily();
+    window.addEventListener('pageshow', () => { applyFamily(); });
     const wnPanel = document.getElementById('whatsNewPanel');
     const WN_VER = '2.3.0', WN_KEY = 'lastshell_whatsnew_seen', wnBtn = document.getElementById('btnWhatsNew');
     try { if (localStorage.getItem(WN_KEY) !== WN_VER) wnBtn.classList.add('new'); } catch (e) { wnBtn.classList.add('new'); }
