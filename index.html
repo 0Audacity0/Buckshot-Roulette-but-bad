@@ -1187,6 +1187,41 @@ html.mobile body.inLobby #btnCodeList,html.mobile body.inLobby #codeListPanel{di
 .mpPubRow{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 10px;border:1px solid rgba(255,210,74,.28);margin:6px 0;font-size:13px}
 .mpPubRow small{color:#a8a08b;display:block;font-size:10px}
 #mpMenuTabs{margin-bottom:10px}
+
+/* Requested desktop multiplayer chat placement (mobile rules above remain in force). */
+@media (min-width: 901px) and (pointer: fine) {
+  body.mp #chatBtn:not(.inCard) {
+    position: fixed !important;
+    right: 18px !important;
+    bottom: 18px !important;
+    left: auto !important;
+    top: auto !important;
+  }
+  body.mp #chatPanel {
+    position: fixed !important;
+    right: 18px !important;
+    bottom: 76px !important;
+    left: auto !important;
+    top: auto !important;
+  }
+}
+/* Keep the Fun controls in a centered, consistent column and prevent edge clipping. */
+#mpPaneFun {
+  width: min(520px, 100%);
+  max-width: 100%;
+  margin-inline: auto;
+  padding: 6px 10px 12px;
+  box-sizing: border-box;
+  text-align: center;
+}
+#mpPaneFun > .mpSep,
+#mpPaneFun > .mpNote,
+#mpPaneFun > #funReset { margin-left: auto; margin-right: auto; }
+#mpPaneFun .funOption { width: 100%; box-sizing: border-box; text-align: left; }
+#mpPaneFun .funSlider { width: calc(100% - 4px); margin-left: auto; margin-right: auto; }
+#mpPaneFun.funReadOnly input { cursor: not-allowed; opacity: .55; }
+#funHostNotice { padding: 8px 10px; border: 1px solid rgba(255,210,74,.4); color: #ffd24a; }
+
 </style>
  </head>
  <body class="title">
@@ -4210,6 +4245,7 @@ html.mobile body.inLobby #btnCodeList,html.mobile body.inLobby #codeListPanel{di
             if (lb.data || pl.data) {
                 const hostHere = MP.players.some(p => p.player_id === MP.hostId);
                 MP.host = MP.hostId === MP.pid || (!hostHere && !!MP.players[0] && MP.players[0].player_id === MP.pid);
+                renderFunControls();
             }
             if (pl.data)
                 mpRenderRoom();
@@ -4987,6 +5023,22 @@ html.mobile body.inLobby #btnCodeList,html.mobile body.inLobby #codeListPanel{di
     function renderFunControls() {
         const tab = $('#mpTabFun');
         if (tab) tab.style.display = '';
+        const isHost = !!MP.host;
+        const pane = $('#mpPaneFun');
+        if (pane) {
+            pane.classList.toggle('funReadOnly', !isHost);
+            pane.querySelectorAll('input, #funReset').forEach(el => { el.disabled = !isHost; });
+            let note = $('#funHostNotice');
+            if (!isHost) {
+                if (!note) {
+                    note = document.createElement('div');
+                    note.id = 'funHostNotice';
+                    note.className = 'mpNote';
+                    note.textContent = 'Only the lobby host can change Fun settings.';
+                    pane.insertBefore(note, pane.firstChild);
+                }
+            } else if (note) note.remove();
+        }
         const f = MP.fun || {};
         for (const [id,key] of [['funBouncy','bouncy'],['funPinball','pinball'],['funSpin','spin'],['funLowGravity','lowGravity'],['funConfetti','confetti'],['funDisco','disco'],['funRain','rain'],['funGiant','giant'],['funTiny','tiny'],['funMegaShake','megaShake']]) {
             const el = $('#'+id); if (el) el.checked = !!f[key];
@@ -4997,7 +5049,11 @@ html.mobile body.inLobby #btnCodeList,html.mobile body.inLobby #codeListPanel{di
         try { mpFunVisuals(); } catch (e) { }
     }
     function mpFunConfig() {
-        if (!MP.code || !MP.sb) return;
+        // Never let a non-host client send lobby-wide Fun settings.
+        if (!MP.code || !MP.sb || !MP.host) {
+            renderFunControls();
+            return;
+        }
         MP.fun = {
             bouncy: $('#funBouncy').checked, pinball: $('#funPinball').checked,
             spin: $('#funSpin').checked, lowGravity: $('#funLowGravity').checked,
