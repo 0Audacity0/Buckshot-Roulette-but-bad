@@ -1478,7 +1478,7 @@ html.mobile .tTop{padding-top:124px}
     <div id="mpRoom" style="display:none">
      <div class="mpTabs">
       <button class="on" id="mpTabLobby" type="button">LOBBY</button>
-      <button id="mpTabFun" type="button" style="display:none">FUN</button>
+      <button id="mpTabFun" type="button">FUN</button>
       <button id="mpTabSkin" type="button">CUSTOMIZE</button>
      </div>
      <div id="mpPaneLobby">
@@ -1496,7 +1496,7 @@ html.mobile .tTop{padding-top:124px}
      </button>
     </div>
      <div id="mpPaneFun" style="display:none">
-      <div class="mpSep">ADMINISTRATOR FUN MODES</div>
+      <div class="mpSep">FUN MODES</div>
       <div class="mpNote">These effects are shared with everyone in this multiplayer lobby.</div>
       <label class="funOption"><span><b>BOUNCY</b><small>Players bounce when they get shot.</small></span><input id="funBouncy" type="checkbox"/></label>
       <label class="funOption"><span><b>PINBALL</b><small>More sideways movement during the bounce.</small></span><input id="funPinball" type="checkbox"/></label>
@@ -1761,12 +1761,13 @@ html.mobile .tTop{padding-top:124px}
         o2.start();
     }
     const SFX = {
-        shot() {
+        horn() {
             noise(.1, .5, 3200);
             tone(350, .38, 'sawtooth', .22, 700);
             tone(700, .38, 'square', .08, 1300);
             setTimeout(() => { tone(1100, .22, 'sawtooth', .16, -350); tone(1650, .2, 'square', .05, -500); }, 340);
         },
+        shot() { noise(1, 1.1, 2200); tone(90, .6, 'sine', .9, -60); },
         click() { tone(1500, .04, 'square', .12); noise(.06, .25, 4000, 'highpass'); },
         pump() { tone(300, .06, 'square', .1); setTimeout(() => tone(220, .08, 'square', .1), 120); },
         heal() { tone(400, .45, 'sine', .15, 300); },
@@ -2134,7 +2135,7 @@ html.mobile .tTop{padding-top:124px}
     const bell = mesh(new THREE.ConeGeometry(.1, .24, 18, 1, true), mat(0xffd24a, { roughness: .4, side: THREE.DoubleSide }), .87, 0, 0, gun);
     bell.rotation.z = Math.PI / 2;
     bell.visible = false;
-    const shotgunParts = gun.children.slice();
+    const shotgunParts = gun.children.slice().filter(c => c !== bell);
     const cannon = new THREE.Group();
     gun.add(cannon);
     const stripeTex = (() => {
@@ -2169,7 +2170,7 @@ html.mobile .tTop{padding-top:124px}
         bit.rotation.set(a, a * 1.7, a * .6);
     }
     cannon.position.x = -.3;
-    shotgunParts.forEach(c => { c.visible = false; });
+    cannon.visible = false;
     function setSawn(b) {
         const s = b ? .55 : 1;
         barrel.scale.y = s;
@@ -3092,7 +3093,7 @@ html.mobile .tTop{padding-top:124px}
     const CODES = {
         codeall: () => { SAVE.codesUnlocked = !SAVE.codesUnlocked; syncCodeListButton(); if (!SAVE.codesUnlocked)
             $('#codeListPanel').style.display = 'none'; return SAVE.codesUnlocked ? 'Code list enabled. Click CODES in the bottom-left to view every code.' : 'Code list disabled.'; },
-        administratorme: () => { SAVE.admin = !SAVE.admin; if (!SAVE.admin) { SAVE.cheats.solo = false; if ($('#mpPaneFun')) mpSkinTab('lobby'); } if ($('#mpTabFun')) $('#mpTabFun').style.display = SAVE.admin ? '' : 'none'; return SAVE.admin ? 'ADMIN ON: rigged luck, infinite items, infinite cash.' : 'Admin OFF. Back to normal.'; },
+        administratorme: () => { SAVE.admin = !SAVE.admin; if (!SAVE.admin) { SAVE.cheats.solo = false; } return SAVE.admin ? 'ADMIN ON: rigged luck, infinite items, infinite cash.' : 'Admin OFF. Back to normal.'; },
         onlyme: () => { if (!SAVE.admin)
             return 'Turn on AdministratorMe first.'; SAVE.cheats.solo = !SAVE.cheats.solo; return 'Only-me turns ' + onOff(SAVE.cheats.solo) + (SAVE.cheats.solo ? ': The Dealer never gets a turn.' : '.'); },
         payday: () => { SAVE.bank += 500; return '+$500 added to your bank.'; },
@@ -3760,7 +3761,7 @@ html.mobile .tTop{padding-top:124px}
         MP.pending = 0;
         MP.chain = Promise.resolve();
         showMpView('room');
-        $('#mpTabFun').style.display = SAVE.admin ? '' : 'none';
+        $('#mpTabFun').style.display = '';
         mpMsg('');
         $('#mpCodeShow').textContent = code;
         const f = 'lobby_code=eq.' + code;
@@ -3774,7 +3775,7 @@ html.mobile .tTop{padding-top:124px}
             .on('postgres_changes', { event: '*', schema: 'public', table: 'mp_skins', filter: f }, p => { if (p && p.new) mpSkinRow(p.new); })
             .on('broadcast', { event: 'flags' }, m => { const d = m && m.payload; if (d && d.pid && d.f) { MP.gone.delete(d.pid); MP.flags[d.pid] = { god: !!d.f.god, peek: !!d.f.peek, stocked: !!d.f.stocked }; mpSendFlagsBack(d.pid); } })
             .on('broadcast', { event: 'quit' }, m => { const d = m && m.payload; if (d && d.pid && d.pid !== MP.pid) { MP.gone.add(d.pid); mpRenderRoom(); } })
-            .subscribe(st => { if (st === 'SUBSCRIBED') { mpSendFlags(); if (MP.skin.color || MP.skin.face) mpSendSkin(false); if (SAVE.admin) setTimeout(() => mpSend('funconfig', MP.fun), 350); } });
+            .subscribe(st => { if (st === 'SUBSCRIBED') { mpSendFlags(); if (MP.skin.color || MP.skin.face) mpSendSkin(false); if (Object.values(MP.fun).some(v => v === true)) setTimeout(() => mpSend('funconfig', MP.fun), 350); } });
         MP.flags = {};
         MP.look = {};
         MP.flags[MP.pid] = mpMyFlags();
@@ -3920,14 +3921,13 @@ html.mobile .tTop{padding-top:124px}
         skinColorTimer = setTimeout(() => mpSendSkin(true), 350);
     }
     function mpSkinTab(which) {
-        if (which === 'fun' && !SAVE.admin) which = 'lobby';
         $('#mpPaneLobby').style.display = which === 'lobby' ? 'block' : 'none';
         $('#mpPaneSkin').style.display = which === 'skin' ? 'block' : 'none';
         $('#mpPaneFun').style.display = which === 'fun' ? 'block' : 'none';
         $('#mpTabLobby').classList.toggle('on', which === 'lobby');
         $('#mpTabSkin').classList.toggle('on', which === 'skin');
         $('#mpTabFun').classList.toggle('on', which === 'fun');
-        $('#mpTabFun').style.display = SAVE.admin ? '' : 'none';
+        $('#mpTabFun').style.display = '';
         if (which === 'skin') skinPreview();
         if (which === 'fun') renderFunControls();
     }
@@ -4960,7 +4960,7 @@ html.mobile .tTop{padding-top:124px}
     /* ----- administrator multiplayer fun modes ----- */
     function renderFunControls() {
         const tab = $('#mpTabFun');
-        if (tab) tab.style.display = SAVE.admin ? '' : 'none';
+        if (tab) tab.style.display = '';
         const f = MP.fun || {};
         for (const [id,key] of [['funBouncy','bouncy'],['funPinball','pinball'],['funSpin','spin'],['funLowGravity','lowGravity'],['funConfetti','confetti'],['funDisco','disco'],['funRain','rain'],['funGiant','giant'],['funTiny','tiny'],['funMegaShake','megaShake']]) {
             const el = $('#'+id); if (el) el.checked = !!f[key];
@@ -4971,7 +4971,7 @@ html.mobile .tTop{padding-top:124px}
         try { mpFunVisuals(); } catch (e) { }
     }
     function mpFunConfig() {
-        if (!SAVE.admin || !MP.code || !MP.sb) return;
+        if (!MP.code || !MP.sb) return;
         MP.fun = {
             bouncy: $('#funBouncy').checked, pinball: $('#funPinball').checked,
             spin: $('#funSpin').checked, lowGravity: $('#funLowGravity').checked,
@@ -5015,7 +5015,6 @@ html.mobile .tTop{padding-top:124px}
     if (funPower) funPower.addEventListener('input', () => { $('#funPowerVal').textContent = Number(funPower.value).toFixed(1)+'×'; mpFunConfig(); });
     if (funDuration) funDuration.addEventListener('input', () => { $('#funDurationVal').textContent = Number(funDuration.value).toFixed(1)+'s'; mpFunConfig(); });
     if (funReset) funReset.onclick = () => {
-        if (!SAVE.admin) return;
         MP.fun = {bouncy:false,pinball:false,spin:false,lowGravity:false,confetti:false,disco:false,rain:false,giant:false,tiny:false,megaShake:false,power:1.5,duration:4};
         renderFunControls(); mpFunConfig();
     };
@@ -5083,11 +5082,13 @@ html.mobile .tTop{padding-top:124px}
         const on = !!SAVE.cheats.family;
         Object.assign(ITEMS.beer, on ? { name: 'Apple Juice', icon: '🧃', desc: 'Sip apple juice from a sippy cup: restore 1 charge.' } : ITEM_BASE.beer);
         Object.assign(ITEMS.knife, on ? { name: 'Butter Knife', icon: '🧈', desc: 'Spread the barrel: a live shot takes 2 charges.' } : ITEM_BASE.knife);
+        cannon.visible = on;
+        shotgunParts.forEach(c => { c.visible = !on; });
         try { rebuildItems(); } catch (e) { }
         try { renderTitle(); } catch (e) { }
     }
     const _sfxShot = SFX.shot;
-    SFX.shot = function () { _sfxShot.apply(this, arguments); if (SAVE.cheats.family) { try { mpConfetti(); } catch (e) { } } };
+    SFX.shot = function () { if (SAVE.cheats.family) { SFX.horn(); try { mpConfetti(); } catch (e) { } } else _sfxShot.apply(this, arguments); };
     applyFamily();
     const wnPanel = document.getElementById('whatsNewPanel');
     const WN_VER = '2.2.0', WN_KEY = 'lastshell_whatsnew_seen', wnBtn = document.getElementById('btnWhatsNew');
