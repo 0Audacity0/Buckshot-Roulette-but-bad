@@ -1188,26 +1188,31 @@ html.mobile body.inLobby #btnCodeList,html.mobile body.inLobby #codeListPanel{di
 .mpPubRow small{color:#a8a08b;display:block;font-size:10px}
 #mpMenuTabs{margin-bottom:10px}
 
-/* Shotbuck fixes: desktop multiplayer chat must remain viewport-fixed, never in the lobby card. */
-@media (pointer: fine) {
-  html:not(.mobile) body.mp #chatBtn,
-  html:not(.mobile) body.inLobby #chatBtn,
+/* DESKTOP CHAT HARD FIX: use viewport coordinates and keep chat above every overlay. */
+@media screen and (min-width: 901px) and (pointer: fine) {
+  html:not(.mobile) #chatBtn,
   html:not(.mobile) #chatBtn.inCard {
     position: fixed !important;
-    right: max(16px, env(safe-area-inset-right)) !important;
+    display: none;
+    right: 20px !important;
     left: auto !important;
     top: auto !important;
-    bottom: max(16px, env(safe-area-inset-bottom)) !important;
+    bottom: 20px !important;
     margin: 0 !important;
-    z-index: 90 !important;
+    z-index: 2147483001 !important;
+    transform: none !important;
   }
+  html:not(.mobile) #chatBtn.show { display: flex !important; }
+  html:not(.mobile) #chatBtn.hide { display: none !important; }
   html:not(.mobile) #chatPanel {
     position: fixed !important;
-    right: max(16px, env(safe-area-inset-right)) !important;
+    right: 20px !important;
     left: auto !important;
     top: auto !important;
-    bottom: calc(max(16px, env(safe-area-inset-bottom)) + 60px) !important;
-    z-index: 89 !important;
+    bottom: 78px !important;
+    margin: 0 !important;
+    z-index: 2147483000 !important;
+    transform: none !important;
   }
 }
 /* Hide What's New while the multiplayer overlay is open, in a lobby, or during a match. */
@@ -1540,10 +1545,11 @@ body.inLobby #btnWhatsNew { display: none !important; }
      <button id="mpStart" type="button">
       START MATCH
      </button>
+     <button id="mpAdminCloseLobby" type="button" style="display:none;border-color:#ff5a48;color:#ff5a48;margin-top:8px">FORCE CLOSE LOBBY (ADMIN)</button>
     </div>
      <div id="mpPaneFun" style="display:none">
       <div class="mpSep">FUN MODES</div>
-      <div class="mpNote">These effects are shared with everyone in this multiplayer lobby.</div>
+      <div class="mpNote">These effects are shared with everyone in this multiplayer lobby. Hosts can edit these settings; players with AdministratorMe can also edit them.</div>
       <label class="funOption"><span><b>BOUNCY</b><small>Players bounce when they get shot.</small></span><input id="funBouncy" type="checkbox"/></label>
       <label class="funOption"><span><b>PINBALL</b><small>More sideways movement during the bounce.</small></span><input id="funPinball" type="checkbox"/></label>
       <label class="funOption"><span><b>SPIN CYCLE</b><small>Players spin while bouncing.</small></span><input id="funSpin" type="checkbox"/></label>
@@ -3811,6 +3817,11 @@ body.inLobby #btnWhatsNew { display: none !important; }
     function mpEnter(code) {
         mpCleanup();
         MP.code = code;
+        // Do not carry host privileges from a previous lobby while the new lobby loads.
+        MP.host = false;
+        MP.hostId = null;
+        $('#mpTabFun').style.setProperty('display', 'none', 'important');
+        $('#mpPaneFun').style.display = 'none';
         MP.nextSeq = 1;
         MP.buf.clear();
         MP.S = null;
@@ -3981,14 +3992,15 @@ body.inLobby #btnWhatsNew { display: none !important; }
         skinColorTimer = setTimeout(() => mpSendSkin(true), 350);
     }
     function mpSkinTab(which) {
-        if (which === 'fun' && !(MP.code && MP.host && !MP.started)) which = 'lobby';
+        if (which === 'fun' && !(MP.code && (MP.host || SAVE.admin) && !MP.started)) which = 'lobby';
         $('#mpPaneLobby').style.display = which === 'lobby' ? 'block' : 'none';
         $('#mpPaneSkin').style.display = which === 'skin' ? 'block' : 'none';
         $('#mpPaneFun').style.display = which === 'fun' ? 'block' : 'none';
         $('#mpTabLobby').classList.toggle('on', which === 'lobby');
         $('#mpTabSkin').classList.toggle('on', which === 'skin');
         $('#mpTabFun').classList.toggle('on', which === 'fun');
-        $('#mpTabFun').style.display = (MP.code && MP.host && !MP.started) ? '' : 'none';
+        if (MP.code && MP.host && !MP.started) $('#mpTabFun').style.removeProperty('display');
+        else $('#mpTabFun').style.setProperty('display', 'none', 'important');
         if (which === 'skin') skinPreview();
         if (which === 'fun') renderFunControls();
     }
@@ -4068,6 +4080,8 @@ body.inLobby #btnWhatsNew { display: none !important; }
         const st = $('#mpStart');
         st.style.display = MP.host ? 'block' : 'none';
         st.disabled = MP.players.length < 2;
+        const adminClose = $('#mpAdminCloseLobby');
+        if (adminClose) adminClose.style.display = (SAVE.admin && MP.code) ? 'block' : 'none';
         $('#mpWait').textContent = MP.host ? (MP.players.length < 2 ? 'Share the code, you need at least 2 players.' : 'Press "Start Match" to start the match if you have 2 or more people in the lobby.') : 'Waiting for the host to start the match…';
     }
 
@@ -4180,6 +4194,23 @@ body.inLobby #btnWhatsNew { display: none !important; }
         document.body.classList.remove('mpLobbyOpen');
         mpUiSync();
     }
+    async function mpAdminCloseLobby(code, returnToMenu = false) {
+        if (!SAVE.admin || !MP.sb) return mpMsg('AdministratorMe must be enabled first.', true);
+        const target = String(code || MP.code || '').trim().toUpperCase();
+        if (!target) return mpMsg('No lobby selected.', true);
+        if (!confirm('ADMIN: Force close lobby ' + target + '? Everyone in that lobby will be disconnected.')) return;
+        mpMsg('Force-closing lobby ' + target + '…');
+        const { error } = await MP.sb.rpc('mp_admin_close_lobby', { p_code: target, p_player: MP.pid, p_is_admin: true });
+        if (error) { mpMsg('Could not force close lobby: ' + (error.message || error) + '. Run the admin-lobby SQL file in Supabase.', true); return; }
+        if (MP.code === target) {
+            mpCleanup(); MP.code = null; MP.host = false; MP.hostId = null; MP.started = false; MP.over = false; MP.players = []; MP.S = null;
+            chatSync(); showMpView('menu'); mpSkinTab('lobby');
+        }
+        mpMsg('Lobby ' + target + ' was force closed.');
+        if (returnToMenu) mpLoadPublic();
+    }
+    $('#mpAdminCloseLobby').onclick = () => mpAdminCloseLobby(MP.code, false);
+
     async function mpStartMatch() {
         if (!MP.host || MP.started)
             return;
@@ -4245,8 +4276,9 @@ body.inLobby #btnWhatsNew { display: none !important; }
             if (pl.data)
                 MP.players = pl.data.filter(p => !MP.gone.has(p.player_id));
             if (lb.data || pl.data) {
-                const hostHere = MP.players.some(p => p.player_id === MP.hostId);
-                MP.host = MP.hostId === MP.pid || (!hostHere && !!MP.players[0] && MP.players[0].player_id === MP.pid);
+                // The database's host_id is authoritative. Never promote a non-host client
+                // locally just because the recorded host is temporarily missing.
+                MP.host = !!(lb.data && lb.data.host_id && lb.data.host_id === MP.pid);
             }
             if (pl.data)
                 mpRenderRoom();
@@ -5031,8 +5063,11 @@ body.inLobby #btnWhatsNew { display: none !important; }
     function renderFunControls() {
         const tab = $('#mpTabFun');
         const pane = $('#mpPaneFun');
-        const canEditFun = !!(MP.code && MP.host && !MP.started);
-        if (tab) tab.style.display = canEditFun ? '' : 'none';
+        const canEditFun = !!(MP.code && (MP.host || SAVE.admin) && !MP.started);
+        if (tab) {
+            if (canEditFun) tab.style.removeProperty('display');
+            else tab.style.setProperty('display', 'none', 'important');
+        }
         if (!canEditFun) {
             if (pane) pane.style.display = 'none';
             if ($('#mpPaneLobby')) $('#mpPaneLobby').style.display = 'block';
@@ -5051,7 +5086,7 @@ body.inLobby #btnWhatsNew { display: none !important; }
         try { mpFunVisuals(); } catch (e) { }
     }
     function mpFunConfig() {
-        if (!MP.code || !MP.sb || !MP.host || MP.started) {
+        if (!MP.code || !MP.sb || !(MP.host || SAVE.admin) || MP.started) {
             renderFunControls();
             return;
         }
@@ -5098,7 +5133,7 @@ body.inLobby #btnWhatsNew { display: none !important; }
     if (funPower) funPower.addEventListener('input', () => { $('#funPowerVal').textContent = Number(funPower.value).toFixed(1)+'×'; mpFunConfig(); });
     if (funDuration) funDuration.addEventListener('input', () => { $('#funDurationVal').textContent = Number(funDuration.value).toFixed(1)+'s'; mpFunConfig(); });
     if (funReset) funReset.onclick = () => {
-        if (!MP.code || !MP.host || MP.started) return;
+        if (!MP.code || !(MP.host || SAVE.admin) || MP.started) return;
         MP.fun = {bouncy:false,pinball:false,spin:false,lowGravity:false,confetti:false,disco:false,rain:false,giant:false,tiny:false,megaShake:false,power:1.5,duration:4};
         renderFunControls(); mpFunConfig();
     };
@@ -5209,6 +5244,13 @@ body.inLobby #btnWhatsNew { display: none !important; }
                 b.onclick = () => { $('#mpCodeIn').value = r.code; mpJoin(); };
                 row.appendChild(info);
                 row.appendChild(b);
+                if (SAVE.admin) {
+                    const close = document.createElement('button');
+                    close.type = 'button'; close.textContent = 'FORCE CLOSE';
+                    close.style.borderColor = '#ff5a48'; close.style.color = '#ff5a48';
+                    close.onclick = () => mpAdminCloseLobby(r.code, true);
+                    row.appendChild(close);
+                }
                 box.appendChild(row);
             });
         }
@@ -5233,8 +5275,17 @@ body.inLobby #btnWhatsNew { display: none !important; }
         const lob = $('#mpLobby'), lobOpen = lob && lob.style.display !== 'none';
         document.body.classList.toggle('inLobby', !!MP.code || lobOpen);
         document.body.classList.toggle('mpLobbyOpen', !!lobOpen);
-        const btn = $('#chatBtn'), inRoom = document.documentElement.classList.contains('mobile') && !!MP.code && !MP.started && lobOpen;
-        if (inRoom && !btn.classList.contains('inCard')) {
+        const btn = $('#chatBtn'), panel = $('#chatPanel');
+        const isMobileLayout = document.documentElement.classList.contains('mobile');
+        const inRoom = isMobileLayout && !!MP.code && !MP.started && lobOpen;
+        if (!isMobileLayout) {
+            // Desktop chat is a direct child of <html>, not <body> or the lobby.
+            // This avoids transformed/body stacking contexts trapping fixed elements.
+            if (btn.parentElement !== document.documentElement) document.documentElement.appendChild(btn);
+            if (panel.parentElement !== document.documentElement) document.documentElement.appendChild(panel);
+            btn.classList.remove('inCard');
+        }
+        else if (inRoom && !btn.classList.contains('inCard')) {
             $('#mpRoom').querySelector('.mpTabs').after(btn);
             btn.classList.add('inCard');
         }
@@ -5243,7 +5294,17 @@ body.inLobby #btnWhatsNew { display: none !important; }
             btn.classList.remove('inCard');
         }
     }
-    setInterval(mpUiSync, 300);
+    let mpLastAdminUi = !!SAVE.admin;
+    setInterval(() => {
+        mpUiSync();
+        if (mpLastAdminUi !== !!SAVE.admin) {
+            mpLastAdminUi = !!SAVE.admin;
+            renderFunControls();
+            if (MP.code && !MP.started) mpRenderRoom();
+            const l = $('#mpLobby');
+            if (l && l.style.display !== 'none' && $('#mpMenu').style.display !== 'none') mpLoadPublic();
+        }
+    }, 300);
     setInterval(() => { const l = $('#mpLobby'); if (l && l.style.display !== 'none' && $('#mpMenu').style.display !== 'none' && $('#mpPlayBox').style.display !== 'none') mpLoadPublic(); }, 6000);
     /* ----- shoot-a-player picker ----- */
     function mpClosePick() { $('#mpPick').style.display = 'none'; }
