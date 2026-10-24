@@ -1259,11 +1259,15 @@ body.inLobby #btnWhatsNew { display: none !important; }
   background: #100e09;
 }
 
+#fpsBox{display:none;position:fixed;bottom:4px;left:50%;transform:translateX(-50%);z-index:62;font:11px "Courier New",monospace;color:#7ad07a;background:rgba(0,0,0,.6);padding:2px 8px;pointer-events:none}
+body.retro::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:60;background:radial-gradient(ellipse at center,transparent 50%,rgba(0,0,0,.65)),repeating-linear-gradient(0deg,rgba(0,0,0,.2) 0 1px,transparent 1px 3px)}
+body.retro canvas{filter:contrast(1.1) saturate(1.25)}
 </style>
  </head>
  <body class="title">
   <canvas id="c">
   </canvas>
+  <div id="fpsBox"></div>
   <div id="discoOv" style="display:none;position:fixed;inset:0;pointer-events:none;z-index:45;opacity:.13;mix-blend-mode:overlay"></div>
   <div id="topLeftBar">
    <button aria-label="What's New" class="ghost" id="btnWhatsNew" title="What's New" type="button"><svg aria-hidden="true" fill="none" height="22" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewBox="0 0 24 24" width="22"><path d="M4 5h13v14H6a2 2 0 0 1-2-2z"/><path d="M17 9h3v8a2 2 0 0 1-2 2h-1"/><path d="M7 8.5h7M7 12h7M7 15.5h4"/></svg><span id="wnBadge">!</span></button>
@@ -1765,7 +1769,7 @@ body.inLobby #btnWhatsNew { display: none !important; }
     // confetti-cannon model survives closing/reloading the page.
     const FAMILY_KEY = 'lastshell_family_friendly_v1';
     function defaultSave() {
-        return { bank: 150, hats: [], hat: '', stash: [], admin: false, codesUnlocked: false, stockedActive: false, cheats: { god: false, quick: false, peek: false, solo: false, family: false },
+        return { bank: 150, hats: [], hat: '', stash: [], admin: false, codesUnlocked: false, stockedActive: false, cheats: { god: false, quick: false, peek: false, solo: false, family: false, party: false, retro: false, fps: false },
             stats: { games: 0, wins: 0, losses: 0, rounds: 0, shots: 0, hits: 0, selfBlanks: 0, damageTaken: 0, items: 0, earned: 0, streak: 0, best: 0 } };
     }
     function loadSave() {
@@ -3206,6 +3210,11 @@ body.inLobby #btnWhatsNew { display: none !important; }
         quick: () => { SAVE.cheats.quick = !SAVE.cheats.quick; return 'Quick mode ' + onOff(SAVE.cheats.quick) + (SAVE.cheats.quick ? ': game runs at 2x speed.' : '.'); },
         peek: () => { SAVE.cheats.peek = !SAVE.cheats.peek; return 'Peek ' + onOff(SAVE.cheats.peek) + (SAVE.cheats.peek ? ': the chamber is always shown.' : '.'); },
         resetstats: () => { SAVE.stats = defaultSave().stats; return 'Stats reset.'; },
+        hatrack: () => { if (!Array.isArray(SAVE.hats)) SAVE.hats = []; HATS.forEach(h => { if (!SAVE.hats.includes(h.id)) SAVE.hats.push(h.id); }); return 'Every hat unlocked. Wear them from CUSTOMIZE in multiplayer.'; },
+        partytime: () => { SAVE.cheats.party = !SAVE.cheats.party; try { mpFunVisuals(); } catch (e) { } return 'Party time ' + onOff(SAVE.cheats.party) + '.'; },
+        jackpot: () => { const win = 1 + Math.floor(Math.random() * 1000); SAVE.bank += win; return 'Jackpot! +$' + win + ' added to your bank.'; },
+        retro: () => { SAVE.cheats.retro = !SAVE.cheats.retro; applyVisualCodes(); return 'Retro mode ' + onOff(SAVE.cheats.retro) + '.'; },
+        fps: () => { SAVE.cheats.fps = !SAVE.cheats.fps; applyVisualCodes(); return 'FPS counter ' + onOff(SAVE.cheats.fps) + '.'; },
         family_friendly: () => { SAVE.cheats.family = !SAVE.cheats.family; try { localStorage.setItem(FAMILY_KEY, SAVE.cheats.family ? '1' : '0'); } catch (e) { } applyFamily(); return 'Family Friendly ' + onOff(SAVE.cheats.family) + (SAVE.cheats.family ? ': confetti cannon, butter knife and apple juice sippy cup.' : '.'); },
         familyfriendly: () => CODES.family_friendly()
     };
@@ -3231,6 +3240,11 @@ body.inLobby #btnWhatsNew { display: none !important; }
     };
     const CODE_DESCRIPTIONS = [
         ['Family_Friendly', 'Toggles kid-safe mode: the shotgun becomes a confetti cannon, the knife a butter knife, and the beer apple juice in a sippy cup.'],
+        ['HatRack', 'Unlocks every hat for free.'],
+        ['PartyTime', 'Toggles disco lights and falling party emojis on your screen, even outside multiplayer.'],
+        ['Jackpot', 'Adds a random $1 to $1000 to your bank. Enter it again for another spin.'],
+        ['Retro', 'Toggles an old CRT look with scanlines and a darker vignette.'],
+        ['FPS', 'Toggles a small frames-per-second counter.'],
         ['CodeAll', 'Unlocks the CODES button in the bottom-left, showing every current code.'],
         ['OnlyMe', 'Admin-only option: only you take turns, The Dealer never does.'],
         ['Payday', 'Adds $500 to your bank.'],
@@ -5214,7 +5228,7 @@ body.inLobby #btnWhatsNew { display: none !important; }
     }
     let funDiscoT = 0, funRainT = 0, funHue = 0;
     function mpFunVisuals() {
-        const f = (MP.code && MP.fun) || {}, ov = document.getElementById('discoOv');
+        const f = Object.assign({}, MP.code ? MP.fun : {}, SAVE.cheats.party ? { disco: true, rain: true } : {}), ov = document.getElementById('discoOv');
         if (f.disco && !funDiscoT) {
             funDiscoT = setInterval(() => {
                 funHue = (funHue + 14) % 360;
@@ -5368,7 +5382,7 @@ body.inLobby #btnWhatsNew { display: none !important; }
     const HATS = [
         { id: 'beanie', name: 'Beanie', price: 40, c1: 0xc0392b, c2: 0xf5e6c8 },
         { id: 'party', name: 'Party Hat', price: 50, c1: 0xff4fa3, c2: 0xffd24a },
-        { id: 'cap', name: 'Cap', price: 60, c1: 0x2f6fd0, c2: 0xe8e8e8 },
+        { id: 'cap', name: 'Cap', price: 60, c1: 0x2f6fd0, c2: 0xe8e8e8, c3: 0xffd24a },
         { id: 'fedora', name: 'Regular Hat', price: 80, c1: 0x7a5a3a, c2: 0x2a1c10 },
         { id: 'cowboy', name: 'Cowboy Hat', price: 120, c1: 0xb98a52, c2: 0x5a3a22 },
         { id: 'tophat', name: 'Top Hat', price: 150, c1: 0x151515, c2: 0xb02020 },
@@ -5376,6 +5390,20 @@ body.inLobby #btnWhatsNew { display: none !important; }
         { id: 'crown', name: 'Crown', price: 400, c1: 0xffd24a, c2: 0xd01c3c, c3: 0xffd24a }
     ];
     MP.hats = {};
+    let _stripeTex = null;
+    function hatStripeTex() {
+        if (_stripeTex) return _stripeTex;
+        const c = document.createElement('canvas');
+        c.width = c.height = 128;
+        const x = c.getContext('2d'), cols = ['#ff4fa3', '#ffd24a', '#4fc3f7', '#ffd24a'];
+        for (let i = -8; i < 16; i++) { x.fillStyle = cols[((i % 4) + 4) % 4]; x.beginPath(); x.moveTo(i * 16, 0); x.lineTo(i * 16 + 16, 0); x.lineTo(i * 16 + 80, 128); x.lineTo(i * 16 + 64, 128); x.fill(); }
+        x.fillStyle = 'rgba(255,255,255,.9)';
+        for (let k = 0; k < 14; k++) { x.beginPath(); x.arc(Math.random() * 128, Math.random() * 128, 3, 0, 6.283); x.fill(); }
+        _stripeTex = new THREE.CanvasTexture(c);
+        _stripeTex.wrapS = _stripeTex.wrapT = THREE.RepeatWrapping;
+        _stripeTex.repeat.set(3, 1);
+        return _stripeTex;
+    }
     function buildHat(id) {
         const H = HATS.find(h => h.id === id);
         if (!H) return null;
@@ -5389,9 +5417,14 @@ body.inLobby #btnWhatsNew { display: none !important; }
             add(new THREE.SphereGeometry(.07, 10, 8), m2, 0, .38, 0);
         }
         else if (id === 'cap') {
-            add(new THREE.SphereGeometry(.33, 18, 10, 0, 6.283, 0, 1.65), m1, 0, .05, 0);
-            add(new THREE.BoxGeometry(.34, .025, .26), m2, 0, .12, .42).rotation.x = .12;
-            add(new THREE.SphereGeometry(.03, 8, 6), m2, 0, .37, 0);
+            const dome = add(new THREE.SphereGeometry(.34, 26, 14, 0, 6.283, 0, 1.5), m1, 0, .02, 0);
+            dome.scale.y = .9;
+            add(new THREE.TorusGeometry(.335, .02, 8, 28), m2, 0, .035, 0).rotation.x = Math.PI / 2;
+            add(new THREE.SphereGeometry(.035, 10, 8), m2, 0, .325, 0);
+            const visor = add(new THREE.CylinderGeometry(.5, .5, .03, 24, 1, false, -.95, 1.9), m2, 0, .1, 0);
+            visor.rotation.x = .2;
+            visor.scale.set(.85, 1, 1);
+            add(new THREE.BoxGeometry(.1, .07, .012), m3, 0, .17, .33).rotation.x = -.35;
         }
         else if (id === 'fedora') { add(CY(.5, .5, .02, 28), m1, 0, .2, 0); add(CY(.25, .29, .2), m1, 0, .3, 0); add(CY(.295, .295, .05), m2, 0, .24, 0); }
         else if (id === 'cowboy') { add(CY(.58, .58, .02, 28), m1, 0, .2, 0); add(CY(.22, .28, .24), m1, 0, .32, 0); add(CY(.285, .285, .04), m2, 0, .25, 0); }
@@ -5404,14 +5437,30 @@ body.inLobby #btnWhatsNew { display: none !important; }
             add(new THREE.BoxGeometry(.12, .1, .03), m3, 0, .25, .31);
         }
         else if (id === 'party') {
-            add(new THREE.ConeGeometry(.22, .55, 16), m1, 0, .5, 0).rotation.z = .12;
-            add(new THREE.SphereGeometry(.06, 10, 8), m2, .07, .79, 0);
-            add(new THREE.TorusGeometry(.17, .02, 6, 16), m2, 0, .36, 0).rotation.x = Math.PI / 2;
+            const pg = new THREE.Group();
+            pg.position.y = .24;
+            pg.rotation.z = .1;
+            g.add(pg);
+            const sm = mat(0xffffff, { map: hatStripeTex(), roughness: .6, side: THREE.DoubleSide });
+            mesh(new THREE.ConeGeometry(.24, .62, 24, 1, true), sm, 0, .31, 0, pg, false);
+            mesh(new THREE.TorusGeometry(.225, .02, 8, 24), m3, 0, .01, 0, pg, false).rotation.x = Math.PI / 2;
+            mesh(new THREE.SphereGeometry(.07, 10, 8), m2, 0, .64, 0, pg, false);
+            for (let i = 0; i < 7; i++) { const a = i * .9; mesh(new THREE.SphereGeometry(.035, 6, 5), m2, Math.sin(a) * .07, .64 + Math.cos(a * 1.3) * .06, Math.cos(a) * .07, pg, false); }
         }
         else if (id === 'crown') {
-            add(CY(.27, .24, .14, 16), m3, 0, .26, 0);
-            for (let i = 0; i < 5; i++) { const a = i / 5 * 6.283; add(new THREE.ConeGeometry(.05, .16, 6), m3, Math.sin(a) * .25, .4, Math.cos(a) * .25); }
-            add(new THREE.SphereGeometry(.035, 8, 6), m2, 0, .26, .27);
+            const pearl = mat(0xf4f0ff, { roughness: .2, metalness: .2 }), blue = mat(0x2f6fd0, { roughness: .2 });
+            add(CY(.27, .24, .13, 28), m3, 0, .25, 0);
+            add(new THREE.TorusGeometry(.243, .012, 6, 28), m3, 0, .19, 0).rotation.x = Math.PI / 2;
+            add(new THREE.TorusGeometry(.272, .012, 6, 28), m3, 0, .31, 0).rotation.x = Math.PI / 2;
+            add(new THREE.SphereGeometry(.23, 20, 10, 0, 6.283, 0, 1.3), m2, 0, .3, 0).scale.y = .9;
+            for (let i = 0; i < 8; i++) {
+                const a = i / 8 * 6.283, hgt = i % 2 === 0 ? .22 : .14, r = .265;
+                add(new THREE.ConeGeometry(.055, hgt, 4), m3, Math.sin(a) * r, .31 + hgt / 2, Math.cos(a) * r);
+                add(new THREE.SphereGeometry(.028, 8, 6), pearl, Math.sin(a) * r, .31 + hgt + .015, Math.cos(a) * r);
+            }
+            add(new THREE.SphereGeometry(.04, 10, 8), m2, 0, .25, .27);
+            add(new THREE.SphereGeometry(.03, 10, 8), blue, -.13, .25, .235);
+            add(new THREE.SphereGeometry(.03, 10, 8), blue, .13, .25, .235);
         }
         return g;
     }
@@ -5433,13 +5482,31 @@ body.inLobby #btnWhatsNew { display: none !important; }
         const fr = (x, y, w, h, col) => { c.fillStyle = col; c.fillRect(x, y, w, h); c.strokeRect(x, y, w, h); };
         const poly = (pts, col) => { c.fillStyle = col; c.beginPath(); c.moveTo(pts[0], pts[1]); for (let i = 2; i < pts.length; i += 2) c.lineTo(pts[i], pts[i + 1]); c.closePath(); c.fill(); c.stroke(); };
         if (id === 'beanie') { c.fillStyle = c1; c.beginPath(); c.arc(150, 125, 100, Math.PI, 0); c.closePath(); c.fill(); c.stroke(); fr(48, 112, 204, 30, c2); fe(150, 20, 22, 22, c2); }
-        else if (id === 'cap') { c.fillStyle = c1; c.beginPath(); c.arc(150, 125, 96, Math.PI, 0); c.closePath(); c.fill(); c.stroke(); fe(215, 128, 85, 16, c2); fe(150, 30, 10, 10, c2); }
+        else if (id === 'cap') {
+            c.fillStyle = c1; c.beginPath(); c.arc(150, 125, 96, Math.PI, 0); c.closePath(); c.fill(); c.stroke();
+            c.lineWidth = 3;
+            for (const dx of [-30, 30]) { c.beginPath(); c.moveTo(150, 29); c.quadraticCurveTo(150 + dx * 2, 70, 150 + dx * 3, 125); c.stroke(); }
+            c.lineWidth = 5;
+            fe(150, 132, 130, 20, c2); fe(150, 30, 10, 10, c2); fr(132, 70, 36, 26, c3);
+        }
         else if (id === 'fedora') { fe(150, 125, 150, 24, c1); fr(95, 50, 110, 75, c1); fr(95, 100, 110, 20, c2); }
         else if (id === 'cowboy') { fe(150, 125, 170, 26, c1); fr(100, 55, 100, 70, c1); fr(100, 105, 100, 16, c2); }
         else if (id === 'tophat') { fe(150, 125, 125, 20, c1); fr(105, -10, 90, 135, c1); fr(105, 95, 90, 22, c2); }
         else if (id === 'witch') { fe(150, 125, 160, 22, c1); poly([105, 125, 195, 125, 175, -80], c1); fr(108, 102, 84, 20, c2); fr(140, 102, 20, 20, c3); }
-        else if (id === 'party') { poly([100, 125, 200, 125, 150, -30], c1); fe(150, -30, 16, 16, c2); }
-        else if (id === 'crown') { poly([95, 125, 95, 40, 122, 80, 150, 30, 178, 80, 205, 40, 205, 125], c1); fe(150, 100, 9, 9, c2); }
+        else if (id === 'party') {
+            c.save(); c.beginPath(); c.moveTo(95, 125); c.lineTo(205, 125); c.lineTo(150, -30); c.closePath(); c.clip();
+            const cols = [c1, c2, '#4fc3f7', c2];
+            for (let i = -6; i < 10; i++) { c.fillStyle = cols[((i % 4) + 4) % 4]; c.beginPath(); c.moveTo(i * 28, -40); c.lineTo(i * 28 + 28, -40); c.lineTo(i * 28 + 120, 130); c.lineTo(i * 28 + 92, 130); c.closePath(); c.fill(); }
+            c.restore();
+            c.beginPath(); c.moveTo(95, 125); c.lineTo(205, 125); c.lineTo(150, -30); c.closePath(); c.stroke();
+            fe(150, 125, 58, 9, c3); fe(150, -30, 18, 18, c2); fe(138, -40, 8, 8, c2); fe(162, -38, 8, 8, c2);
+        }
+        else if (id === 'crown') {
+            poly([95, 125, 95, 45, 122, 85, 150, 25, 178, 85, 205, 45, 205, 125], c1);
+            c.beginPath(); c.moveTo(95, 100); c.lineTo(205, 100); c.stroke();
+            fe(95, 45, 8, 8, '#f4f0ff'); fe(150, 25, 8, 8, '#f4f0ff'); fe(205, 45, 8, 8, '#f4f0ff');
+            fe(122, 112, 9, 9, '#2f6fd0'); fe(150, 112, 10, 10, c2); fe(178, 112, 9, 9, '#2f6fd0');
+        }
         c.restore();
     }
     function renderHats() {
@@ -5496,6 +5563,22 @@ body.inLobby #btnWhatsNew { display: none !important; }
             if (data) data.forEach(r => { if (r.player_id !== MP.pid) MP.hats[r.player_id] = HATS.some(h => h.id === r.hat) ? r.hat : ''; });
         } catch (e) { }
     }, 3000);
+    let fpsRaf = 0, fpsN = 0, fpsT = 0;
+    function applyVisualCodes() {
+        document.body.classList.toggle('retro', !!SAVE.cheats.retro);
+        const box = document.getElementById('fpsBox');
+        box.style.display = SAVE.cheats.fps ? 'block' : 'none';
+        if (SAVE.cheats.fps && !fpsRaf) {
+            fpsT = performance.now(); fpsN = 0;
+            const tick = t => {
+                fpsN++;
+                if (t - fpsT >= 500) { box.textContent = Math.round(fpsN * 1000 / (t - fpsT)) + ' FPS'; fpsN = 0; fpsT = t; }
+                fpsRaf = SAVE.cheats.fps ? requestAnimationFrame(tick) : 0;
+            };
+            fpsRaf = requestAnimationFrame(tick);
+        }
+    }
+    applyVisualCodes();
     /* ----- shoot-a-player picker ----- */
     function mpClosePick() { $('#mpPick').style.display = 'none'; }
     function mpShootMenu() {
