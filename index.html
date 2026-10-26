@@ -1306,11 +1306,11 @@ body.spectating #bottom{display:none!important}
   <div id="discoOv" style="display:none;position:fixed;inset:0;pointer-events:none;z-index:45;opacity:.13;mix-blend-mode:overlay"></div>
   <div id="topLeftBar">
    <button aria-label="What's New" class="ghost" id="btnWhatsNew" title="What's New" type="button"><svg aria-hidden="true" fill="none" height="22" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewBox="0 0 24 24" width="22"><path d="M4 5h13v14H6a2 2 0 0 1-2-2z"/><path d="M17 9h3v8a2 2 0 0 1-2 2h-1"/><path d="M7 8.5h7M7 12h7M7 15.5h4"/></svg><span id="wnBadge">!</span></button>
-   <div id="versionNumber" aria-label="Version 2.3.0">v2.4.5</div>
+   <div id="versionNumber" aria-label="Version 2.3.0">v2.4.6</div>
   </div>
   <div id="whatsNewPanel">
    <div id="whatsNewCard">
-    <h2>WHAT'S NEW IN v2.4.5</h2>
+    <h2>WHAT'S NEW IN v2.4.6</h2>
     <ul>
      <li><b>Added random room themes:</b> They're randomized</li>
      <li><b>Added endless run and normal run:</b> Let's you choose between a regularrun and one that never ends</li>
@@ -1471,6 +1471,9 @@ body.spectating #bottom{display:none!important}
       </option>
       <option value="knife">
        Knife
+      </option>
+      <option value="plus2">
+       +2 Card
       </option>
       <option value="cash">
        Cash
@@ -2482,6 +2485,24 @@ body.spectating #bottom{display:none!important}
             add(new THREE.BoxGeometry(.11, .026, .034), M.wood, -.115, .014, 0);
             add(new THREE.BoxGeometry(.012, .03, .06), M.brass, -.055, .014, 0);
         }
+        else if (type === 'plus2') {
+            // A small physical playing-card model: rounded-looking white card with red +2 marks.
+            const cardFace = mat(0xf5f0df, { roughness: .72, metalness: .02 });
+            const redInk = mat(0xb62832, { roughness: .55 });
+            const darkInk = mat(0x26221d, { roughness: .7 });
+            add(new THREE.BoxGeometry(.16, .012, .22), M.dark, 0, .008, 0);
+            add(new THREE.BoxGeometry(.15, .008, .21), cardFace, 0, .016, 0);
+            // Corner marks and the bold +2 symbol are modeled as raised red bars/digits.
+            add(new THREE.BoxGeometry(.045, .003, .009), redInk, -.035, .022, -.068);
+            add(new THREE.BoxGeometry(.009, .003, .045), redInk, -.053, .022, -.05);
+            add(new THREE.BoxGeometry(.052, .003, .009), redInk, .018, .022, .045);
+            add(new THREE.BoxGeometry(.009, .003, .052), redInk, .04, .022, .025);
+            add(new THREE.BoxGeometry(.06, .004, .012), redInk, -.012, .023, -.005);
+            add(new THREE.BoxGeometry(.012, .004, .06), redInk, -.012, .023, -.005);
+            add(new THREE.BoxGeometry(.045, .004, .012), darkInk, .028, .023, -.025);
+            add(new THREE.BoxGeometry(.012, .004, .04), darkInk, .045, .023, -.01);
+            g.rotation.x = -.12;
+        }
         return g;
     }
     function slotPos(w, i) {
@@ -3045,12 +3066,8 @@ body.spectating #bottom{display:none!important}
         return r;
     }
     async function gamblerStatement() {
-        // The Gambler's shell claim is true half the time and false half the time.
-        const actualLive = G.shells.length ? G.shells[0] : false;
-        const claimLive = Math.random() < 0.5 ? actualLive : !actualLive;
-        const live = ['“It’s live. I can feel it.”', '“This one has a name on it.”'];
-        const blank = ['“Blank. Trust me.”', '“Relax. It’s nothing.”'];
-        await say('The Dealer says: ' + (claimLive ? live : blank)[rand(0, 1)], 1500);
+        // Non-Bluffer Dealers no longer display spoken quotes.
+        return;
     }
     async function blufferStatement() {
         // The Bluffer talks nonsense rather than making claims about the next shell.
@@ -3067,12 +3084,9 @@ body.spectating #bottom{display:none!important}
         await say('The Dealer says: ' + chatter[rand(0, chatter.length - 1)], 1500);
     }
     async function smartestStatement() {
+        // Keep the Smartest's prediction logic, but do not display a spoken quote.
         const actualLive = G.shells.length ? G.shells[0] : false;
-        // The Smartest predicts the next shell correctly 70% of the time.
         const claimLive = Math.random() < 0.7 ? actualLive : !actualLive;
-        const live = ['“This one is live. I’m certain.”', '“Live shell next. Watch closely.”'];
-        const blank = ['“It’s a blank. Easy.”', '“No live round this time.”'];
-        await say('The Dealer says: ' + (claimLive ? live : blank)[rand(0, 1)], 1500);
         return { claimLive, actualLive };
     }
     async function aiTurn() {
