@@ -1602,7 +1602,7 @@ body.spectating #bottom{display:none!important}
       <div class="mpSep">— OR JOIN WITH A CODE —</div>
       <div class="mpRow">
        <input autocapitalize="characters" autocomplete="off" class="mpInput" id="mpCodeIn" maxlength="5" placeholder="CODE" spellcheck="false"/>
-       <button id="mpJoin" type="button">JOIN</button>
+       <button id="mpJoin" type="button">JOIN</button><button id="mpSpectateCode" type="button">SPECTATE</button>
       </div>
      </div>
      <div id="mpSkinHost" style="display:none"></div>
@@ -1640,6 +1640,7 @@ body.spectating #bottom{display:none!important}
       <label class="funOption"><span><b>EMOJI</b><small>Party themed emojis fall down every screen</small></span><input id="funRain" type="checkbox"/></label>
       <label class="funOption"><span><b>GIANT PLAYERS</b><small>Everyone's figure becomes 1.5x bigger</small></span><input id="funGiant" type="checkbox"/></label>
       <label class="funOption"><span><b>TINY PLAYERS</b><small>Everyone's figure becomes smaller (Giant wins if both are on)</small></span><input id="funTiny" type="checkbox"/></label>
+      <label class="funOption"><span><b>ENDLESS MATCH</b><small>Keep the multiplayer match going by restarting a fresh round after a winner.</small></span><input id="funEndless" type="checkbox"/></label>
       <label class="funOption"><span><b>LOTS O' SHAKE</b><small>Hits shake every screen hard.</small></span><input id="funMegaShake" type="checkbox"/></label>
       <div class="funSlider"><label for="funPower">BOUNCE POWER <b id="funPowerVal">1.5×</b></label><input id="funPower" type="range" min="0.1" max="20" step="0.1" value="1.5"/></div>
       <div class="funSlider"><label for="funDuration">DURATION <b id="funDurationVal">4.0s</b></label><input id="funDuration" type="range" min="0.1" max="30" step="0.5" value="4"/></div>
@@ -1689,6 +1690,14 @@ body.spectating #bottom{display:none!important}
    <div class="specReacts" id="specReacts"></div>
   </div>
   <div id="fade">
+  </div>
+  <style>
+    #playModePanel .runChoiceButtons { display:flex; flex-direction:column; gap:14px; }
+    #playModePanel .runChoiceButtons button { margin:0; width:100%; }
+    #playModePanel #btnCancelRun { margin-top:14px; }
+  </style>
+  <div id="playModePanel" style="display:none;position:fixed;inset:0;z-index:60;align-items:center;justify-content:center;background:rgba(0,0,0,.88);padding:16px">
+   <div class="card" style="width:min(420px,100%)"><h1 style="font-size:clamp(28px,5vw,42px)">CHOOSE RUN</h1><h2>SINGLEPLAYER</h2><p style="text-align:center">Choose a standard three-round run or keep going for as long as you survive.</p><div class="runChoiceButtons"><button id="btnNormalRun">NORMAL RUN</button><button id="btnEndlessRun">ENDLESS RUN</button></div><button id="btnCancelRun" class="ghost">CANCEL</button></div>
   </div>
   <div id="overlay" style="display:none">
    <div class="card" id="card">
@@ -1753,7 +1762,7 @@ body.spectating #bottom{display:none!important}
      <br/>
      🍺 Beer, $100: restores 1 charge
      <br/>
-     🔪 Knife, $150: cut the barrel so a live shot takes 2 charges
+     🔪 Knife, $150: cut the barrel so a live shot takes 2 charges<br/>🃏 +2 Card, $200: your next live shot grants you an extra turn
     </p>
     <p style="margin-top:10px;color:#8a846f">
      Controls: click the Dealer or press W to shoot him · press S to shoot yourself · move the mouse to look around. On a phone or tablet: use the buttons, or tap an item to use it (tap the Dealer twice to shoot him).
@@ -1794,7 +1803,8 @@ body.spectating #bottom{display:none!important}
     const ITEMS = {
         lens: { name: 'Magnifying Glass', icon: '🔍', price: 50, desc: 'See if the chamber holds a live or a blank.' },
         beer: { name: 'Beer', icon: '🍺', price: 100, desc: 'Restore 1 charge.' },
-        knife: { name: 'Knife', icon: '🔪', price: 150, desc: 'Cut the barrel: a live shot takes 2 charges.' }
+        knife: { name: 'Knife', icon: '🔪', price: 150, desc: 'Cut the barrel: a live shot takes 2 charges.' },
+        plus2: { name: '+2 Card', icon: '🃏', price: 200, desc: 'Your next live shot gives you one extra turn.' }
     };
     const TYPES = Object.keys(ITEMS);
     const NAME = { p: 'You', o: 'The Dealer' };
@@ -1807,7 +1817,7 @@ body.spectating #bottom{display:none!important}
         },
         shells: [], liveLeft: 0, blankLeft: 0, sawn: false,
         known: { p: null, o: null },
-        turn: 'p', awaiting: null, busy: false, roundOver: true, winner: null, running: false, cash: 0, statsOn: true
+        turn: 'p', awaiting: null, busy: false, roundOver: true, winner: null, running: false, cash: 0, statsOn: true, endless: false, doubleTurn: { p: false, o: false }
     };
     /* ---------------- SAVE / CHEATS ---------------- */
     const RULES_HTML = $('#card').innerHTML.replace(/<button id="btnStart">[^<]*<\/button>/, '');
@@ -2873,6 +2883,10 @@ body.spectating #bottom{display:none!important}
                 P.hp = Math.min(P.max, P.hp + 1);
                 await say(`${NAME[w]} ${w === 'p' ? 'gain' : 'gains'} 1 charge.`, 1000);
                 break;
+            case 'plus2':
+                G.doubleTurn[w] = true;
+                await say('+2 Card ready: your next live shot grants another turn.', 1500);
+                break;
             case 'knife':
                 SFX.saw();
                 G.sawn = true;
@@ -2970,7 +2984,8 @@ body.spectating #bottom{display:none!important}
             return;
         }
         let next;
-        if (self && !live)
+        if (live && G.doubleTurn[shooter]) { G.doubleTurn[shooter] = false; next = shooter; await say('+2 Card: you get another turn!', 1300); }
+        else if (self && !live)
             next = shooter;
         else {
             next = other(shooter);
@@ -3131,7 +3146,23 @@ body.spectating #bottom{display:none!important}
                 await aiTurn();
         }
     }
+    const ROOM_THEMES = [
+        { name: 'CRIMSON', bg: 0x100403, fog: 0x180605, light: 0xff8a72 },
+        { name: 'FROST', bg: 0x030b12, fog: 0x071522, light: 0x9adfff },
+        { name: 'TOXIC', bg: 0x061006, fog: 0x0b1b08, light: 0xb4ff83 },
+        { name: 'AMBER', bg: 0x100b02, fog: 0x1c1004, light: 0xffc15e },
+        { name: 'VIOLET', bg: 0x090412, fog: 0x14091f, light: 0xc6a0ff },
+        { name: 'STEEL', bg: 0x080a0d, fog: 0x111820, light: 0xc7d2dc }
+    ];
+    function applyRandomRoomTheme() {
+        const theme = ROOM_THEMES[rand(0, ROOM_THEMES.length - 1)];
+        scene.background = new THREE.Color(theme.bg);
+        scene.fog = new THREE.FogExp2(theme.fog, graphicsQuality === 'ultra' ? .065 : .1);
+        lamp.color.setHex(theme.light);
+        $('#roundInfo').textContent = 'ROUND ' + G.round + ' · ' + theme.name;
+    }
     async function setupRound() {
+        applyRandomRoomTheme();
         for (const w of ['p', 'o']) {
             const P = G.players[w];
             P.hp = P.max = 5;
@@ -3142,7 +3173,7 @@ body.spectating #bottom{display:none!important}
         hideTray();
         rebuildItems();
         await oppRevive();
-        visorColor([0x44e0ff, 0xffb030, 0xff3a3a][G.round - 1]);
+        visorColor([0x44e0ff, 0xffb030, 0xff3a3a][Math.min(G.round - 1, 2)]);
         G.dealer = (G.dealerOrder && G.dealerOrder[(G.round - 1) % G.dealerOrder.length]) || DEALERS[0];
         $('#oppStyle').textContent = G.dealer.name;
         G.roundOver = true;
@@ -3198,7 +3229,7 @@ body.spectating #bottom{display:none!important}
         else
             showOverlay('YOU DIED', 'THE LAST SHELL WAS YOURS', note, '#b02020');
     }
-    async function startGame() {
+    async function startGame(endless = false) {
         if (G.running || introBusy)
             return;
         introBusy = true;
@@ -3219,6 +3250,8 @@ body.spectating #bottom{display:none!important}
         introBusy = false;
         G.running = true;
         G.round = 1;
+        G.endless = !!endless;
+        G.doubleTurn = { p: false, o: false };
         const selectedDealer = DEALERS.find(d => d.id === SAVE.selectedDealer);
         G.dealerOrder = selectedDealer ? [selectedDealer] : shuffled(DEALERS);
         G.blankRun = 0;
@@ -3261,7 +3294,7 @@ body.spectating #bottom{display:none!important}
                             achUnlock('dealer_hunter');
                     }
                 }
-                if (G.round === 3) {
+                if (G.round === 3 && !G.endless) {
                     await sleep(800);
                     endGame(true);
                     return;
@@ -3451,7 +3484,10 @@ body.spectating #bottom{display:none!important}
     };
     $('#btnCloseCodeList').onclick = () => { $('#codeListPanel').style.display = 'none'; };
     syncCodeListButton();
-    $('#btnPlay').onclick = () => startGame();
+    $('#btnPlay').onclick = () => { $('#playModePanel').style.display = 'flex'; };
+    $('#btnNormalRun').onclick = () => { $('#playModePanel').style.display = 'none'; startGame(false); };
+    $('#btnEndlessRun').onclick = () => { $('#playModePanel').style.display = 'none'; startGame(true); };
+    $('#btnCancelRun').onclick = () => { $('#playModePanel').style.display = 'none'; };
     function openRules() {
         $('#card').innerHTML = RULES_HTML + '<button id="btnCloseRules">BACK</button>';
         $('#overlay').style.display = 'flex';
@@ -4337,7 +4373,7 @@ body.spectating #bottom{display:none!important}
     // Every client (including the sender) receives the rows back in seq order and replays them, so all
     // players see the same game. The host is the only client that generates random shell loads.
     const MP_OK = !!SUPABASE_URL && !!SUPABASE_ANON_KEY && !/YOUR-PROJECT|YOUR-ANON/.test(SUPABASE_URL + SUPABASE_ANON_KEY);
-    const MP = { sb: null, pid: null, name: '', code: null, host: false, hostId: null, players: [], ch: null, poll: 0, polling: false,
+    const MP = { sb: null, pid: null, name: '', code: null, host: false, hostId: null, players: [], spectatorJoin: false, ch: null, poll: 0, polling: false,
         nextSeq: 1, buf: new Map(), chain: Promise.resolve(), pending: 0, started: false, over: false, busy: false, S: null, others: [], figs: {}, flags: {}, flagTimer: 0, look: {}, fun: {bouncy:false,pinball:false,spin:false,lowGravity:false,confetti:false,disco:false,rain:false,giant:false,tiny:false,megaShake:false,power:1.5,duration:4} };
     try { MP.pid = sessionStorage.getItem('lastshell_mp_pid'); } catch (e) { }
     if (!MP.pid) {
@@ -4426,6 +4462,15 @@ body.spectating #bottom{display:none!important}
             return mpMsg(mpErr(error), true);
         mpEnter(code);
     }
+    $('#mpSpectateCode').onclick = async () => {
+        const sb = mpClient();
+        const code = ($('#mpCodeIn').value || '').trim().toUpperCase();
+        if (!sb || code.length < 4) return mpMsg('Enter the in-progress lobby code.', true);
+        mpMsg('Connecting as spectator…');
+        const { error } = await sb.rpc('mp_join_spectate_lobby', { p_code: code, p_player: MP.pid, p_name: mpNameVal() });
+        if (error) return mpMsg('Could not spectate. Run the late-join SQL migration and check that the match is still active.', true);
+        mpEnter(code, true);
+    };
     function mpMyFlags() {
         const a = !!SAVE.admin;
         return { god: a && !!SAVE.cheats.god, peek: a && !!SAVE.cheats.peek, stocked: a && !!SAVE.stockedActive };
@@ -4482,8 +4527,9 @@ body.spectating #bottom{display:none!important}
         mpLastBack = n;
         mpSendFlags();
     }
-    function mpEnter(code) {
+    function mpEnter(code, asSpectator = false) {
         mpCleanup();
+        MP.spectatorJoin = !!asSpectator;
         MP.code = code;
         // Do not carry host privileges from a previous lobby while the new lobby loads.
         MP.host = false;
@@ -4897,7 +4943,8 @@ body.spectating #bottom{display:none!important}
         await mpPoll();
         const list = MP.players.map(p => ({ pid: p.player_id, name: p.name, seat: p.seat }));
         const ld = mpGenLoad(list.map(p => p.pid));
-        await mpSend('start', Object.assign({ players: list, first: list[rand(0, list.length - 1)].pid, ver: 1 }, ld));
+        const theme = ROOM_THEMES[rand(0, ROOM_THEMES.length - 1)];
+        await mpSend('start', Object.assign({ players: list, first: list[rand(0, list.length - 1)].pid, ver: 1, theme: theme.name }, ld));
     }
     /* ----- networking ----- */
     async function mpSend(type, payload) {
@@ -5030,6 +5077,12 @@ body.spectating #bottom{display:none!important}
             renderFunControls();
             return;
         }
+        if (ev.type === 'endless_next') {
+            const S0 = MP.S; if (!S0) return;
+            MP.over = false; MP.busy = false; S0.doubleTurn = {}; S0.shells = []; S0.liveLeft = 0; S0.blankLeft = 0; S0.sawn = false; S0.known = {}; S0.loadNo = 0; S0.loadSent = false; S0.needLoad = true; S0.turn = ev.payload.first || S0.seatOrder[0];
+            S0.seatOrder.forEach(id => { const q = S0.P[id]; if (q && !q.spectator) { q.hp = q.max = 5; q.alive = true; q.items = Array(5).fill(null); } });
+            mpHUD(); if (MP.host) mpSendLoad(); else say('ENDLESS ROUND', 1200, 'big'); return;
+        }
         const S = MP.S;
         if (!S || MP.over)
             return;
@@ -5049,10 +5102,15 @@ body.spectating #bottom{display:none!important}
             await mpDoShoot(ev.player_id, ev.payload.target);
     }
     async function mpBegin(p) {
+        if (MP.spectatorJoin && !p.players.some(q => q.pid === MP.pid)) {
+            const maxSeat = p.players.reduce((n, q) => Math.max(n, Number(q.seat) || 0), 0);
+            p = Object.assign({}, p, { players: p.players.concat([{ pid: MP.pid, name: MP.name || 'Spectator', seat: maxSeat + 1, spectator: true }]) });
+        }
         if (MP.started)
             return;
         MP.started = true;
         MP.played = true;
+        if (p.theme && ROOM_THEMES) { const th = ROOM_THEMES.find(x => x.name === p.theme) || ROOM_THEMES[0]; scene.background = new THREE.Color(th.bg); scene.fog = new THREE.FogExp2(th.fog, .1); lamp.color.setHex(th.light); }
         MP.over = false;
         audio();
         genStart();
@@ -5081,10 +5139,10 @@ body.spectating #bottom{display:none!important}
         achUnlock('mp_debut');
         G.running = true;
         G.roundOver = false;
-        const S = { P: {}, seatOrder: [], shells: [], liveLeft: 0, blankLeft: 0, sawn: false, known: {}, turn: p.first, needLoad: false, loadNo: 0, loadSent: false };
+        const S = { P: {}, seatOrder: [], shells: [], liveLeft: 0, blankLeft: 0, sawn: false, known: {}, turn: p.first, needLoad: false, loadNo: 0, loadSent: false, doubleTurn: {} };
         p.players.slice().sort((a, b) => a.seat - b.seat).forEach(q => {
             S.seatOrder.push(q.pid);
-            S.P[q.pid] = { name: q.name, seat: q.seat, hp: 5, max: 5, items: Array(5).fill(null), alive: true };
+            S.P[q.pid] = { name: q.name, seat: q.seat, hp: q.spectator ? 0 : 5, max: 5, items: Array(5).fill(null), alive: !q.spectator, spectator: !!q.spectator };
         });
         MP.S = S;
         const i = Math.max(0, S.seatOrder.indexOf(MP.pid));
@@ -5189,6 +5247,10 @@ body.spectating #bottom{display:none!important}
             P.hp = Math.min(P.max, P.hp + 1);
             await say(`${pid === me ? 'You gain' : P.name + ' gains'} 1 charge.`, 1000);
         }
+        else if (t === 'plus2') {
+            S.doubleTurn[pid] = true;
+            await say('+2 Card ready: your next live shot grants another turn.', 1500);
+        }
         else if (t === 'knife') {
             SFX.saw();
             S.sawn = true;
@@ -5256,7 +5318,7 @@ body.spectating #bottom{display:none!important}
             burst(target === me, pose.muzzle);
             screenFlash(target === me ? '#ffb080' : '#fff');
             shake = target === me ? .35 : .12;
-            if (MP.fun.megaShake) shake = .9;
+            if (MP.fun.megaShake && T.hp >= 2) shake = .9;
             if (MP.fun.confetti) mpConfetti();
             const godT = !!(MP.flags[target] && MP.flags[target].god);
             if (!godT)
@@ -5294,7 +5356,8 @@ body.spectating #bottom{display:none!important}
             await mpGameOver(alive[0]);
             return;
         }
-        S.turn = (self && !live && A.alive) ? shooter : mpNextAlive(shooter);
+        if (live && S.doubleTurn && S.doubleTurn[shooter]) { S.doubleTurn[shooter] = false; S.turn = shooter; await say('+2 Card: extra turn!', 1200); }
+        else S.turn = (self && !live && A.alive) ? shooter : mpNextAlive(shooter);
         if (S.shells.length === 0) {
             S.needLoad = true;
             if (MP.host)
@@ -5336,6 +5399,10 @@ body.spectating #bottom{display:none!important}
         }
         MP.over = true;
         mpHUD();
+        if (MP.fun.endless) {
+            if (MP.host) mpSend('endless_next', { first: S.seatOrder.find(id => S.P[id] && !S.P[id].spectator) || S.seatOrder[0] });
+            return;
+        }
         if (MP.host)
             mpSend('gameover', { winner: winId || null });
         await sleep(700);
@@ -5726,7 +5793,7 @@ body.spectating #bottom{display:none!important}
             if (u.dead)
                 continue;
             g.scale.setScalar(MP.fun.giant ? 1.5 : MP.fun.tiny ? .6 : 1);
-            const sp = MP.S && MP.S.P[u.pid], lowA = (sp && sp.alive && sp.hp > 0 && sp.hp <= 2) ? (sp.hp <= 1 ? .22 : 1) : 0;
+            const sp = MP.S && MP.S.P[u.pid], lowA = (sp && sp.alive && sp.hp > 0 && sp.hp < 2) ? .08 : 0;
             if (u.bounceUntil && performance.now() < u.bounceUntil) {
                 const elapsed = (u.bounceUntil - performance.now()) / 1000;
                 const k = Math.min(1, elapsed / Math.max(.1, MP.fun.duration || 4));
@@ -5780,7 +5847,7 @@ body.spectating #bottom{display:none!important}
             return;
         }
         const f = MP.fun || {};
-        for (const [id,key] of [['funBouncy','bouncy'],['funPinball','pinball'],['funSpin','spin'],['funLowGravity','lowGravity'],['funConfetti','confetti'],['funDisco','disco'],['funRain','rain'],['funGiant','giant'],['funTiny','tiny'],['funMegaShake','megaShake']]) {
+        for (const [id,key] of [['funBouncy','bouncy'],['funPinball','pinball'],['funSpin','spin'],['funLowGravity','lowGravity'],['funConfetti','confetti'],['funDisco','disco'],['funRain','rain'],['funGiant','giant'],['funTiny','tiny'],['funMegaShake','megaShake'],['funEndless','endless']]) {
             const el = $('#'+id); if (el) el.checked = !!f[key];
         }
         const power = $('#funPower'), duration = $('#funDuration');
@@ -5797,11 +5864,12 @@ body.spectating #bottom{display:none!important}
             bouncy: $('#funBouncy').checked, pinball: $('#funPinball').checked,
             spin: $('#funSpin').checked, lowGravity: $('#funLowGravity').checked,
             confetti: !!$('#funConfetti').checked, disco: !!$('#funDisco').checked, rain: !!$('#funRain').checked,
-            giant: !!$('#funGiant').checked, tiny: !!$('#funTiny').checked, megaShake: !!$('#funMegaShake').checked,
+            giant: !!$('#funGiant').checked, tiny: !!$('#funTiny').checked, megaShake: !!$('#funMegaShake').checked, endless: !!$('#funEndless').checked,
             power: Number($('#funPower').value), duration: Number($('#funDuration').value)
         };
         mpSend('funconfig', MP.fun);
         try { MP.sb.rpc('mp_set_fun', { p_code: MP.code, p_player: MP.pid, p_settings: MP.fun }).then(() => { }, () => { }); } catch (e) { }
+        try { MP.sb.rpc('mp_set_endless_mode', { p_code: MP.code, p_player: MP.pid, p_enabled: !!MP.fun.endless }).then(() => { }, () => { }); } catch (e) { }
         mpFunVisuals();
     }
     function mpStartBounce(pid) {
@@ -5946,7 +6014,7 @@ body.spectating #bottom{display:none!important}
                 const info = document.createElement('span');
                 info.textContent = (r.host_name || 'Host') + "'s lobby";
                 const sm = document.createElement('small');
-                sm.textContent = r.player_count + '/4 players · ' + r.code;
+                sm.textContent = r.player_count + '/4 players · ' + r.code + (r.started ? ' · IN PROGRESS' : '');
                 info.appendChild(sm);
                 const b = document.createElement('button');
                 b.type = 'button';
