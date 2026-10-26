@@ -3013,8 +3013,10 @@ body.spectating #bottom{display:none!important}
     }
     const DEALERS = [
         { id: 'accountant', name: 'THE ACCOUNTANT', tag: 'This one is careful. Heals early and counts every shell.', pace: 700, healAt: 99, healChance: 1, lensChance: 1, knifeAt: 2, shootAt: .3, bluff: false },
-        { id: 'gambler', name: 'THE GAMBLER', tag: 'Reckless. Shoots himself for the extra turn.', pace: 330, healAt: 1, healChance: .15, lensChance: .4, knifeAt: .45, shootAt: .75, bluff: false },
-        { id: 'bluffer', name: 'THE BLUFFER', tag: 'Sly. Says things that may not be true.', pace: 600, healAt: 2, healChance: .5, lensChance: .8, knifeAt: .6, shootAt: .5, bluff: true }
+        { id: 'gambler', name: 'THE GAMBLER', tag: 'Reckless. His shell statements are right half the time.', pace: 330, healAt: 1, healChance: .15, lensChance: .4, knifeAt: .45, shootAt: .75, bluff: false },
+        { id: 'bluffer', name: 'THE BLUFFER', tag: 'Says whatever pops into his head.', pace: 600, healAt: 2, healChance: .5, lensChance: .8, knifeAt: .6, shootAt: .5, bluff: true },
+        { id: 'dumbest', name: 'THE DUMBEST OF TODAY', tag: 'The worst decision-maker alive. Shoots himself 70% of the time.', pace: 500, healAt: 1, healChance: .2, lensChance: .2, knifeAt: .9, shootAt: .5, bluff: false },
+        { id: 'smartest', name: 'THE SMARTEST OF TODAY', tag: 'Usually knows what the next shell is — but a wrong live call makes him shoot himself.', pace: 650, healAt: 2, healChance: .7, lensChance: 1, knifeAt: .4, shootAt: .5, bluff: false }
     ];
     function shuffled(a) {
         const r = a.slice();
@@ -3024,12 +3026,36 @@ body.spectating #bottom{display:none!important}
         }
         return r;
     }
-    async function dealerBluff() {
-        const k = G.known.o;
-        const claim = k === null ? Math.random() < .5 : (Math.random() < .6 ? !k : k);
+    async function gamblerStatement() {
+        // The Gambler's shell claim is true half the time and false half the time.
+        const actualLive = G.shells.length ? G.shells[0] : false;
+        const claimLive = Math.random() < 0.5 ? actualLive : !actualLive;
         const live = ['“It’s live. I can feel it.”', '“This one has a name on it.”'];
         const blank = ['“Blank. Trust me.”', '“Relax. It’s nothing.”'];
-        await say('The Dealer says: ' + (claim ? live : blank)[rand(0, 1)], 1500);
+        await say('The Dealer says: ' + (claimLive ? live : blank)[rand(0, 1)], 1500);
+    }
+    async function blufferStatement() {
+        // The Bluffer talks nonsense rather than making claims about the next shell.
+        const chatter = [
+            '“Ever seen a fish wear a hat?”',
+            '“I think this table is slightly crooked.”',
+            '“The moon looks suspicious tonight.”',
+            '“Do you think bullets get bored?”',
+            '“I had a sandwich earlier. Pretty good sandwich.”',
+            '“Somewhere, a chicken is having a very normal day.”',
+            '“I forgot what I was going to say.”',
+            '“This room smells like old paperwork.”'
+        ];
+        await say('The Dealer says: ' + chatter[rand(0, chatter.length - 1)], 1500);
+    }
+    async function smartestStatement() {
+        const actualLive = G.shells.length ? G.shells[0] : false;
+        // The Smartest predicts the next shell correctly 70% of the time.
+        const claimLive = Math.random() < 0.7 ? actualLive : !actualLive;
+        const live = ['“This one is live. I’m certain.”', '“Live shell next. Watch closely.”'];
+        const blank = ['“It’s a blank. Easy.”', '“No live round this time.”'];
+        await say('The Dealer says: ' + (claimLive ? live : blank)[rand(0, 1)], 1500);
+        return { claimLive, actualLive };
     }
     async function aiTurn() {
         G.awaiting = null;
@@ -3066,8 +3092,20 @@ body.spectating #bottom{display:none!important}
             at = 'o';
         else
             at = pLive() >= D.shootAt ? 'p' : 'o';
-        if (D.bluff)
-            await dealerBluff();
+        if (D.id === 'gambler')
+            await gamblerStatement();
+        else if (D.id === 'bluffer')
+            await blufferStatement();
+        else if (D.id === 'dumbest') {
+            // The Dumbest of Today ignores strategy and shoots himself 70% of the time.
+            at = Math.random() < 0.7 ? 'o' : 'p';
+        }
+        else if (D.id === 'smartest') {
+            const prediction = await smartestStatement();
+            // If he calls the shell live but it is actually blank, he must shoot himself.
+            if (prediction.claimLive && !prediction.actualLive)
+                at = 'o';
+        }
         await shoot('o', at);
     }
     function rigFront(want) { const i = G.shells.indexOf(want); if (i > 0) {
@@ -3181,7 +3219,8 @@ body.spectating #bottom{display:none!important}
         introBusy = false;
         G.running = true;
         G.round = 1;
-        G.dealerOrder = shuffled(DEALERS);
+        const selectedDealer = DEALERS.find(d => d.id === SAVE.selectedDealer);
+        G.dealerOrder = selectedDealer ? [selectedDealer] : shuffled(DEALERS);
         G.blankRun = 0;
         G.runDmg = 0;
         G.runItems = 0;
@@ -3311,9 +3350,27 @@ body.spectating #bottom{display:none!important}
         renderTitle();
     }
     const onOff = b => b ? 'ON' : 'OFF';
+    function chooseDealer(id) {
+        const dealer = DEALERS.find(d => d.id === id);
+        if (!dealer) return 'Dealer not found.';
+        SAVE.selectedDealer = dealer.id;
+        return dealer.name + ' selected for your next run.';
+    }
     const CODES = {
         codeall: () => { SAVE.codesUnlocked = !SAVE.codesUnlocked; syncCodeListButton(); if (!SAVE.codesUnlocked)
             $('#codeListPanel').style.display = 'none'; return SAVE.codesUnlocked ? 'Code list enabled. Click CODES in the bottom-left to view every code.' : 'Code list disabled.'; },
+        dealerrandom: () => { delete SAVE.selectedDealer; return 'Random dealer rotation restored for your next run.'; },
+        dealeraccountant: () => chooseDealer('accountant'),
+        dealergambler: () => chooseDealer('gambler'),
+        dealerbluffer: () => chooseDealer('bluffer'),
+        dealerdumbest: () => chooseDealer('dumbest'),
+        dealersmartest: () => chooseDealer('smartest'),
+        // Short aliases for the same five dealer-selection codes.
+        accountant: () => chooseDealer('accountant'),
+        gambler: () => chooseDealer('gambler'),
+        bluffer: () => chooseDealer('bluffer'),
+        dumbest: () => chooseDealer('dumbest'),
+        smartest: () => chooseDealer('smartest'),
         administratorme: () => { SAVE.admin = !SAVE.admin; if (!SAVE.admin) { SAVE.cheats.solo = false; } return SAVE.admin ? 'ADMIN ON: rigged luck, infinite items, infinite cash.' : 'Admin OFF. Back to normal.'; },
         onlyme: () => { if (!SAVE.admin)
             return 'Turn on AdministratorMe first.'; SAVE.cheats.solo = !SAVE.cheats.solo; return 'Only-me turns ' + onOff(SAVE.cheats.solo) + (SAVE.cheats.solo ? ': The Dealer never gets a turn.' : '.'); },
@@ -3357,6 +3414,12 @@ body.spectating #bottom{display:none!important}
         SFX.cash();
     };
     const CODE_DESCRIPTIONS = [
+        ['DealerAccountant', 'Choose The Accountant for every round in your next and future runs.'],
+        ['DealerGambler', 'Choose The Gambler for every round in your next and future runs.'],
+        ['DealerBluffer', 'Choose The Bluffer for every round in your next and future runs.'],
+        ['DealerDumbest', 'Choose The Dumbest of Today for every round in your next and future runs.'],
+        ['DealerSmartest', 'Choose The Smartest of Today for every round in your next and future runs.'],
+        ['DealerRandom', 'Restore the normal random dealer rotation.'],
         ['Family_Friendly', 'Toggles kid-safe mode: the shotgun becomes a confetti cannon, the knife a butter knife, and the beer apple juice in a sippy cup.'],
         ['HatRack', 'Unlocks every hat for free.'],
         ['PartyTime', 'Toggles disco lights and falling party emojis on your screen, even outside multiplayer.'],
@@ -4015,8 +4078,7 @@ body.spectating #bottom{display:none!important}
         }, 3200);
     }
     function achUnlock(id) {
-        if (SAVE.admin || SAVE.cheats.god || SAVE.cheats.peek || SAVE.cheats.solo)
-            return;
+        // Achievements remain available even when Admin, Godmode, Peek, or other codes are active.
         const a = ACH.find(x => x.id === id);
         if (!a || SAVE.ach[id])
             return;
