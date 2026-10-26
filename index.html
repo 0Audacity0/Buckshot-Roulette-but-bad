@@ -1269,6 +1269,34 @@ body.inLobby #btnWhatsNew { display: none !important; }
 #fpsBox{display:none;position:fixed;bottom:4px;left:50%;transform:translateX(-50%);z-index:62;font:11px "Courier New",monospace;color:#7ad07a;background:rgba(0,0,0,.6);padding:2px 8px;pointer-events:none}
 body.retro::after{content:"";position:fixed;inset:0;pointer-events:none;z-index:60;background:radial-gradient(ellipse at center,transparent 50%,rgba(0,0,0,.65)),repeating-linear-gradient(0deg,rgba(0,0,0,.2) 0 1px,transparent 1px 3px)}
 body.retro canvas{filter:contrast(1.1) saturate(1.25)}
+
+#achToast{position:fixed;top:14px;left:50%;transform:translate(-50%,-140%);z-index:60;min-width:240px;max-width:90vw;padding:10px 16px;background:linear-gradient(160deg,#18140a,#070605);border:1px solid #ffd24a;box-shadow:0 0 24px #000a;text-align:center;transition:transform .45s ease;pointer-events:none}
+#achToast.show{transform:translate(-50%,0)}
+#achToast small{display:block;color:#aaa28d;letter-spacing:.14em;font-size:10px}
+#achToast b{display:block;color:#ffd24a;letter-spacing:.12em;font-size:15px;margin:2px 0}
+#achToast span{font-size:12px;color:#cfc8b2}
+#achList{max-height:52vh;overflow:auto;text-align:left;margin:10px 0;display:flex;flex-direction:column;gap:6px;min-width:min(420px,80vw)}
+.achRow{display:flex;justify-content:space-between;gap:12px;padding:8px 10px;border:1px solid #3a3526;color:#6f6a58}
+.achRow b{display:block;letter-spacing:.1em;font-size:13px}
+.achRow span{font-size:11px}
+.achRow.got{border-color:#ffd24a;color:#e9e2c8}
+.achRow.got b{color:#ffd24a}
+.achRow i{font-style:normal;font-size:18px;align-self:center}
+#oppStyle{font-size:10px;letter-spacing:.14em;color:#ffb030;margin-top:2px}
+#specBar{position:fixed;left:50%;bottom:max(12px,env(safe-area-inset-bottom));transform:translateX(-50%);z-index:5;display:none;flex-direction:column;align-items:center;gap:8px;padding:10px 12px;background:rgba(10,9,7,.9);border:1px solid #6b6552;max-width:96vw}
+body.spectating #specBar{display:flex}
+body.spectating #bottom{display:none!important}
+#specBar .specNav,#specBar .specReacts{display:flex;gap:6px;align-items:center;justify-content:center;flex-wrap:wrap}
+#specBar button{min-height:0;padding:6px 10px}
+#specBar .specReacts button{font-size:20px;padding:4px 9px}
+#specBar #specName{min-width:120px;text-align:center;letter-spacing:.14em;font-size:12px;color:#ffd24a}
+#specBar #specAuto.on{border-color:#7ad07a;color:#7ad07a}
+#specBar .specLbl{font-size:10px;letter-spacing:.2em;color:#aaa28d}
+#reactLayer{position:fixed;inset:0;pointer-events:none;z-index:7;overflow:hidden}
+.rx{position:absolute;bottom:90px;display:flex;flex-direction:column;align-items:center;animation:rxUp 2.8s ease-out forwards;text-shadow:0 0 8px #000}
+.rx .e{font-size:38px}
+.rx .n{font-size:10px;letter-spacing:.12em;color:#e9e2c8}
+@keyframes rxUp{0%{opacity:0;transform:translateY(0) scale(.6)}12%{opacity:1;transform:translateY(-20px) scale(1.15)}100%{opacity:0;transform:translateY(-260px) scale(1)}}
 </style>
  </head>
  <body class="title">
@@ -1278,20 +1306,22 @@ body.retro canvas{filter:contrast(1.1) saturate(1.25)}
   <div id="discoOv" style="display:none;position:fixed;inset:0;pointer-events:none;z-index:45;opacity:.13;mix-blend-mode:overlay"></div>
   <div id="topLeftBar">
    <button aria-label="What's New" class="ghost" id="btnWhatsNew" title="What's New" type="button"><svg aria-hidden="true" fill="none" height="22" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewBox="0 0 24 24" width="22"><path d="M4 5h13v14H6a2 2 0 0 1-2-2z"/><path d="M17 9h3v8a2 2 0 0 1-2 2h-1"/><path d="M7 8.5h7M7 12h7M7 15.5h4"/></svg><span id="wnBadge">!</span></button>
-   <div id="versionNumber" aria-label="Version 2.3.0">v2.3.1</div>
+   <div id="versionNumber" aria-label="Version 2.3.0">v2.4.0</div>
   </div>
   <div id="whatsNewPanel">
    <div id="whatsNewCard">
-    <h2>WHAT'S NEW IN v2.3.1</h2>
+    <h2>WHAT'S NEW IN v2.4.0</h2>
+    <ul>
+     <li><b>Added spectator:</b> If you have died in multiplayer then you can switch POV's via Spectator and you can add reactions</li>
+     <li><b>Added achievements:</b> Ranges from multiple achievements</li>
+     <li><b>Added Dealer personalities:</b> Ranged from; The Accountant, The Gambler and The Bluffer</li>
+     <li><b>Added low-charge shake:</b> If playing multiplayer and you have less than 2 points, your character shakes (if its somebody else they shake)</li>
+     <li><b>Added Heartbeat:</b> A heartbeak that plays at 1 charge until you die or the other person dies</li>
+    </ul>
+    <h3>EARLIER (v2.3.1)</h3>
     <ul>
      <li><b>Music:</b> Added the song 'General' by BLEYZI</li>
      <li><b>'Cutscene' when press play:</b> Made it so that whenever you start a game it fades to black and the lighting comes back</li>
-    </ul>
-    <h3>EARLIER (v2.3.0)</h3>
-    <ul>
-     <li><b>Hats:</b> You can now buy hats from the customize tab in the multiplayer menu</li>
-     <li><b>Added 2 new codes:</b> The code Jackpot gives 1-1000 dollars and the code FPS shows how many Frames Per Second you get</li>
-     <li><b>More fun options:</b> If you're the host of a lobby you can turn on random fun settings.</li>
     </ul>
     <button class="ghost" id="btnCloseWhatsNew" type="button">CLOSE</button>
    </div>
@@ -1388,6 +1418,7 @@ body.retro canvas{filter:contrast(1.1) saturate(1.25)}
     </h3>
     <div id="tStatRows">
     </div>
+    <button class="ghost" id="btnAch" type="button" style="margin-top:12px;width:100%">ACHIEVEMENTS</button>
    </div>
    <form autocomplete="off" id="tCode">
     <input autocapitalize="off" autocomplete="off" id="codeIn" maxlength="30" placeholder="Enter Code" spellcheck="false"/>
@@ -1485,6 +1516,7 @@ body.retro canvas{filter:contrast(1.1) saturate(1.25)}
     <span id="oppTags">
     </span>
    </div>
+   <div id="oppStyle"></div>
    <div class="pips" id="oppPips">
    </div>
    <div id="oppItems">
@@ -1649,6 +1681,13 @@ body.retro canvas{filter:contrast(1.1) saturate(1.25)}
   </div>
   <div id="hurt">
   </div>
+  <div id="achToast"></div>
+  <div id="reactLayer"></div>
+  <div id="specBar">
+   <div class="specLbl">SPECTATING</div>
+   <div class="specNav"><button id="specPrev" type="button">◀</button><span id="specName">AUTO</span><button id="specNext" type="button">▶</button><button id="specAuto" class="on" type="button">AUTO</button></div>
+   <div class="specReacts" id="specReacts"></div>
+  </div>
   <div id="fade">
   </div>
   <div id="overlay" style="display:none">
@@ -1777,14 +1816,14 @@ body.retro canvas{filter:contrast(1.1) saturate(1.25)}
     // confetti-cannon model survives closing/reloading the page.
     const FAMILY_KEY = 'lastshell_family_friendly_v1';
     function defaultSave() {
-        return { bank: 150, hats: [], hat: '', stash: [], admin: false, codesUnlocked: false, stockedActive: false, cheats: { god: false, quick: false, peek: false, solo: false, family: false, party: false, retro: false, fps: false },
+        return { bank: 150, hats: [], hat: '', stash: [], ach: {}, beat: {}, admin: false, codesUnlocked: false, stockedActive: false, cheats: { god: false, quick: false, peek: false, solo: false, family: false, party: false, retro: false, fps: false },
             stats: { games: 0, wins: 0, losses: 0, rounds: 0, shots: 0, hits: 0, selfBlanks: 0, damageTaken: 0, items: 0, earned: 0, streak: 0, best: 0 } };
     }
     function loadSave() {
         const d = defaultSave();
         try {
             const j = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null');
-            if (j) Object.assign(d, j, { stats: Object.assign(d.stats, j.stats || {}), cheats: Object.assign(d.cheats, j.cheats || {}), stash: Array.isArray(j.stash) ? j.stash.slice(0, 5) : [] });
+            if (j) Object.assign(d, j, { ach: (j.ach && typeof j.ach === 'object') ? j.ach : {}, beat: (j.beat && typeof j.beat === 'object') ? j.beat : {}, stats: Object.assign(d.stats, j.stats || {}), cheats: Object.assign(d.cheats, j.cheats || {}), stash: Array.isArray(j.stash) ? j.stash.slice(0, 5) : [] });
             // The dedicated preference wins when present; otherwise preserve
             // the value from the existing save for backwards compatibility.
             const savedFamily = localStorage.getItem(FAMILY_KEY);
@@ -2814,6 +2853,7 @@ body.retro canvas{filter:contrast(1.1) saturate(1.25)}
             P.items[i] = null;
         if (w === 'p' && G.statsOn) {
             SAVE.stats.items++;
+            G.runItems = (G.runItems || 0) + 1;
             persist();
         }
         rebuildItems();
@@ -2855,14 +2895,28 @@ body.retro canvas{filter:contrast(1.1) saturate(1.25)}
         if (G.statsOn) {
             const S = SAVE.stats;
             if (shooter === 'p') {
+                if (tw === 'p' && !live) {
+                    G.blankRun = (G.blankRun || 0) + 1;
+                    if (G.blankRun >= 3)
+                        achUnlock('nerves');
+                }
+                else
+                    G.blankRun = 0;
+                if (live && tw === 'o') {
+                    achUnlock('first_blood');
+                    if (G.sawn)
+                        achUnlock('sawed_off');
+                }
                 S.shots++;
                 if (live && tw === 'o')
                     S.hits++;
                 if (!live && tw === 'p')
                     S.selfBlanks++;
             }
-            if (live && tw === 'p')
+            if (live && tw === 'p') {
                 S.damageTaken += dmg;
+                G.runDmg = (G.runDmg || 0) + dmg;
+            }
             persist();
         }
         G.known.p = G.known.o = null;
@@ -2957,40 +3011,63 @@ body.retro canvas{filter:contrast(1.1) saturate(1.25)}
         updateHUD();
         r();
     }
+    const DEALERS = [
+        { id: 'accountant', name: 'THE ACCOUNTANT', tag: 'Careful. Heals early and counts every shell.', pace: 700, healAt: 99, healChance: 1, lensChance: 1, knifeAt: 2, shootAt: .3, bluff: false },
+        { id: 'gambler', name: 'THE GAMBLER', tag: 'Reckless. Fast hands, shoots himself for the extra turn.', pace: 330, healAt: 1, healChance: .15, lensChance: .4, knifeAt: .45, shootAt: .75, bluff: false },
+        { id: 'bluffer', name: 'THE BLUFFER', tag: 'Sly. Says things that may not be true.', pace: 600, healAt: 2, healChance: .5, lensChance: .8, knifeAt: .6, shootAt: .5, bluff: true }
+    ];
+    function shuffled(a) {
+        const r = a.slice();
+        for (let i = r.length - 1; i > 0; i--) {
+            const j = rand(0, i);
+            [r[i], r[j]] = [r[j], r[i]];
+        }
+        return r;
+    }
+    async function dealerBluff() {
+        const k = G.known.o;
+        const claim = k === null ? Math.random() < .5 : (Math.random() < .6 ? !k : k);
+        const live = ['“It’s live. I can feel it.”', '“This one has a name on it.”'];
+        const blank = ['“Blank. Trust me.”', '“Relax. It’s nothing.”'];
+        await say('The Dealer smirks: ' + (claim ? live : blank)[rand(0, 1)], 1500);
+    }
     async function aiTurn() {
         G.awaiting = null;
         G.turn = 'o';
         updateHUD();
         await say("THE DEALER'S TURN", 800);
+        const D = G.dealer || DEALERS[0];
         const A = G.players.o;
         const idx = t => A.items.indexOf(t);
         const pLive = () => G.liveLeft / Math.max(1, G.liveLeft + G.blankLeft);
         let did = true, guard = 0;
         while (did && guard++ < 8 && !G.roundOver) {
             did = false;
-            await sleep(600);
+            await sleep(D.pace);
             const pk = G.known.o;
-            if (idx('beer') >= 0 && A.hp < A.max && (A.hp <= 3 || Math.random() < .5)) {
+            if (idx('beer') >= 0 && A.hp < A.max && (A.hp <= D.healAt || Math.random() < D.healChance)) {
                 await useItem('o', idx('beer'));
                 did = true;
             }
-            else if (idx('lens') >= 0 && pk === null) {
+            else if (idx('lens') >= 0 && pk === null && Math.random() < D.lensChance) {
                 await useItem('o', idx('lens'));
                 did = true;
             }
-            else if (idx('knife') >= 0 && !G.sawn && (pk === true || (pk === null && pLive() >= .7))) {
+            else if (idx('knife') >= 0 && !G.sawn && (pk === true || (pk === null && pLive() >= D.knifeAt))) {
                 await useItem('o', idx('knife'));
                 did = true;
             }
         }
-        await sleep(700);
+        await sleep(Math.max(350, D.pace + 100));
         let at;
         if (G.known.o === true)
             at = 'p';
         else if (G.known.o === false)
             at = 'o';
         else
-            at = pLive() >= .5 ? 'p' : 'o';
+            at = pLive() >= D.shootAt ? 'p' : 'o';
+        if (D.bluff)
+            await dealerBluff();
         await shoot('o', at);
     }
     function rigFront(want) { const i = G.shells.indexOf(want); if (i > 0) {
@@ -3028,11 +3105,14 @@ body.retro canvas{filter:contrast(1.1) saturate(1.25)}
         rebuildItems();
         await oppRevive();
         visorColor([0x44e0ff, 0xffb030, 0xff3a3a][G.round - 1]);
+        G.dealer = (G.dealerOrder && G.dealerOrder[(G.round - 1) % G.dealerOrder.length]) || DEALERS[0];
+        $('#oppStyle').textContent = G.dealer.name;
         G.roundOver = true;
         updateHUD();
         await say(`ROUND ${G.round}`, G.introPending ? 1100 : 1500, 'big');
         await say('Each of you holds 5 charges.', G.introPending ? 1100 : 1500);
         await loadShells();
+        await say(G.dealer.name + ' · ' + G.dealer.tag, 1500);
         G.turn = G.round === 1 ? 'p' : (Math.random() < .5 ? 'p' : 'o');
     }
     function showOverlay(title, sub, note, color) {
@@ -3062,6 +3142,17 @@ body.retro canvas{filter:contrast(1.1) saturate(1.25)}
             const banked = Math.max(0, G.cash) + 100 * cleared + (win ? 100 : 0);
             SAVE.bank += banked;
             persist();
+            if (win) {
+                achUnlock('survivor');
+                if (S.streak >= 3)
+                    achUnlock('streak3');
+                if (!G.runDmg)
+                    achUnlock('flawless');
+                if (!G.runItems)
+                    achUnlock('minimalist');
+            }
+            if (SAVE.bank >= 1000)
+                achUnlock('rich');
             note = `Banked $${banked} (leftover cash + $100 per round cleared${win ? ' + $100 win bonus' : ''}). Bank: $${SAVE.bank}.`;
         }
         if (win)
@@ -3090,6 +3181,10 @@ body.retro canvas{filter:contrast(1.1) saturate(1.25)}
         introBusy = false;
         G.running = true;
         G.round = 1;
+        G.dealerOrder = shuffled(DEALERS);
+        G.blankRun = 0;
+        G.runDmg = 0;
+        G.runItems = 0;
         G.statsOn = true;
         // Admin runs count normally. Keep actual cash at zero initially so infinite admin cash
         // is never mistaken for real money when the run is banked.
@@ -3118,6 +3213,14 @@ body.retro canvas{filter:contrast(1.1) saturate(1.25)}
                 if (G.statsOn) {
                     SAVE.stats.rounds++;
                     persist();
+                    if (G.players.p.hp === 1)
+                        achUnlock('close_call');
+                    if (G.dealer) {
+                        SAVE.beat[G.dealer.id] = 1;
+                        persist();
+                        if (DEALERS.every(d => SAVE.beat[d.id]))
+                            achUnlock('dealer_hunter');
+                    }
                 }
                 if (G.round === 3) {
                     await sleep(800);
@@ -3180,6 +3283,7 @@ body.retro canvas{filter:contrast(1.1) saturate(1.25)}
         const S = SAVE.stats, wr = S.games ? Math.round(S.wins / S.games * 100) + '%' : '-';
         const rows = [['Games played', S.games], ['Wins', S.wins], ['Losses', S.losses], ['Win rate', wr], ['Best win streak', S.best], ['Rounds won', S.rounds], ['Shots fired', S.shots], ['Live hits on Dealer', S.hits], ['Blanks survived', S.selfBlanks], ['Charges lost', S.damageTaken], ['Items used', S.items], ['Cash earned', '$' + S.earned]];
         $('#tStatRows').innerHTML = rows.map(r => `<div class="srow"><span>${r[0]}</span><b>${r[1]}</b></div>`).join('');
+        achRefreshButton();
     }
     function stashBuy(t) {
         const it = ITEMS[t];
@@ -3563,7 +3667,7 @@ body.retro canvas{filter:contrast(1.1) saturate(1.25)}
             genVol = Math.min(1, Math.max(0, v));
     }
     catch (e) { }
-    function genLevel() { return genVol * genVol * 1.8; }
+    function genLevel() { return genVol * genVol * 1.8 * (hbLow ? .4 : 1); }
     function genSyncSliders() {
         document.querySelectorAll('.genVolIn').forEach(i => { i.value = Math.round(genVol * 100); });
         document.querySelectorAll('.genVolVal').forEach(b => { b.textContent = Math.round(genVol * 100) + '%'; });
@@ -3872,6 +3976,235 @@ body.retro canvas{filter:contrast(1.1) saturate(1.25)}
             await introRelight();
         }
     }
+    /* ---------------- ACHIEVEMENTS ---------------- */
+    const ACH = [
+        ['first_blood', 'First Blood', 'Shoot a live shell on the Dealer.', '🩸'],
+        ['sawed_off', 'Sawed Off', 'Shoot The Dealer with a knife cut live shell.', '🔪'],
+        ['nerves', 'Nerves of Steel', 'Survive 3 blanks on yourself in a row.', '🤯'],
+        ['close_call', 'Close Call', 'Clear a round with 1 charge left.', '💓'],
+        ['dealer_hunter', 'Know Your Enemy', 'Beat The Accountant, The Gambler and The Bluffer.', '🎭'],
+        ['survivor', 'Walk Away', 'Win a full run.', '🚪'],
+        ['streak3', 'On a Roll', 'Win 3 runs in a row.', '🔥'],
+        ['flawless', 'Flawless', 'Win a run without losing a charge.', '✨'],
+        ['minimalist', 'Bare Hands', 'Win a run without using any items.', '✋'],
+        ['rich', 'High Roller', 'Bank $1000 or more.', '💰'],
+        ['mp_debut', 'Pull Up a Chair', 'Play a multiplayer match.', '🪑'],
+        ['mp_winner', 'Last One Standing', 'Win a multiplayer match.', '🏆'],
+        ['mp_clutch', 'Hanging On', 'Win a multiplayer match with 1 charge left.', '🤯'],
+        ['cheerleader', 'Cheerleader', 'Send a reaction while spectating.', '📣']
+    ].map(a => ({ id: a[0], name: a[1], desc: a[2], icon: a[3] }));
+    let achQueue = [], achShowing = false;
+    function achCount() { return ACH.filter(a => SAVE.ach[a.id]).length; }
+    function achRefreshButton() {
+        const b = $('#btnAch');
+        if (b)
+            b.textContent = 'ACHIEVEMENTS ' + achCount() + ' / ' + ACH.length;
+    }
+    function achNext() {
+        if (achShowing || !achQueue.length)
+            return;
+        achShowing = true;
+        const a = achQueue.shift(), t = $('#achToast');
+        t.innerHTML = `<small>ACHIEVEMENT UNLOCKED</small><b>${a.icon} ${a.name}</b><span>${a.desc}</span>`;
+        t.classList.add('show');
+        tone(880, .12, 'triangle', .12);
+        setTimeout(() => tone(1320, .2, 'triangle', .12), 110);
+        setTimeout(() => {
+            t.classList.remove('show');
+            setTimeout(() => { achShowing = false; achNext(); }, 500);
+        }, 3200);
+    }
+    function achUnlock(id) {
+        if (SAVE.admin || SAVE.cheats.god || SAVE.cheats.peek || SAVE.cheats.solo)
+            return;
+        const a = ACH.find(x => x.id === id);
+        if (!a || SAVE.ach[id])
+            return;
+        SAVE.ach[id] = Date.now();
+        persist();
+        achQueue.push(a);
+        achNext();
+        achRefreshButton();
+    }
+    function openAchievements() {
+        const rows = ACH.map(a => `<div class="achRow${SAVE.ach[a.id] ? ' got' : ''}"><div><b>${a.name}</b><span>${a.desc}</span></div><i>${SAVE.ach[a.id] ? a.icon : '🔒'}</i></div>`).join('');
+        $('#card').innerHTML = `<h1 style="font-size:30px">ACHIEVEMENTS</h1><h2>${achCount()} / ${ACH.length} unlocked</h2><div id="achList">${rows}</div><button id="btnCloseAch">BACK</button>`;
+        $('#overlay').style.display = 'flex';
+        $('#btnCloseAch').onclick = () => { $('#overlay').style.display = 'none'; };
+    }
+    $('#btnAch').onclick = openAchievements;
+    achRefreshButton();
+    /* ---------------- HEARTBEAT (1 charge left) ---------------- */
+    let hbLow = false, hbNext = 0;
+    function hbActive() {
+        if (paused)
+            return false;
+        if (mode === 'play')
+            return G.running && !G.roundOver && G.players.p.hp === 1;
+        if (mode === 'mp') {
+            const S = MP.S, me = S && S.P[MP.pid];
+            return !!me && !MP.over && me.alive && me.hp === 1;
+        }
+        return false;
+    }
+    function hbApplyDuck() {
+        if (!AC)
+            return;
+        if (genGain && genOn)
+            genGain.gain.setTargetAtTime(genLevel(), AC.currentTime, .4);
+        if (musicBus)
+            musicBus.gain.setTargetAtTime(hbLow ? .22 : .5, AC.currentTime, .4);
+    }
+    function hbBeat() {
+        tone(58, .22, 'sine', .5, -22);
+        noise(.1, .1, 180);
+        setTimeout(() => tone(50, .26, 'sine', .38, -20), 210);
+        punch += .006;
+    }
+    setInterval(() => {
+        const on = hbActive();
+        if (on !== hbLow) {
+            hbLow = on;
+            hbApplyDuck();
+        }
+        if (!on || !AC || AC.state !== 'running')
+            return;
+        const n = performance.now();
+        if (n < hbNext)
+            return;
+        hbNext = n + 950;
+        hbBeat();
+    }, 100);
+    /* ---------------- SPECTATOR (dead players in multiplayer) ---------------- */
+    let specPid = null, specAuto = true, reactAt = 0, reactWarned = false;
+    const REACTS = { clap: '👏', laugh: '😂', skull: '💀', shock: '😱', fire: '🔥', party: '🎉' };
+    function mpSpectating() {
+        const S = MP.S;
+        return mode === 'mp' && !!S && !MP.over && !!S.P[MP.pid] && !S.P[MP.pid].alive;
+    }
+    function specTargets() {
+        const S = MP.S;
+        return S ? MP.others.filter(id => S.P[id] && S.P[id].alive && MP.figs[id]) : [];
+    }
+    function specCurrent() {
+        const list = specTargets();
+        if (!list.length)
+            return null;
+        if (specAuto && list.includes(MP.S.turn))
+            return MP.S.turn;
+        if (specPid && list.includes(specPid))
+            return specPid;
+        return list[0];
+    }
+    function specCycle(d) {
+        const list = specTargets();
+        if (!list.length)
+            return;
+        const cur = specCurrent();
+        specAuto = false;
+        specPid = list[(list.indexOf(cur) + d + list.length) % list.length];
+        specRefresh();
+    }
+    function specRefresh() {
+        const on = mpSpectating();
+        document.body.classList.toggle('spectating', on);
+        if (!on)
+            return;
+        const id = specCurrent();
+        $('#specName').textContent = (specAuto ? 'AUTO · ' : '') + (id ? MP.S.P[id].name.toUpperCase() : '—');
+        $('#specAuto').classList.toggle('on', specAuto);
+    }
+    function specAim() {
+        const id = specCurrent(), f = id && MP.figs[id], h = f && f.userData.holder;
+        if (h)
+            yawT = Math.atan2(h.position.x - camBase.x, -(h.position.z - camBase.z));
+    }
+    function showReaction(name, kind, mine) {
+        const layer = $('#reactLayer');
+        if (!REACTS[kind] || mode !== 'mp')
+            return;
+        const d = document.createElement('div');
+        d.className = 'rx';
+        d.style.left = (10 + Math.random() * 78) + '%';
+        const e = document.createElement('span'), n = document.createElement('span');
+        e.className = 'e';
+        e.textContent = REACTS[kind];
+        n.className = 'n';
+        n.textContent = String(name || 'Player').slice(0, 14);
+        d.append(e, n);
+        layer.appendChild(d);
+        while (layer.children.length > 14)
+            layer.firstChild.remove();
+        setTimeout(() => d.remove(), 2900);
+        if (!mine) {
+            try { SFX.click(); }
+            catch (err) { }
+        }
+    }
+    async function mpReact(kind) {
+        if (!MP.code || !MP.sb || !REACTS[kind] || !mpSpectating())
+            return;
+        const n = performance.now();
+        if (n - reactAt < 1300)
+            return;
+        reactAt = n;
+        const name = MP.S.P[MP.pid].name;
+        showReaction(name, kind, true);
+        achUnlock('cheerleader');
+        const { error } = await MP.sb.rpc('mp_send_reaction', { p_code: MP.code, p_player: MP.pid, p_name: name, p_kind: kind });
+        if (error) {
+            if (!reactWarned) {
+                reactWarned = true;
+                console.warn('mp_send_reaction is missing. Run supabase_spectator.sql in the Supabase SQL editor.', error);
+            }
+            try { MP.ch && MP.ch.send({ type: 'broadcast', event: 'react', payload: { pid: MP.pid, name, kind } }); }
+            catch (err) { }
+        }
+    }
+    function mpReactSubscribe() {
+        if (MP.rch || !MP.sb || !MP.code)
+            return;
+        try {
+            MP.rch = MP.sb.channel('react-' + MP.code + '-' + MP.pid.slice(0, 8))
+                .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'mp_reactions', filter: 'lobby_code=eq.' + MP.code }, pl => {
+                    const r = pl && pl.new;
+                    if (r && r.player_id !== MP.pid)
+                        showReaction(r.name, r.kind, false);
+                })
+                .subscribe();
+        }
+        catch (err) {
+            MP.rch = null;
+        }
+    }
+    (function buildSpecUi() {
+        const box = $('#specReacts');
+        Object.keys(REACTS).forEach((k, i) => {
+            const b = document.createElement('button');
+            b.type = 'button';
+            b.textContent = REACTS[k];
+            b.title = 'Reaction [' + (i + 1) + ']';
+            b.onclick = () => mpReact(k);
+            box.appendChild(b);
+        });
+        $('#specPrev').onclick = () => specCycle(-1);
+        $('#specNext').onclick = () => specCycle(1);
+        $('#specAuto').onclick = () => { specAuto = true; specRefresh(); };
+        window.addEventListener('keydown', e => {
+            if (!mpSpectating() || e.ctrlKey || e.metaKey || e.altKey)
+                return;
+            const t = e.target;
+            if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable))
+                return;
+            const k = e.key;
+            if (k === 'ArrowLeft' || k === 'a' || k === 'A')
+                specCycle(-1);
+            else if (k === 'ArrowRight' || k === 'd' || k === 'D')
+                specCycle(1);
+            else if (k >= '1' && k <= '6')
+                mpReact(Object.keys(REACTS)[+k - 1]);
+        });
+    })();
     /* ---------------- LOOP ---------------- */
     let last = performance.now();
     const _fr = new THREE.Frustum(), _pm = new THREE.Matrix4();
@@ -3889,7 +4222,7 @@ body.retro canvas{filter:contrast(1.1) saturate(1.25)}
             mx = Math.sin(t * .0004) * .7;
             my = 0;
         }
-        lamp.intensity = (1.7 + Math.sin(t * .004) * .05 + (Math.random() < .012 ? -.7 : 0)) * lampK;
+        lamp.intensity = (1.7 + Math.sin(t * .004) * .05 + (Math.random() < (hbLow ? .035 : .012) ? -.7 : 0)) * lampK;
         opp.position.x = oppState.hit > 0 ? Math.sin(t * .06) * oppState.hit * .08 : 0;
         if (!oppState.fallen) {
             opp.position.y = Math.sin(t * .0015) * .015;
@@ -3916,6 +4249,8 @@ body.retro canvas{filter:contrast(1.1) saturate(1.25)}
                 camera.position.lerp(desired, Math.min(1, dt * 4.5));
             }
         }
+        if (mode === 'mp' && mpSpectating())
+            specAim();
         if (mode === 'mp')
             yaw += (yawT - yaw) * Math.min(1, dt * 7);
         else {
@@ -4046,7 +4381,7 @@ body.retro canvas{filter:contrast(1.1) saturate(1.25)}
     }
     let lookSent = 0, lookSentAt = 0;
     function mpSendLook(force) {
-        if (!MP.code || !MP.sb || !MP.S)
+        if (!MP.code || !MP.sb || !MP.S || mpSpectating())
             return;
         const n = performance.now();
         if (!force && (n - lookSentAt < 200 || Math.abs(yaw - lookSent) < .02))
@@ -4071,6 +4406,11 @@ body.retro canvas{filter:contrast(1.1) saturate(1.25)}
             catch (e) { }
         }
         MP.ch = null;
+        if (MP.rch && MP.sb) {
+            try { MP.sb.removeChannel(MP.rch); }
+            catch (e) { }
+        }
+        MP.rch = null;
     }
     let mpLastBack = 0;
     function mpSendFlagsBack(pid) {
@@ -4113,6 +4453,7 @@ body.retro canvas{filter:contrast(1.1) saturate(1.25)}
             .on('broadcast', { event: 'flags' }, m => { const d = m && m.payload; if (d && d.pid && d.f) { MP.gone.delete(d.pid); MP.flags[d.pid] = { god: !!d.f.god, peek: !!d.f.peek, stocked: !!d.f.stocked }; mpSendFlagsBack(d.pid); } })
             .on('broadcast', { event: 'hat' }, m => { const d = m && m.payload; if (d && d.pid && d.pid !== MP.pid) MP.hats[d.pid] = HATS.some(h => h.id === d.hat) ? d.hat : ''; })
             .on('broadcast', { event: 'quit' }, m => { const d = m && m.payload; if (d && d.pid && d.pid !== MP.pid) { MP.gone.add(d.pid); mpRenderRoom(); } })
+            .on('broadcast', { event: 'react' }, m => { const d = m && m.payload; if (d && d.pid && d.pid !== MP.pid) showReaction(d.name, d.kind, false); })
             .subscribe(st => { if (st === 'SUBSCRIBED') { mpSendFlags(); if (MP.skin.color || MP.skin.face) mpSendSkin(false); mpSendHat(); if (MP.host && Object.values(MP.fun).some(v => v === true)) setTimeout(() => mpSend('funconfig', MP.fun), 350); } });
         MP.flags = {};
         MP.look = {};
@@ -4672,6 +5013,10 @@ body.retro canvas{filter:contrast(1.1) saturate(1.25)}
         for (const id of ['#title', '#overlay', '#pause', '#btnPause', '#codeListPanel', '#btnCodeList', '#settingsPanel', '#shop'])
             $(id).style.display = 'none';
         introDark();
+        specPid = null;
+        specAuto = true;
+        mpReactSubscribe();
+        achUnlock('mp_debut');
         G.running = true;
         G.roundOver = false;
         const S = { P: {}, seatOrder: [], shells: [], liveLeft: 0, blankLeft: 0, sawn: false, known: {}, turn: p.first, needLoad: false, loadNo: 0, loadSent: false };
@@ -4922,6 +5267,11 @@ body.retro canvas{filter:contrast(1.1) saturate(1.25)}
         const S = MP.S;
         genStop();
         introReset();
+        if (winId && winId === MP.pid) {
+            achUnlock('mp_winner');
+            if (S.P[MP.pid] && S.P[MP.pid].hp === 1)
+                achUnlock('mp_clutch');
+        }
         MP.over = true;
         mpHUD();
         if (MP.host)
@@ -5039,6 +5389,7 @@ body.retro canvas{filter:contrast(1.1) saturate(1.25)}
         }
         $('#modes').textContent = me.alive ? '' : 'SPECTATING';
         $('#youTags').textContent = (S.sawn ? ' 🪚 x2' : '') + (me.alive ? '' : ' ☠');
+        specRefresh();
         const mine = me.items;
         invEl.style.display = mine.some(Boolean) ? 'flex' : 'none';
         [...invEl.children].forEach((b, i) => {
@@ -5313,6 +5664,7 @@ body.retro canvas{filter:contrast(1.1) saturate(1.25)}
             if (u.dead)
                 continue;
             g.scale.setScalar(MP.fun.giant ? 1.5 : MP.fun.tiny ? .6 : 1);
+            const sp = MP.S && MP.S.P[u.pid], lowA = (sp && sp.alive && sp.hp > 0 && sp.hp <= 2) ? (sp.hp <= 1 ? 1.7 : 1) : 0;
             if (u.bounceUntil && performance.now() < u.bounceUntil) {
                 const elapsed = (u.bounceUntil - performance.now()) / 1000;
                 const k = Math.min(1, elapsed / Math.max(.1, MP.fun.duration || 4));
@@ -5327,11 +5679,18 @@ body.retro canvas{filter:contrast(1.1) saturate(1.25)}
                 if (u.bounceUntil) { u.bounceUntil = 0; g.position.set(0, 0, 0); g.rotation.set(0,0,0); }
                 g.position.y = Math.sin(t * .0015 + u.ph) * .015;
                 g.position.x = 0; g.position.z = 0;
+                g.rotation.z = 0;
+                if (lowA) {
+                    g.position.x = (Math.sin(t * .071 + u.ph) + Math.sin(t * .113)) * .016 * lowA;
+                    g.position.z = Math.sin(t * .097 + u.ph * 2) * .008 * lowA;
+                    g.rotation.z = Math.sin(t * .083 + u.ph) * .025 * lowA;
+                }
             }
             const tgt = -(MP.look[u.pid] || 0);
             u.hy = (u.hy || 0) + (tgt - (u.hy || 0)) * .15;
             u.head.rotation.y = u.hy + Math.sin(t * .0007 + u.ph) * .05;
             u.head.rotation.x = .22 + Math.sin(t * .0011 + u.ph) * .02;
+            u.head.rotation.z = lowA ? Math.sin(t * .09 + u.ph) * .05 * lowA : 0;
         }
     }
     /* ----- administrator multiplayer fun modes ----- */
