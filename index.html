@@ -3012,8 +3012,8 @@ body.spectating #bottom{display:none!important}
         r();
     }
     const DEALERS = [
-        { id: 'accountant', name: 'THE ACCOUNTANT', tag: 'Careful. Heals early and counts every shell.', pace: 700, healAt: 99, healChance: 1, lensChance: 1, knifeAt: 2, shootAt: .3, bluff: false },
-        { id: 'gambler', name: 'THE GAMBLER', tag: 'Reckless. Fast hands, shoots himself for the extra turn.', pace: 330, healAt: 1, healChance: .15, lensChance: .4, knifeAt: .45, shootAt: .75, bluff: false },
+        { id: 'accountant', name: 'THE ACCOUNTANT', tag: 'This one is careful. Heals early and counts every shell.', pace: 700, healAt: 99, healChance: 1, lensChance: 1, knifeAt: 2, shootAt: .3, bluff: false },
+        { id: 'gambler', name: 'THE GAMBLER', tag: 'Reckless. Shoots himself for the extra turn.', pace: 330, healAt: 1, healChance: .15, lensChance: .4, knifeAt: .45, shootAt: .75, bluff: false },
         { id: 'bluffer', name: 'THE BLUFFER', tag: 'Sly. Says things that may not be true.', pace: 600, healAt: 2, healChance: .5, lensChance: .8, knifeAt: .6, shootAt: .5, bluff: true }
     ];
     function shuffled(a) {
@@ -3029,7 +3029,7 @@ body.spectating #bottom{display:none!important}
         const claim = k === null ? Math.random() < .5 : (Math.random() < .6 ? !k : k);
         const live = ['“It’s live. I can feel it.”', '“This one has a name on it.”'];
         const blank = ['“Blank. Trust me.”', '“Relax. It’s nothing.”'];
-        await say('The Dealer smirks: ' + (claim ? live : blank)[rand(0, 1)], 1500);
+        await say('The Dealer says: ' + (claim ? live : blank)[rand(0, 1)], 1500);
     }
     async function aiTurn() {
         G.awaiting = null;
