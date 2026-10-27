@@ -1464,6 +1464,21 @@ body.spectating #bottom{display:none!important}
     CLOSE
    </button>
   </div>
+  <button id="btnPanel" type="button" title="Administrator panel">PANEL</button>
+  <div aria-label="Administrator panel" id="adminPanel" role="dialog">
+   <div class="apBox">
+    <h3>ADMINISTRATOR PANEL</h3>
+    <div class="apTabs">
+     <button data-tab="players" type="button">PLAYERS</button>
+     <button data-tab="ip" type="button">IP BANS</button>
+     <button data-tab="dev" type="button">DEVICE BANS</button>
+     <button data-tab="codes" type="button">ALL CODES</button>
+    </div>
+    <div id="apMsg"></div>
+    <div id="apBody"></div>
+    <button id="apClose" type="button">CLOSE</button>
+   </div>
+  </div>
   <div id="pause" style="display:none">
    <div class="card">
     <h1 style="font-size:38px">
@@ -1763,6 +1778,27 @@ body.spectating #bottom{display:none!important}
 html.mobile #btnWho{top:calc(max(12px,env(safe-area-inset-top)) + 62px);left:calc(max(12px,env(safe-area-inset-left)) + 84px);bottom:auto;min-height:44px}
 html.mobile #whoPanel{left:12px;right:12px;bottom:auto;top:calc(max(12px,env(safe-area-inset-top)) + 106px);width:auto;max-height:70vh}
 html.mobile body.inLobby #btnWho,html.mobile body.inLobby #whoPanel{display:none!important}
+#btnPanel{position:fixed;left:178px;bottom:12px;z-index:30;display:none;border-color:#ff5a48;color:#ff5a48;background:rgba(10,9,7,.94);font-size:12px;letter-spacing:.14em;padding:10px 14px}
+#adminPanel{position:fixed;inset:0;z-index:45;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.78);padding:12px;user-select:text;-webkit-user-select:text}
+#adminPanel .apBox{width:min(640px,100%);max-height:86vh;max-height:86dvh;overflow:auto;background:rgba(10,9,7,.98);border:1px solid #ff5a48;padding:14px;text-align:left;box-shadow:0 0 22px #000}
+#adminPanel h3{color:#ff5a48;letter-spacing:.2em;margin:0 0 10px}
+.apTabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px}
+.apTabs button{flex:1;min-width:110px;padding:8px 10px;font-size:12px}
+.apTabs button.on{border-color:#ffd24a;color:#ffd24a;box-shadow:inset 0 0 0 1px #ffd24a}
+#apMsg{min-height:1.3em;font-size:12px;margin-bottom:6px;color:#7ad07a}
+#apMsg.bad{color:#ff5a48}
+.apHead{color:#ffd24a;letter-spacing:.14em;font-size:12px;margin:12px 0 6px}
+.apHint{font-size:12px;color:#8a846f;line-height:1.5;margin:4px 0}
+.apForm{display:flex;gap:6px;flex-wrap:wrap}
+.apForm input{flex:1;min-width:130px;background:#0d0c0a;color:#e8e2d0;border:1px solid #6b6552;padding:9px;font-family:inherit;font-size:13px;user-select:text;-webkit-user-select:text}
+.apRow{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 0;border-bottom:1px solid #302b20;font-size:12px;line-height:1.45}
+.apRow b{color:#7ad07a;word-break:break-all}
+.apRow small{display:block;color:#8a846f}
+.apRow button,.apBtns button{padding:6px 10px;font-size:11px}
+.apBtns{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+#apClose{width:100%;margin-top:12px}
+html.mobile #btnPanel{top:calc(max(12px,env(safe-area-inset-top)) + 62px);left:calc(max(12px,env(safe-area-inset-left)) + 170px);bottom:auto;min-height:44px}
+html.mobile body.inLobby #btnPanel,html.mobile body.inLobby #adminPanel{display:none!important}
 @media (prefers-reduced-motion:reduce){#warnBar .wbHead,#warnBar::after,#wbDealer{animation:none}}
   </style>
   <style>
@@ -3672,7 +3708,25 @@ html.mobile body.inLobby #btnWho,html.mobile body.inLobby #whoPanel{display:none
         bluffer: () => chooseDealer('bluffer'),
         dumbest: () => chooseDealer('dumbest'),
         smartest: () => chooseDealer('smartest'),
-        administratorme: () => { SAVE.admin = !SAVE.admin; if (!SAVE.admin) { SAVE.cheats.solo = false; } return SAVE.admin ? 'ADMIN ON: rigged luck, infinite items, infinite cash.' : 'Admin OFF. Back to normal.'; },
+        administratorme: async () => {
+            if (SAVE.admin) {
+                SAVE.admin = false;
+                SAVE.cheats.solo = false;
+                try { localStorage.removeItem(AP_KEY); } catch (e) { }
+                return 'Admin OFF. Back to normal.';
+            }
+            const k = (window.prompt('Enter the secret code to turn on Administrator mode:') || '').trim();
+            if (!k)
+                return 'No secret code entered. Admin stays off.';
+            try { localStorage.setItem(AP_KEY, k); } catch (e) { }
+            try { await apRpc('admin_overview', { p_limit: 1 }); }
+            catch (e) {
+                try { localStorage.removeItem(AP_KEY); } catch (e2) { }
+                return (/not_admin/.test(String(e.message)) ? 'Wrong secret code.' : apErrText(e)) + ' Admin stays off.';
+            }
+            SAVE.admin = true;
+            return 'ADMIN ON: rigged luck, infinite items, infinite cash.';
+        },
         onlyme: () => { if (!SAVE.admin)
             return 'Turn on AdministratorMe first.'; SAVE.cheats.solo = !SAVE.cheats.solo; return 'Only-me turns ' + onOff(SAVE.cheats.solo) + (SAVE.cheats.solo ? ': The Dealer never gets a turn.' : '.'); },
         payday: () => { SAVE.bank += 500; return '+$500 added to your bank.'; },
@@ -3696,7 +3750,7 @@ html.mobile body.inLobby #btnWho,html.mobile body.inLobby #whoPanel{display:none
         warningtest: () => { showWarning('This is a test of the warning screen', 'You typed the WarningTest code, so nothing is actually broken.', 'Press OK to close this screen and bring the sound back.'); return 'Warning screen triggered.'; },
         voicelinetest: () => { playVoiceline(); return 'Playing a random voiceline.'; }
     };
-    $('#tCode').onsubmit = e => {
+    $('#tCode').onsubmit = async e => {
         e.preventDefault();
         const inp = $('#codeIn'), k = inp.value.trim().toLowerCase(), msg = $('#codeMsg');
         inp.value = '';
@@ -3708,7 +3762,7 @@ html.mobile body.inLobby #btnWho,html.mobile body.inLobby #whoPanel{display:none
             msg.textContent = 'Code Entered, invalid code.';
             return;
         }
-        const result = f();
+        const result = await f();
         msg.className = '';
         msg.textContent = 'Code Entered, ' + result;
         persist();
@@ -3774,6 +3828,7 @@ html.mobile body.inLobby #btnWho,html.mobile body.inLobby #whoPanel{display:none
         return !!SAVE.admin && !inGame;
     }
     function syncWho() {
+        syncPanelBtn();
         const on = whoVisible();
         $('#btnWho').style.display = on ? 'flex' : 'none';
         if (!on)
@@ -3856,6 +3911,192 @@ html.mobile body.inLobby #btnWho,html.mobile body.inLobby #whoPanel{display:none
     }
     $('#btnWho').onclick = whoOpen;
     $('#btnCloseWho').onclick = () => { $('#whoPanel').style.display = 'none'; };
+    /* ---------------- ADMIN PANEL: IP BANS, DEVICE BANS, ALL CODES (needs supabase_bans.sql) ---------------- */
+    var banLocked = false;
+    const DEV_KEY = 'lastshell_device_id', AP_KEY = 'lastshell_ban_admin_key';
+    function getDeviceId() {
+        let id = '';
+        try { id = localStorage.getItem(DEV_KEY) || ''; } catch (e) { }
+        if (!id) { try { const m = document.cookie.match(/(?:^|; )lsdev=([^;]+)/); if (m) id = decodeURIComponent(m[1]); } catch (e) { } }
+        if (!id) id = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : 'd' + Math.random().toString(36).slice(2) + Date.now().toString(36);
+        try { localStorage.setItem(DEV_KEY, id); } catch (e) { }
+        try { document.cookie = 'lsdev=' + encodeURIComponent(id) + '; max-age=315360000; path=/; SameSite=Lax'; } catch (e) { }
+        return id;
+    }
+    const DEVICE_ID = getDeviceId();
+    function banScreen(kind, reason) {
+        banLocked = true;
+        const dev = kind === 'device';
+        warnItems = [];
+        showWarning(dev ? 'You were Device Banned' : 'You were IP Banned',
+            (dev ? 'This device has been banned from this game.' : 'Your IP address has been banned from this game.') + (reason ? ' Reason: ' + reason : ''),
+            'If you think this was a mistake, ask a person named Matthew.');
+        const ok = document.getElementById('wbOk');
+        if (ok) ok.style.display = 'none';
+        try { if (mode === 'play') paused = true; } catch (e) { }
+    }
+    async function banCheck() {
+        if (banLocked)
+            return;
+        try {
+            const sb = MP_OK ? mpClient() : null;
+            if (!sb)
+                return;
+            let nm = '';
+            try { nm = MP.name || localStorage.getItem('lastshell_mp_name') || ''; } catch (e) { }
+            const { data, error } = await sb.rpc('check_ban', { p_device: DEVICE_ID, p_name: nm });
+            if (error || !data || !data.banned)
+                return;
+            banScreen(data.kind, data.reason);
+        }
+        catch (e) { }
+    }
+    setTimeout(banCheck, 700);
+    setInterval(banCheck, 30000);
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) banCheck(); });
+
+    const AP_NAMES = { administratorme: 'AdministratorMe', warningtest: 'WarningTest', voicelinetest: 'VoicelineTest', familyfriendly: 'FamilyFriendly', accountant: 'Accountant', gambler: 'Gambler', bluffer: 'Bluffer', dumbest: 'Dumbest', smartest: 'Smartest' };
+    const AP_HIDDEN = {
+        administratorme: 'Toggles Administrator mode: rigged luck, infinite items and cash, plus this PANEL, the players-online button and the pause-menu admin tools.',
+        warningtest: 'Shows the "Something went wrong" warning screen as a test. Press OK to close it.',
+        voicelinetest: 'Plays a random voiceline.',
+        familyfriendly: 'Alias for Family_Friendly.',
+        accountant: 'Short alias for DealerAccountant.',
+        gambler: 'Short alias for DealerGambler.',
+        bluffer: 'Short alias for DealerBluffer.',
+        dumbest: 'Short alias for DealerDumbest.',
+        smartest: 'Short alias for DealerSmartest.'
+    };
+    const ap = { tab: 'players', bans: [], seen: [], myIp: '', locked: false };
+    function apKey() { try { return localStorage.getItem(AP_KEY) || ''; } catch (e) { return ''; } }
+    function apAskKey() {
+        const k = (window.prompt('Enter the admin key you set in supabase_bans.sql:') || '').trim();
+        if (k) { try { localStorage.setItem(AP_KEY, k); } catch (e) { } }
+        return k;
+    }
+    function apSay(t, bad) { const m = $('#apMsg'); m.textContent = t || ''; m.className = bad ? 'bad' : ''; }
+    function apErrText(e) {
+        const t = String((e && (e.message || e.details)) || e);
+        if (/not_admin/.test(t)) return 'Wrong admin key. Click UNLOCK to try again.';
+        if (/Could not find|does not exist|PGRST|schema cache|404/.test(t)) return 'Run supabase_bans.sql in the Supabase SQL editor first.';
+        return 'Error: ' + t;
+    }
+    async function apRpc(fn, args) {
+        const sb = MP_OK ? mpClient() : null;
+        if (!sb) throw new Error('Multiplayer/Supabase is not set up, so bans cannot be managed.');
+        const key = apKey();
+        if (!key) throw new Error('not_admin');
+        const { data, error } = await sb.rpc(fn, Object.assign({ p_key: key }, args || {}));
+        if (error) {
+            const t = String(error.message || error.details || error);
+            if (/not_admin/.test(t)) { try { localStorage.removeItem(AP_KEY); } catch (e) { } }
+            throw new Error(t);
+        }
+        return data;
+    }
+    async function apRefresh() {
+        if (!apKey()) { ap.locked = true; apSay(''); apRender(); return; }
+        ap.locked = false;
+        apSay('Loading…');
+        try {
+            const d = await apRpc('admin_overview', { p_limit: 80 });
+            ap.bans = (d && d.bans) || [];
+            ap.seen = (d && d.seen) || [];
+            ap.myIp = (d && d.my_ip) || '';
+            apSay('');
+        }
+        catch (e) { ap.locked = /not_admin/.test(String(e.message)); apSay(apErrText(e), true); }
+        apRender();
+    }
+    function apBansHtml(kind) {
+        const rows = ap.bans.filter(b => b.kind === kind), label = kind === 'ip' ? 'IP ADDRESS' : 'DEVICE ID';
+        const mine = kind === 'ip' ? ap.myIp : DEVICE_ID;
+        let h = '<div class="apHead">BAN AN ' + (kind === 'ip' ? 'IP ADDRESS' : 'DEVICE') + '</div>';
+        h += '<div class="apForm"><input id="apVal" placeholder="' + label.toLowerCase() + '" autocomplete="off" spellcheck="false"/><input id="apReason" placeholder="reason (optional)" maxlength="120" autocomplete="off"/><button data-act="add" data-kind="' + kind + '" type="button">BAN</button></div>';
+        h += '<div class="apHint">' + (kind === 'ip' ? 'Your IP' : 'This device') + ': ' + warnEsc(mine || 'unknown') + ' (do not ban yourself)</div>';
+        h += '<div class="apHead">BANNED ' + (kind === 'ip' ? 'IPS' : 'DEVICES') + ' · ' + rows.length + '</div>';
+        h += rows.length ? rows.map(b => '<div class="apRow"><div><b>' + warnEsc(b.value) + '</b><small>' + warnEsc(b.reason || 'no reason given') + ' · ' + whoAgo(b.created_at) + '</small></div><button data-act="unban" data-kind="' + kind + '" data-value="' + warnEsc(b.value) + '" type="button">UNBAN</button></div>').join('') : '<div class="apHint">Nobody is banned.</div>';
+        return h;
+    }
+    function apPlayersHtml() {
+        const ipB = new Set(ap.bans.filter(b => b.kind === 'ip').map(b => b.value)), devB = new Set(ap.bans.filter(b => b.kind === 'device').map(b => b.value));
+        let h = '<div class="apHead">RECENT PLAYERS · ' + ap.seen.length + '</div><div class="apHint">Players show up here after they load the game with the ban system installed.</div>';
+        h += ap.seen.length ? ap.seen.map(r => {
+            const ib = !!r.ip && ipB.has(r.ip), db = devB.has(r.device_id), you = r.device_id === DEVICE_ID;
+            return '<div class="apRow"><div><b>' + warnEsc(r.name || 'Player') + (you ? ' (YOU)' : '') + '</b><small>IP ' + warnEsc(r.ip || 'unknown') + ' · device ' + warnEsc(String(r.device_id).slice(0, 8)) + '… · last seen ' + whoAgo(r.last_seen) + '</small></div><div class="apBtns">'
+                + '<button data-act="' + (ib ? 'unban' : 'banrow') + '" data-kind="ip" data-value="' + warnEsc(r.ip || '') + '"' + (r.ip ? '' : ' disabled') + ' type="button">' + (ib ? 'UNBAN IP' : 'BAN IP') + '</button>'
+                + '<button data-act="' + (db ? 'unban' : 'banrow') + '" data-kind="device" data-value="' + warnEsc(r.device_id) + '" type="button">' + (db ? 'UNBAN DEVICE' : 'BAN DEVICE') + '</button></div></div>';
+        }).join('') : '<div class="apHint">Nobody yet.</div>';
+        return h;
+    }
+    function apCodesHtml() {
+        const listed = new Set(CODE_DESCRIPTIONS.map(c => c[0].toLowerCase()));
+        const hid = Object.keys(CODES).filter(k => !listed.has(k));
+        const entry = (n, d) => '<div class="codeEntry"><b>' + warnEsc(n) + '</b><span>' + warnEsc(d) + '</span></div>';
+        return '<div class="apHead">HIDDEN CODES (NOT SHOWN BY CODEALL) · ' + hid.length + '</div>'
+            + hid.map(k => entry(AP_NAMES[k] || k, AP_HIDDEN[k] || 'No description yet.')).join('')
+            + '<div class="apHead">LISTED CODES (SHOWN BY CODEALL) · ' + CODE_DESCRIPTIONS.length + '</div>'
+            + CODE_DESCRIPTIONS.map(c => entry(c[0], c[1])).join('');
+    }
+    function apRender() {
+        document.querySelectorAll('#adminPanel .apTabs button').forEach(b => b.classList.toggle('on', b.dataset.tab === ap.tab));
+        let h;
+        if (ap.tab === 'codes') h = apCodesHtml();
+        else if (ap.locked) h = '<div class="apHint">Enter your admin key to manage players and bans.</div><button data-act="unlock" type="button" style="margin-top:8px">UNLOCK</button>';
+        else h = ap.tab === 'players' ? apPlayersHtml() : apBansHtml(ap.tab === 'ip' ? 'ip' : 'device');
+        $('#apBody').innerHTML = h;
+    }
+    async function apBan(kind, value, reason) {
+        value = String(value || '').trim();
+        if (!value) return apSay('Type a value first.', true);
+        const mine = kind === 'ip' ? ap.myIp : DEVICE_ID, what = kind === 'ip' ? 'IP' : 'device';
+        if (mine && value === mine && !confirm('That is YOUR OWN ' + what + '. You would be locked out of the game. Ban it anyway?')) return;
+        if (!confirm('Ban this ' + what + '?\n\n' + value)) return;
+        await apRpc('admin_ban', { p_kind: kind, p_value: value, p_reason: reason || '' });
+        apSay(what.toUpperCase() + ' banned: ' + value);
+        await apRefreshQuiet();
+    }
+    async function apRefreshQuiet() {
+        const msg = $('#apMsg').textContent, bad = $('#apMsg').className === 'bad';
+        await apRefresh();
+        if (!$('#apMsg').textContent) apSay(msg, bad);
+    }
+    $('#apBody').onclick = async e => {
+        const b = e.target.closest('button[data-act]');
+        if (!b) return;
+        const act = b.dataset.act, kind = b.dataset.kind, value = b.dataset.value;
+        try {
+            if (act === 'unlock') { apAskKey(); await apRefresh(); }
+            else if (act === 'add') await apBan(kind, ($('#apVal').value || ''), ($('#apReason').value || '').trim());
+            else if (act === 'banrow') {
+                const r = window.prompt('Reason for banning this ' + (kind === 'ip' ? 'IP' : 'device') + ' (optional):', '');
+                if (r === null) return;
+                await apBan(kind, value, r.trim());
+            }
+            else if (act === 'unban') {
+                await apRpc('admin_unban', { p_kind: kind, p_value: value });
+                apSay((kind === 'ip' ? 'IP' : 'Device') + ' unbanned: ' + value);
+                await apRefreshQuiet();
+            }
+        }
+        catch (err) { apSay(apErrText(err), true); if (/not_admin/.test(String(err.message))) { ap.locked = true; apRender(); } }
+    };
+    document.querySelectorAll('#adminPanel .apTabs button').forEach(b => { b.onclick = () => { ap.tab = b.dataset.tab; apRender(); }; });
+    function apClose() { $('#adminPanel').style.display = 'none'; }
+    $('#apClose').onclick = apClose;
+    $('#adminPanel').addEventListener('click', e => { if (e.target === $('#adminPanel')) apClose(); });
+    window.addEventListener('keydown', e => { if (e.key === 'Escape' && $('#adminPanel').style.display === 'flex') apClose(); });
+    $('#btnPanel').onclick = () => {
+        if (!apKey()) apAskKey();
+        $('#adminPanel').style.display = 'flex';
+        apRender();
+        apRefresh();
+    };
+    function syncPanelBtn() {
+        const on = whoVisible();
+        $('#btnPanel').style.display = on ? 'block' : 'none';
+        if (!on) apClose();
+    }
     function syncCodeListButton() {
         const inGame = typeof mode !== 'undefined' && (mode === 'play' || mode === 'mp' || mode === 'end');
         $('#btnCodeList').style.display = (SAVE.codesUnlocked && !inGame) ? 'block' : 'none';
@@ -4347,6 +4588,8 @@ html.mobile body.inLobby #btnWho,html.mobile body.inLobby #whoPanel{display:none
         catch (e) { console.error('Could not show warning', e); }
     }
     function dismissWarning() {
+        if (banLocked)
+            return;
         warnActive = false;
         warnItems = [];
         warnStopRetry();
