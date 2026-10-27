@@ -4020,10 +4020,10 @@ html.mobile body.inLobby #btnPanel,html.mobile body.inLobby #adminPanel{display:
     }
     function apPlayersHtml() {
         const ipB = new Set(ap.bans.filter(b => b.kind === 'ip').map(b => b.value)), devB = new Set(ap.bans.filter(b => b.kind === 'device').map(b => b.value));
-        let h = '<div class="apHead">RECENT PLAYERS · ' + ap.seen.length + '</div><div class="apHint">Players show up here after they load the game with the ban system installed.</div>';
+        let h = '<div class="apHead">RECENT PLAYERS · ' + ap.seen.length + '</div><div class="apHint">Players show up here after they load the game with the ban system installed.</div><div class="apForm" style="margin-top:6px"><input id="apSearch" placeholder="search name, IP or device ID" autocomplete="off" spellcheck="false"/></div>';
         h += ap.seen.length ? ap.seen.map(r => {
             const ib = !!r.ip && ipB.has(r.ip), db = devB.has(r.device_id), you = r.device_id === DEVICE_ID;
-            return '<div class="apRow"><div><b>' + warnEsc(r.name || 'Player') + (you ? ' (YOU)' : '') + '</b><small>IP ' + warnEsc(r.ip || 'unknown') + ' · device ' + warnEsc(String(r.device_id).slice(0, 8)) + '… · last seen ' + whoAgo(r.last_seen) + '</small></div><div class="apBtns">'
+            return '<div class="apRow" data-s="' + warnEsc(((r.name || '') + ' ' + (r.ip || '') + ' ' + r.device_id).toLowerCase()) + '"><div><b>' + warnEsc(r.name || 'Player') + (you ? ' (YOU)' : '') + '</b><small>IP ' + warnEsc(r.ip || 'unknown') + ' · last seen ' + whoAgo(r.last_seen) + '</small><small style="word-break:break-all">device ' + warnEsc(r.device_id) + '</small></div><div class="apBtns"><button data-act="copy" data-value="' + warnEsc(r.device_id) + '" type="button">COPY ID</button>'
                 + '<button data-act="' + (ib ? 'unban' : 'banrow') + '" data-kind="ip" data-value="' + warnEsc(r.ip || '') + '"' + (r.ip ? '' : ' disabled') + ' type="button">' + (ib ? 'UNBAN IP' : 'BAN IP') + '</button>'
                 + '<button data-act="' + (db ? 'unban' : 'banrow') + '" data-kind="device" data-value="' + warnEsc(r.device_id) + '" type="button">' + (db ? 'UNBAN DEVICE' : 'BAN DEVICE') + '</button></div></div>';
         }).join('') : '<div class="apHint">Nobody yet.</div>';
@@ -4066,7 +4066,11 @@ html.mobile body.inLobby #btnPanel,html.mobile body.inLobby #adminPanel{display:
         if (!b) return;
         const act = b.dataset.act, kind = b.dataset.kind, value = b.dataset.value;
         try {
-            if (act === 'unlock') { apAskKey(); await apRefresh(); }
+            if (act === 'copy') {
+                try { await navigator.clipboard.writeText(value); apSay('Device ID copied.'); }
+                catch (e) { window.prompt('Copy this device ID:', value); }
+            }
+            else if (act === 'unlock') { apAskKey(); await apRefresh(); }
             else if (act === 'add') await apBan(kind, ($('#apVal').value || ''), ($('#apReason').value || '').trim());
             else if (act === 'banrow') {
                 const r = window.prompt('Reason for banning this ' + (kind === 'ip' ? 'IP' : 'device') + ' (optional):', '');
@@ -4081,6 +4085,11 @@ html.mobile body.inLobby #btnPanel,html.mobile body.inLobby #adminPanel{display:
         }
         catch (err) { apSay(apErrText(err), true); if (/not_admin/.test(String(err.message))) { ap.locked = true; apRender(); } }
     };
+    $('#apBody').addEventListener('input', e => {
+        if (e.target.id !== 'apSearch') return;
+        const q = e.target.value.trim().toLowerCase();
+        document.querySelectorAll('#apBody .apRow[data-s]').forEach(r => { r.style.display = (!q || r.dataset.s.indexOf(q) >= 0) ? '' : 'none'; });
+    });
     document.querySelectorAll('#adminPanel .apTabs button').forEach(b => { b.onclick = () => { ap.tab = b.dataset.tab; apRender(); }; });
     function apClose() { $('#adminPanel').style.display = 'none'; }
     $('#apClose').onclick = apClose;
