@@ -1472,12 +1472,22 @@ body.spectating #bottom{display:none!important}
      <button data-tab="players" type="button">PLAYERS</button>
      <button data-tab="ip" type="button">IP BANS</button>
      <button data-tab="dev" type="button">DEVICE BANS</button>
+     <button data-tab="dt" type="button">INSPECT LOG</button>
      <button data-tab="codes" type="button">ALL CODES</button>
     </div>
     <div id="apMsg"></div>
     <div id="apBody"></div>
     <button id="apClose" type="button">CLOSE</button>
    </div>
+  </div>
+  <div id="suspBar" role="alertdialog" aria-live="assertive" aria-modal="true">
+   <div class="sbHead">&#9888; GAME SUSPENDED</div>
+   <div class="sbLbl">REASON</div>
+   <div id="sbReason"></div>
+   <div class="sbLbl">COMES BACK IN</div>
+   <div id="sbTime">00:00</div>
+   <div id="sbMeta"></div>
+   <div id="sbNote">Your game is paused until the timer reaches zero. Trying again today adds one extra minute each time.</div>
   </div>
   <div id="pause" style="display:none">
    <div class="card">
@@ -1799,6 +1809,13 @@ html.mobile body.inLobby #btnWho,html.mobile body.inLobby #whoPanel{display:none
 #apClose{width:100%;margin-top:12px}
 html.mobile #btnPanel{top:calc(max(12px,env(safe-area-inset-top)) + 62px);left:calc(max(12px,env(safe-area-inset-left)) + 170px);bottom:auto;min-height:44px}
 html.mobile body.inLobby #btnPanel,html.mobile body.inLobby #adminPanel{display:none!important}
+#suspBar{position:fixed;inset:0;z-index:2147483646;display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px;font-family:"Courier New",ui-monospace,monospace;color:#c9b8b0;user-select:text;-webkit-user-select:text;background:radial-gradient(ellipse at 50% 38%,#2a0505 0%,#120202 45%,#030101 85%,#000 100%)}
+#suspBar .sbHead{color:#d8180c;font-weight:bold;letter-spacing:.32em;font-size:clamp(20px,4vw,36px);margin-bottom:18px;text-transform:uppercase;text-shadow:0 0 6px #ff1a0a,0 0 22px #b00000}
+#suspBar .sbLbl{color:#b3140a;letter-spacing:.28em;font-size:12px;margin-top:6px}
+#sbReason{max-width:640px;font-size:clamp(14px,2vw,18px);line-height:1.6;margin:6px 0 16px}
+#sbTime{font-size:clamp(52px,13vw,120px);color:#ffd24a;letter-spacing:.08em;text-shadow:0 0 18px rgba(255,180,0,.5);margin:4px 0 8px;font-variant-numeric:tabular-nums}
+#sbMeta{font-size:14px;color:#b9a79f;margin-bottom:10px}
+#sbNote{max-width:560px;font-size:13px;color:#8a846f;line-height:1.5}
 @media (prefers-reduced-motion:reduce){#warnBar .wbHead,#warnBar::after,#wbDealer{animation:none}}
   </style>
   <style>
@@ -3945,15 +3962,117 @@ html.mobile body.inLobby #btnPanel,html.mobile body.inLobby #adminPanel{display:
             let nm = '';
             try { nm = MP.name || localStorage.getItem('lastshell_mp_name') || ''; } catch (e) { }
             const { data, error } = await sb.rpc('check_ban', { p_device: DEVICE_ID, p_name: nm });
-            if (error || !data || !data.banned)
+            if (error || !data)
                 return;
-            banScreen(data.kind, data.reason);
+            if (data.banned) { banScreen(data.kind, data.reason); return; }
+            if (data.suspended) { suspStart(Date.parse(data.until), data.reason, data.minutes | 0); return; }
+            if (suspUntil > Date.now() && Date.now() - suspBegan > 15000)
+                suspEnd();
         }
         catch (e) { }
     }
     setTimeout(banCheck, 700);
     setInterval(banCheck, 30000);
     document.addEventListener('visibilitychange', () => { if (!document.hidden) banCheck(); });
+
+
+    /* ---------------- INSPECT ELEMENT WATCH + SUSPENSION COUNTDOWN ---------------- */
+    const DT_REASON = 'Try to get into Inspect Element or digging through Inspect Element';
+    const SUSP_KEY = 'lastshell_susp', DT_DAY_KEY = 'lastshell_dt_day';
+    var suspUntil = 0, suspMin = 0, suspReason = '', suspTimer = 0, suspBegan = 0, dtBusy = false;
+    function suspTick() {
+        const left = suspUntil - Date.now();
+        if (left <= 0) { suspEnd(); return; }
+        const s = Math.ceil(left / 1000);
+        $('#sbTime').textContent = String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0');
+    }
+    function suspStart(until, reason, minutes) {
+        if (!(until > Date.now())) return;
+        const first = suspUntil <= Date.now();
+        if (until > suspUntil) { suspUntil = until; if (minutes) suspMin = minutes; }
+        if (reason) suspReason = reason;
+        if (first) suspBegan = Date.now();
+        try { localStorage.setItem(SUSP_KEY, JSON.stringify({ until: suspUntil, reason: suspReason, minutes: suspMin })); } catch (e) { }
+        $('#sbReason').textContent = suspReason || DT_REASON;
+        $('#sbMeta').textContent = suspMin ? 'Suspended for ' + suspMin + ' minute' + (suspMin === 1 ? '' : 's') + ' (attempt #' + suspMin + ' today).' : '';
+        $('#suspBar').style.display = 'flex';
+        if (first) {
+            try {
+                if (mode === 'play') setPaused(true);
+                else { if (AC) AC.suspend(); genPause(); }
+            } catch (e) { }
+        }
+        suspTick();
+        clearInterval(suspTimer);
+        suspTimer = setInterval(suspTick, 250);
+    }
+    function suspEnd() {
+        clearInterval(suspTimer);
+        suspUntil = 0;
+        try { localStorage.removeItem(SUSP_KEY); } catch (e) { }
+        $('#suspBar').style.display = 'none';
+        try { if (mode !== 'play') { if (AC) AC.resume(); genResume(); } } catch (e) { }
+    }
+    async function dtTrip() {
+        if (dtBusy || banLocked || suspUntil > Date.now())
+            return;
+        try { if (SAVE.admin) return; } catch (e) { }
+        dtBusy = true;
+        try {
+            const day = new Date().toDateString();
+            let rec = {};
+            try { rec = JSON.parse(localStorage.getItem(DT_DAY_KEY) || '{}') || {}; } catch (e) { }
+            if (rec.day !== day) rec = { day: day, n: 0 };
+            rec.n++;
+            try { localStorage.setItem(DT_DAY_KEY, JSON.stringify(rec)); } catch (e) { }
+            suspStart(Date.now() + rec.n * 60000, DT_REASON, rec.n);
+            const sb = MP_OK ? mpClient() : null;
+            if (sb) {
+                let nm = '';
+                try { nm = MP.name || localStorage.getItem('lastshell_mp_name') || ''; } catch (e) { }
+                const { data, error } = await sb.rpc('report_devtools', { p_device: DEVICE_ID, p_name: nm });
+                if (!error && data && data.until)
+                    suspStart(Date.parse(data.until), data.reason || DT_REASON, data.minutes | 0);
+            }
+        }
+        catch (e) { }
+        dtBusy = false;
+    }
+    window.addEventListener('keydown', e => {
+        const c = e.code, mod = e.ctrlKey || e.metaKey;
+        const hit = e.key === 'F12' || c === 'F12'
+            || (mod && e.shiftKey && (c === 'KeyI' || c === 'KeyJ' || c === 'KeyC'))
+            || (mod && c === 'KeyU')
+            || (e.metaKey && e.altKey && (c === 'KeyI' || c === 'KeyJ' || c === 'KeyC' || c === 'KeyU'));
+        if (!hit) return;
+        e.preventDefault();
+        e.stopPropagation();
+        dtTrip();
+    }, true);
+    if (!window.IS_PHONE)
+        window.addEventListener('contextmenu', e => { if (!/^(INPUT|TEXTAREA)$/.test((e.target && e.target.tagName) || '')) e.preventDefault(); }, true);
+    var dtFlag = false, dtStreak = 0, dtDpr = window.devicePixelRatio;
+    const dtProbe = new Image();
+    Object.defineProperty(dtProbe, 'id', { get() { dtFlag = true; return ''; } });
+    function dtOpen() {
+        if (window.IS_PHONE) return false;
+        try { if (SAVE.admin) return false; } catch (e) { }
+        dtFlag = false;
+        try { console.log(dtProbe); console.clear(); } catch (e) { }
+        if (dtFlag) return true;
+        const dpr = window.devicePixelRatio;
+        if (Math.abs(dpr - dtDpr) > 0.01) { dtDpr = dpr; dtStreak = 0; return false; }
+        const sized = (window.outerWidth - window.innerWidth > 200) || (window.outerHeight - window.innerHeight > 320);
+        dtStreak = sized ? dtStreak + 1 : 0;
+        return dtStreak >= 2;
+    }
+    setInterval(() => { if (suspUntil <= Date.now() && dtOpen()) dtTrip(); }, 1000);
+    setTimeout(() => {
+        try {
+            const r = JSON.parse(localStorage.getItem(SUSP_KEY) || 'null');
+            if (r && r.until > Date.now()) suspStart(r.until, r.reason, r.minutes | 0);
+        } catch (e) { }
+    }, 300);
 
     const AP_NAMES = { administratorme: 'AdministratorMe', warningtest: 'WarningTest', voicelinetest: 'VoicelineTest', familyfriendly: 'FamilyFriendly', accountant: 'Accountant', gambler: 'Gambler', bluffer: 'Bluffer', dumbest: 'Dumbest', smartest: 'Smartest' };
     const AP_HIDDEN = {
@@ -3967,7 +4086,7 @@ html.mobile body.inLobby #btnPanel,html.mobile body.inLobby #adminPanel{display:
         dumbest: 'Short alias for DealerDumbest.',
         smartest: 'Short alias for DealerSmartest.'
     };
-    const ap = { tab: 'players', bans: [], seen: [], myIp: '', locked: false };
+    const ap = { tab: 'players', bans: [], seen: [], dt: [], dtErr: '', myIp: '', locked: false };
     function apKey() { try { return localStorage.getItem(AP_KEY) || ''; } catch (e) { return ''; } }
     function apAskKey() {
         const k = (window.prompt('Enter the admin key you set in supabase_bans.sql:') || '').trim();
@@ -4003,6 +4122,8 @@ html.mobile body.inLobby #btnPanel,html.mobile body.inLobby #adminPanel{display:
             ap.bans = (d && d.bans) || [];
             ap.seen = (d && d.seen) || [];
             ap.myIp = (d && d.my_ip) || '';
+            try { ap.dt = (await apRpc('admin_devtools_log', { p_limit: 200 })) || []; ap.dtErr = ''; }
+            catch (e2) { ap.dt = []; ap.dtErr = apErrText(e2); }
             apSay('');
         }
         catch (e) { ap.locked = /not_admin/.test(String(e.message)); apSay(apErrText(e), true); }
@@ -4029,6 +4150,25 @@ html.mobile body.inLobby #btnPanel,html.mobile body.inLobby #adminPanel{display:
         }).join('') : '<div class="apHint">Nobody yet.</div>';
         return h;
     }
+    function apDtHtml() {
+        const ipB = new Set(ap.bans.filter(b => b.kind === 'ip').map(b => b.value)), devB = new Set(ap.bans.filter(b => b.kind === 'device').map(b => b.value));
+        const uniq = new Set(ap.dt.map(r => r.device_id || r.ip || r.id)).size;
+        let h = '<div class="apHead">TRIED TO GET INTO INSPECT ELEMENT · ' + ap.dt.length + ' attempts · ' + uniq + ' people</div>';
+        if (ap.dtErr) h += '<div class="apHint" style="color:#ff5a48">' + warnEsc(ap.dtErr) + '</div>';
+        h += '<div class="apForm" style="margin-top:6px"><input id="apSearch" placeholder="search name, IP or device ID" autocomplete="off" spellcheck="false"/></div>';
+        h += ap.dt.length ? ap.dt.map(r => {
+            const ib = !!r.ip && ipB.has(r.ip), db = !!r.device_id && devB.has(r.device_id);
+            return '<div class="apRow" data-s="' + warnEsc(((r.name || '') + ' ' + (r.ip || '') + ' ' + (r.device_id || '')).toLowerCase()) + '"><div><b>' + warnEsc(r.name || 'Player') + '</b>'
+                + '<small>IP ' + warnEsc(r.ip || 'unknown') + ' · ' + whoAgo(r.created_at) + ' · suspended ' + (r.minutes | 0) + ' min' + (r.active ? ' · <span style="color:#ff5a48">ACTIVE NOW</span>' : '') + '</small>'
+                + '<small style="word-break:break-all">device ' + warnEsc(r.device_id || 'unknown') + '</small>'
+                + '<small>' + warnEsc(r.reason || '') + '</small></div><div class="apBtns">'
+                + (r.device_id ? '<button data-act="copy" data-value="' + warnEsc(r.device_id) + '" type="button">COPY ID</button>' : '')
+                + (r.active ? '<button data-act="lift" data-value="' + (r.id | 0) + '" type="button">LIFT</button>' : '')
+                + '<button data-act="' + (ib ? 'unban' : 'banrow') + '" data-kind="ip" data-value="' + warnEsc(r.ip || '') + '"' + (r.ip ? '' : ' disabled') + ' type="button">' + (ib ? 'UNBAN IP' : 'BAN IP') + '</button>'
+                + '<button data-act="' + (db ? 'unban' : 'banrow') + '" data-kind="device" data-value="' + warnEsc(r.device_id || '') + '"' + (r.device_id ? '' : ' disabled') + ' type="button">' + (db ? 'UNBAN DEVICE' : 'BAN DEVICE') + '</button></div></div>';
+        }).join('') : '<div class="apHint">Nobody has tried to get into Inspect Element.</div>';
+        return h;
+    }
     function apCodesHtml() {
         const listed = new Set(CODE_DESCRIPTIONS.map(c => c[0].toLowerCase()));
         const hid = Object.keys(CODES).filter(k => !listed.has(k));
@@ -4043,7 +4183,7 @@ html.mobile body.inLobby #btnPanel,html.mobile body.inLobby #adminPanel{display:
         let h;
         if (ap.tab === 'codes') h = apCodesHtml();
         else if (ap.locked) h = '<div class="apHint">Enter your admin key to manage players and bans.</div><button data-act="unlock" type="button" style="margin-top:8px">UNLOCK</button>';
-        else h = ap.tab === 'players' ? apPlayersHtml() : apBansHtml(ap.tab === 'ip' ? 'ip' : 'device');
+        else h = ap.tab === 'players' ? apPlayersHtml() : ap.tab === 'dt' ? apDtHtml() : apBansHtml(ap.tab === 'ip' ? 'ip' : 'device');
         $('#apBody').innerHTML = h;
     }
     async function apBan(kind, value, reason) {
@@ -4069,6 +4209,11 @@ html.mobile body.inLobby #btnPanel,html.mobile body.inLobby #adminPanel{display:
             if (act === 'copy') {
                 try { await navigator.clipboard.writeText(value); apSay('Device ID copied.'); }
                 catch (e) { window.prompt('Copy this device ID:', value); }
+            }
+            else if (act === 'lift') {
+                await apRpc('admin_dt_lift', { p_id: Number(value) });
+                apSay('Suspension lifted. Players get back in within about 30 seconds.');
+                await apRefreshQuiet();
             }
             else if (act === 'unlock') { apAskKey(); await apRefresh(); }
             else if (act === 'add') await apBan(kind, ($('#apVal').value || ''), ($('#apReason').value || '').trim());
