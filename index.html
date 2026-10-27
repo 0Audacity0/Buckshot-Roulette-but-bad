@@ -1312,6 +1312,8 @@ body.spectating #bottom{display:none!important}
    <div id="whatsNewCard">
     <h2>WHAT'S NEW IN v2.4.6</h2>
     <ul>
+     <li><b>Made 'The Dumbest of Today' Dealer personality dumber:</b> Was too smart, decided to make it more dumb because it knew how to play the game</li>
+     <li><b>Added weird Dealer noises upon death:</b> Hehe funny lomando and baldi noises</li>
      <li><b>Added random room themes:</b> They're randomized</li>
      <li><b>Added endless run and normal run:</b> Let's you choose between a regularrun and one that never ends</li>
      <li><b>Added late join spectating:</b> For multiplayer you can now join lobbies as a spectator</li>
@@ -1445,6 +1447,20 @@ body.spectating #bottom{display:none!important}
    <div id="codeListEntries">
    </div>
    <button id="btnCloseCodeList" type="button">
+    CLOSE
+   </button>
+  </div>
+  <button id="btnWho" type="button" title="Players online (admin only)">
+   <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="7.5" r="4.6"/><path d="M3 22c0-5.2 4-8.6 9-8.6s9 3.4 9 8.6z"/></svg>
+   <span id="whoNum">0</span>
+  </button>
+  <div aria-label="Recent players" id="whoPanel" role="dialog">
+   <h3>
+    RECENT PLAYERS
+   </h3>
+   <div id="whoSummary"></div>
+   <div id="whoEntries"></div>
+   <button id="btnCloseWho" type="button">
     CLOSE
    </button>
   </div>
@@ -1697,13 +1713,65 @@ body.spectating #bottom{display:none!important}
   </div>
   <div id="fade">
   </div>
+  <div id="warnBar" role="alertdialog" aria-live="assertive" aria-modal="true">
+   <div class="wbHead">&#9888; SOMETHING WENT WRONG</div>
+   <div id="wbList"></div>
+   <button id="wbOk" type="button">OK</button>
+   <div id="wbDealer" aria-hidden="true">
+    <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+     <defs>
+      <radialGradient id="wbFace" cx="50%" cy="45%" r="60%"><stop offset="0" stop-color="#ffe45a"/><stop offset="1" stop-color="#d9a400"/></radialGradient>
+     </defs>
+     <circle cx="100" cy="100" r="92" fill="url(#wbFace)" stroke="#2a2000" stroke-width="6"/>
+     <ellipse cx="66" cy="82" rx="11" ry="17" fill="#1a1400"/>
+     <ellipse cx="134" cy="82" rx="11" ry="17" fill="#1a1400"/>
+     <path d="M56 146 Q100 108 144 146" stroke="#1a1400" stroke-width="9" stroke-linecap="round" fill="none"/>
+     <path d="M62 102 Q57 122 62 134 Q69 122 62 102 Z" fill="#6fb6ff" opacity=".85"/>
+    </svg>
+   </div>
+  </div>
+  <style>
+#warnBar{position:fixed;inset:0;z-index:2147483647;display:none;flex-direction:column;align-items:center;padding:max(24px,env(safe-area-inset-top,0px)) 20px calc(24px + env(safe-area-inset-bottom,0px));overflow:hidden;font-family:"Courier New",ui-monospace,monospace;color:#c9b8b0;user-select:text;-webkit-user-select:text;background:radial-gradient(ellipse at 50% 38%,#2a0505 0%,#120202 45%,#030101 85%,#000 100%)}
+#warnBar::before{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,rgba(0,0,0,.28) 0,rgba(0,0,0,.28) 1px,transparent 1px,transparent 3px);mix-blend-mode:multiply}
+#warnBar::after{content:"";position:absolute;inset:0;pointer-events:none;box-shadow:inset 0 0 160px 50px #000,inset 0 0 90px rgba(150,0,0,.55);animation:wbPulse 3.2s ease-in-out infinite}
+#warnBar>*{position:relative;z-index:1}
+#warnBar .wbHead{color:#d8180c;font-weight:bold;letter-spacing:.32em;font-size:clamp(20px,4vw,36px);margin-bottom:22px;text-align:center;text-transform:uppercase;text-shadow:0 0 6px #ff1a0a,0 0 22px #b00000,0 0 50px #600000;animation:wbFlicker 4.5s infinite}
+#wbList{flex:1;width:100%;max-width:760px;overflow:auto;font-size:clamp(14px,2vw,18px);line-height:1.65;color:#b9a79f;text-shadow:0 0 8px rgba(0,0,0,.9)}
+#wbList .wbItem{margin-bottom:18px;padding:12px 16px 14px;border-left:3px solid #7a0b06;background:linear-gradient(90deg,rgba(90,0,0,.28),rgba(0,0,0,0));border-bottom:0}
+#wbList .wbItem:last-child{margin-bottom:0}
+#wbList b{color:#b3140a;letter-spacing:.28em;font-size:.72em;display:block;margin-top:12px;text-transform:uppercase;text-shadow:0 0 8px rgba(200,10,0,.6)}
+#wbList b:first-child{margin-top:0}
+#wbOk{display:block;flex:none;margin:16px auto 0;min-width:160px;padding:11px 30px;font-family:inherit;font-size:16px;font-weight:bold;letter-spacing:.35em;background:#1a0302;color:#d8180c;border:1px solid #7a0b06;cursor:pointer;text-shadow:0 0 8px #b00000;box-shadow:0 0 18px rgba(160,0,0,.45),inset 0 0 12px rgba(120,0,0,.4);transition:background .2s,color .2s,box-shadow .2s}
+#wbOk:hover{background:#4a0805;color:#ff5a48;box-shadow:0 0 30px rgba(220,0,0,.7),inset 0 0 14px rgba(160,0,0,.6)}
+#wbDealer{position:absolute;right:max(10px,2vw);bottom:max(6px,env(safe-area-inset-bottom,0px));width:clamp(96px,17vw,210px);pointer-events:none;z-index:1;filter:drop-shadow(0 0 18px rgba(170,0,0,.55));animation:wbSway 6s ease-in-out infinite;transform-origin:50% 100%}
+#wbDealer svg{display:block;width:100%;height:auto}
+@keyframes wbFlicker{0%,18%,22%,62%,66%,100%{opacity:1}20%{opacity:.35}64%{opacity:.55}65%{opacity:.9}}
+@keyframes wbPulse{0%,100%{opacity:.75}50%{opacity:1}}
+@keyframes wbSway{0%,100%{transform:rotate(-.8deg) translateY(0)}50%{transform:rotate(.8deg) translateY(3px)}}
+#oppBox#oppBox{transform:translateX(-50%) scale(.8);transform-origin:top center}
+#btnWho{position:fixed;left:96px;bottom:12px;z-index:30;display:none;align-items:center;gap:6px;border-color:#ffd24a;color:#ffd24a;background:rgba(10,9,7,.94);font-size:12px;padding:8px 12px}
+#btnWho svg{width:18px;height:18px;fill:currentColor;display:block}
+#whoPanel{position:fixed;left:12px;bottom:62px;z-index:31;display:none;width:min(380px,calc(100vw - 24px));max-height:min(65vh,480px);overflow:auto;background:rgba(10,9,7,.97);border:1px solid #ffd24a;padding:14px;text-align:left;box-shadow:0 0 18px #000;user-select:text;-webkit-user-select:text}
+#whoPanel h3{color:#ffd24a;letter-spacing:.2em;margin:0 0 6px}
+#whoSummary{font-size:12px;color:#b9b19a;margin-bottom:8px;line-height:1.5}
+.whoRow{padding:7px 0;border-bottom:1px solid #302b20;font-size:12px;line-height:1.45}
+.whoRow b{color:#7ad07a}
+.whoRow .dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#555;margin-right:6px}
+.whoRow .dot.on{background:#4cff6a;box-shadow:0 0 6px #4cff6a}
+.whoRow small{display:block;color:#8a846f}
+#btnCloseWho{width:100%;margin-top:10px}
+html.mobile #btnWho{top:calc(max(12px,env(safe-area-inset-top)) + 62px);left:calc(max(12px,env(safe-area-inset-left)) + 84px);bottom:auto;min-height:44px}
+html.mobile #whoPanel{left:12px;right:12px;bottom:auto;top:calc(max(12px,env(safe-area-inset-top)) + 106px);width:auto;max-height:70vh}
+html.mobile body.inLobby #btnWho,html.mobile body.inLobby #whoPanel{display:none!important}
+@media (prefers-reduced-motion:reduce){#warnBar .wbHead,#warnBar::after,#wbDealer{animation:none}}
+  </style>
   <style>
     #playModePanel .runChoiceButtons { display:flex; flex-direction:column; gap:14px; }
     #playModePanel .runChoiceButtons button { margin:0; width:100%; }
     #playModePanel #btnCancelRun { margin-top:14px; }
   </style>
   <div id="playModePanel" style="display:none;position:fixed;inset:0;z-index:60;align-items:center;justify-content:center;background:rgba(0,0,0,.88);padding:16px">
-   <div class="card" style="width:min(420px,100%)"><h1 style="font-size:clamp(28px,5vw,42px)">CHOOSE RUN</h1><h2>SINGLEPLAYER</h2><p style="text-align:center">Choose a standard three-round run or keep going for as long as you survive.</p><div class="runChoiceButtons"><button id="btnNormalRun">NORMAL RUN</button><button id="btnEndlessRun">ENDLESS RUN</button></div><button id="btnCancelRun" class="ghost">CANCEL</button></div>
+   <div class="card" style="width:min(420px,100%)"><h1 style="font-size:clamp(28px,5vw,42px)">CHOOSE RUN</h1><h2>SINGLEPLAYER</h2><p style="text-align:center">Choose a standard three round run or keep going for as long as you survive.</p><div class="runChoiceButtons"><button id="btnNormalRun">NORMAL RUN</button><button id="btnEndlessRun">ENDLESS RUN</button></div><button id="btnCancelRun" class="ghost">CANCEL</button></div>
   </div>
   <div id="overlay" style="display:none">
    <div class="card" id="card">
@@ -1858,7 +1926,10 @@ body.spectating #bottom{display:none!important}
     applyCheats();
     /* ---------------- AUDIO ---------------- */
     let AC = null, droneOn = false;
+    let warnActive = false;
     function audio() {
+        if (warnActive)
+            return null;
         try {
             if (!AC)
                 AC = new (window.AudioContext || window.webkitAudioContext)();
@@ -2576,19 +2647,191 @@ body.spectating #bottom{display:none!important}
         const p0 = gun.position.clone(), r0 = gun.rotation.y;
         await tween(dur, e => { gun.position.lerpVectors(p0, pose.pos, e); gun.rotation.y = r0 + (pose.rot - r0) * e; });
     }
+    function fxTexture(c0, c1) {
+        const c = document.createElement('canvas');
+        c.width = c.height = 128;
+        const g = c.getContext('2d'), gr = g.createRadialGradient(64, 64, 0, 64, 64, 64);
+        gr.addColorStop(0, c0);
+        gr.addColorStop(1, c1);
+        g.fillStyle = gr;
+        g.fillRect(0, 0, 128, 128);
+        return new THREE.CanvasTexture(c);
+    }
+    const fxAdd = o => new THREE.MeshBasicMaterial(Object.assign({ transparent: true, blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide }, o));
+    const fxLight = new THREE.PointLight(0xff5a1a, 0, 7);
+    fxLight.position.set(0, .6, -1.45);
+    scene.add(fxLight);
+    function fxPoints(n, color, size) {
+        const geo = new THREE.BufferGeometry();
+        geo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(n * 3), 3));
+        const pts = new THREE.Points(geo, new THREE.PointsMaterial({ color, size, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false }));
+        pts.frustumCulled = false;
+        pts.userData.seed = Array.from({ length: n }, () => [Math.random(), Math.random() * 6.283, .15 + Math.random() * .55, .4 + Math.random() * .7]);
+        return pts;
+    }
+    function fxPointsUpdate(pts, t, height, spread) {
+        const a = pts.geometry.attributes.position.array, sd = pts.userData.seed;
+        for (let i = 0; i < sd.length; i++) {
+            const q = sd[i], p = (t * q[3] * .6 + q[0]) % 1;
+            a[i * 3] = Math.cos(q[1] + t * .8) * q[2] * spread * (1 - p * .5);
+            a[i * 3 + 1] = p * height;
+            a[i * 3 + 2] = Math.sin(q[1] + t * .8) * q[2] * spread * (1 - p * .5);
+        }
+        pts.geometry.attributes.position.needsUpdate = true;
+    }
+    const fireFx = new THREE.Group();
+    fireFx.position.set(0, 0, -1.75);
+    fireFx.visible = false;
+    scene.add(fireFx);
+    const fireDisc = new THREE.Mesh(new THREE.CircleGeometry(1, 40), fxAdd({ map: fxTexture('rgba(255,210,70,1)', 'rgba(255,40,0,0)'), opacity: .95 }));
+    fireDisc.rotation.x = -Math.PI / 2;
+    fireDisc.position.y = .015;
+    fireFx.add(fireDisc);
+    const flames = [];
+    for (let i = 0; i < 14; i++) {
+        const outer = i < 9, g = new THREE.ConeGeometry(outer ? .2 : .12, 1, 8, 1, true);
+        g.translate(0, .5, 0);
+        const m = new THREE.Mesh(g, fxAdd({ color: outer ? 0xff3a0a : 0xffd040, opacity: outer ? .7 : .85 }));
+        const a = (outer ? i / 9 : (i - 9) / 5) * 6.283, r = outer ? .55 : .25;
+        m.position.set(Math.cos(a) * r, .015, Math.sin(a) * r);
+        m.userData = { ph: Math.random() * 6.283, h: outer ? 1.3 + Math.random() * .6 : .9 + Math.random() * .4 };
+        fireFx.add(m);
+        flames.push(m);
+    }
+    const embers = fxPoints(44, 0xffa040, .07);
+    fireFx.add(embers);
+    const heavenFx = new THREE.Group();
+    heavenFx.position.set(0, 0, -1.75);
+    heavenFx.visible = false;
+    scene.add(heavenFx);
+    const heavenBeam = new THREE.Mesh(new THREE.CylinderGeometry(.55, .95, 5.2, 28, 1, true), fxAdd({ color: 0xfff2c4, opacity: 0 }));
+    heavenBeam.position.y = 2.6;
+    heavenFx.add(heavenBeam);
+    const beamCore = new THREE.Mesh(new THREE.CylinderGeometry(.25, .5, 5.2, 20, 1, true), fxAdd({ color: 0xffffff, opacity: 0 }));
+    beamCore.position.y = 2.6;
+    heavenFx.add(beamCore);
+    const haloDisc = new THREE.Mesh(new THREE.CircleGeometry(1.1, 40), fxAdd({ map: fxTexture('rgba(255,250,220,1)', 'rgba(255,230,150,0)'), opacity: 0 }));
+    haloDisc.rotation.x = -Math.PI / 2;
+    haloDisc.position.y = .015;
+    heavenFx.add(haloDisc);
+    const sparkles = fxPoints(50, 0xfff4c8, .06);
+    heavenFx.add(sparkles);
+    async function oppFallFire() {
+        fireFx.visible = true;
+        fireDisc.material.opacity = .95;
+        flames.forEach(m => { m.material.opacity = m.userData.h > 1.2 ? .7 : .85; });
+        fxLight.color.setHex(0xff5a1a);
+        fxLight.position.set(0, .6, -1.45);
+        screenFlash('#ff4a10');
+        shake = Math.max(shake, .1);
+        const t0 = performance.now();
+        await tween(2400, e => {
+            const t = (performance.now() - t0) / 1000, grow = Math.min(1, e * 4);
+            fireDisc.scale.setScalar(.15 + .95 * grow);
+            for (const m of flames) {
+                const f = .75 + .25 * Math.sin(t * 14 + m.userData.ph);
+                m.scale.set(.8 + .3 * f, m.userData.h * grow * f, .8 + .3 * f);
+            }
+            fxLight.intensity = (2.6 + Math.sin(t * 21) * .7) * grow;
+            const sink = Math.max(0, (e - .12) / .88), k = sink * sink;
+            opp.position.y = -2.5 * k;
+            opp.position.x = Math.sin(t * 38) * .05 * (1 - k);
+            opp.rotation.z = Math.sin(t * 22) * .08 * (1 - k);
+            opp.rotation.x = -.2 * Math.min(1, e * 3) * (1 - k);
+            fxPointsUpdate(embers, t, 2.2, 1.1);
+        });
+        opp.visible = false;
+        const t1 = performance.now();
+        await tween(550, e => {
+            const t = (performance.now() - t1) / 1000;
+            fireDisc.material.opacity = .95 * (1 - e);
+            for (const m of flames) {
+                m.scale.y = m.userData.h * (1 - e);
+                m.material.opacity *= .96;
+            }
+            fxLight.intensity = 2.6 * (1 - e);
+            fxPointsUpdate(embers, t + 3, 2.2, 1.1);
+        });
+        fireFx.visible = false;
+        fxLight.intensity = 0;
+    }
+    async function oppFallHeaven() {
+        heavenFx.visible = true;
+        fxLight.color.setHex(0xfff0c8);
+        fxLight.position.set(0, 1.6, -1.45);
+        visorM.color.setHex(0xffffff);
+        const t0 = performance.now();
+        await tween(2900, e => {
+            const t = (performance.now() - t0) / 1000, fade = Math.min(1, e * 4), sh = .9 + .1 * Math.sin(t * 6);
+            heavenBeam.material.opacity = .4 * fade * sh;
+            beamCore.material.opacity = .35 * fade * sh;
+            haloDisc.material.opacity = .9 * fade;
+            haloDisc.scale.setScalar(.8 + .3 * Math.sin(t * 3));
+            fxLight.intensity = 3.4 * fade;
+            const up = Math.max(0, (e - .2) / .8), k = up * up;
+            opp.position.y = 3.9 * k;
+            opp.rotation.y = up * Math.PI * 1.2;
+            opp.rotation.z = Math.sin(t * 3) * .05;
+            fxPointsUpdate(sparkles, t, 5, .8);
+        });
+        opp.visible = false;
+        screenFlash('#ffffff');
+        const t1 = performance.now();
+        await tween(700, e => {
+            const t = (performance.now() - t1) / 1000;
+            heavenBeam.material.opacity = .4 * (1 - e);
+            beamCore.material.opacity = .35 * (1 - e);
+            haloDisc.material.opacity = .9 * (1 - e);
+            fxLight.intensity = 3.4 * (1 - e);
+            fxPointsUpdate(sparkles, t + 3, 5, .8);
+        });
+        heavenFx.visible = false;
+        fxLight.intensity = 0;
+    }
     async function oppFall() {
         oppState.fallen = true;
+        oppState.gone = true;
+        oppState.fx = true;
         visorM.color.setHex(0x555555);
-        const startRot = opp.rotation.x, startY = opp.position.y, startZ = opp.position.z;
-        await tween(1300, e => {
-            opp.rotation.x = startRot + (-Math.PI / 2 - startRot) * e;
-            opp.position.y = startY - .12 * e;
-            opp.position.z = startZ - .12 * e;
-        });
+        try {
+            if (SAVE.cheats.family)
+                await oppFallHeaven();
+            else
+                await oppFallFire();
+        }
+        finally {
+            opp.visible = false;
+            fireFx.visible = false;
+            heavenFx.visible = false;
+            fxLight.intensity = 0;
+            oppState.fx = false;
+        }
     }
     async function oppRevive() {
         if (!oppState.fallen)
             return;
+        if (oppState.gone) {
+            oppState.gone = false;
+            oppState.fx = true;
+            const dir = Math.random() < .5 ? -1 : 1, t0 = performance.now(), startX = dir * 4.6;
+            head.rotation.set(.22, 0, 0);
+            opp.rotation.set(0, -dir * Math.PI / 2, 0);
+            opp.position.set(startX, 0, -1.75);
+            opp.visible = true;
+            visorM.color.setHex(0xffffff);
+            await tween(2800, e => {
+                const t = (performance.now() - t0) / 1000, turn = Math.min(1, Math.max(0, (e - .78) / .22)), settle = 1 - Math.min(1, Math.max(0, (e - .92) / .08));
+                opp.position.x = startX * (1 - e);
+                opp.position.y = Math.abs(Math.sin(t * 7)) * .07 * settle;
+                opp.rotation.y = -dir * Math.PI / 2 * (1 - turn * turn * (3 - 2 * turn));
+                opp.rotation.z = Math.sin(t * 7) * .035 * settle;
+            });
+            oppState.fallen = false;
+            oppState.fx = false;
+            opp.rotation.set(0, 0, 0);
+            opp.position.set(0, 0, -1.75);
+            return;
+        }
         const startRot = opp.rotation.x, startY = opp.position.y, startZ = opp.position.z;
         await tween(850, e => {
             opp.rotation.x = startRot * (1 - e);
@@ -2999,8 +3242,9 @@ body.spectating #bottom{display:none!important}
             G.winner = other(tw);
             updateHUD();
             if (tw === 'o') {
+                playVoiceline();
                 await oppFall();
-                await say('The Dealer "sleeps".', 1600);
+                await say(SAVE.cheats.family ? 'The Dealer ascends to the light.' : 'The Dealer is dragged below.', 1600);
             }
             else {
                 await tween(1200, e => { $('#fade').style.opacity = e; });
@@ -3054,7 +3298,7 @@ body.spectating #bottom{display:none!important}
         { id: 'accountant', name: 'THE ACCOUNTANT', tag: 'This one is careful. Heals early and counts every shell.', pace: 700, healAt: 99, healChance: 1, lensChance: 1, knifeAt: 2, shootAt: .3, bluff: false },
         { id: 'gambler', name: 'THE GAMBLER', tag: 'Reckless. His shell statements are right half the time.', pace: 330, healAt: 1, healChance: .15, lensChance: .4, knifeAt: .45, shootAt: .75, bluff: false },
         { id: 'bluffer', name: 'THE BLUFFER', tag: 'Says whatever pops into his head.', pace: 600, healAt: 2, healChance: .5, lensChance: .8, knifeAt: .6, shootAt: .5, bluff: true },
-        { id: 'dumbest', name: 'THE DUMBEST OF TODAY', tag: 'The worst decision maker alive. Shoots himself 70% of the time.', pace: 500, healAt: 1, healChance: .2, lensChance: .2, knifeAt: .9, shootAt: .5, bluff: false },
+        { id: 'dumbest', name: 'THE DUMBEST OF TODAY', tag: 'The worst decision maker alive. Shoots himself 70% of the time, even when he knows it is live.', pace: 500, healAt: 1, healChance: .2, lensChance: .2, knifeAt: .9, shootAt: .5, bluff: false },
         { id: 'smartest', name: 'THE SMARTEST OF TODAY', tag: 'Usually knows what the next shell is.', pace: 650, healAt: 2, healChance: .7, lensChance: 1, knifeAt: .4, shootAt: .5, bluff: false }
     ];
     function shuffled(a) {
@@ -3129,8 +3373,15 @@ body.spectating #bottom{display:none!important}
         else if (D.id === 'bluffer')
             await blufferStatement();
         else if (D.id === 'dumbest') {
-            // The Dumbest of Today ignores strategy and shoots himself 70% of the time.
-            at = Math.random() < 0.7 ? 'o' : 'p';
+            // The Dumbest of Today ignores strategy: he shoots himself 70% of the time, even when
+            // he knows (from the Lens or from counting) that the shell is live. When he knows it is
+            // a blank he points it at the player 70% of the time instead of safely at himself.
+            const knownLive = G.known.o === true || (G.shells.length > 0 && G.blankLeft === 0 && G.liveLeft > 0);
+            const knownBlank = G.known.o === false || (G.shells.length > 0 && G.liveLeft === 0 && G.blankLeft > 0);
+            if (knownBlank)
+                at = Math.random() < 0.7 ? 'p' : 'o';
+            else
+                at = Math.random() < 0.7 ? 'o' : 'p';
         }
         else if (D.id === 'smartest') {
             const prediction = await smartestStatement();
@@ -3441,7 +3692,9 @@ body.spectating #bottom{display:none!important}
         retro: () => { SAVE.cheats.retro = !SAVE.cheats.retro; applyVisualCodes(); return 'Retro mode ' + onOff(SAVE.cheats.retro) + '.'; },
         fps: () => { SAVE.cheats.fps = !SAVE.cheats.fps; applyVisualCodes(); return 'FPS counter ' + onOff(SAVE.cheats.fps) + '.'; },
         family_friendly: () => { SAVE.cheats.family = !SAVE.cheats.family; try { localStorage.setItem(FAMILY_KEY, SAVE.cheats.family ? '1' : '0'); } catch (e) { } applyFamily(); return 'Family Friendly ' + onOff(SAVE.cheats.family) + (SAVE.cheats.family ? ': confetti cannon, butter knife and apple juice sippy cup.' : '.'); },
-        familyfriendly: () => CODES.family_friendly()
+        familyfriendly: () => CODES.family_friendly(),
+        warningtest: () => { showWarning('This is a test of the warning screen', 'You typed the WarningTest code, so nothing is actually broken.', 'Press OK to close this screen and bring the sound back.'); return 'Warning screen triggered.'; },
+        voicelinetest: () => { playVoiceline(); return 'Playing a random voiceline.'; }
     };
     $('#tCode').onsubmit = e => {
         e.preventDefault();
@@ -3461,6 +3714,7 @@ body.spectating #bottom{display:none!important}
         persist();
         applyCheats();
         renderTitle();
+        syncCodeListButton();
         SFX.cash();
     };
     const CODE_DESCRIPTIONS = [
@@ -3485,11 +3739,129 @@ body.spectating #bottom{display:none!important}
         ['Peek', 'Toggles always showing the chamber contents. Admins can also use it in multiplayer.'],
         ['ResetStats', 'Resets your game statistics.']
     ];
+    /* ---------------- ADMIN: PLAYERS ONLINE (needs supabase_presence.sql) ---------------- */
+    const WHO_KEY = 'lastshell_presence_key';
+    let presLast = 'idle', presAt = 0, whoTimer = 0, whoCounts = null;
+    function presMode() {
+        try { if (mode === 'mp' && !MP.over) return 'multiplayer'; } catch (e) { }
+        if (mode === 'play' && G.running)
+            return 'singleplayer';
+        return 'idle';
+    }
+    function presPing() {
+        const m = presMode(), now = Date.now();
+        if (m === 'idle' && presLast === 'idle')
+            return;
+        if (m === presLast && now - presAt < 20000)
+            return;
+        try {
+            if (!MP_OK)
+                return;
+            const sb = mpClient();
+            if (!sb)
+                return;
+            presLast = m;
+            presAt = now;
+            let nm = '';
+            try { nm = MP.name || localStorage.getItem('lastshell_mp_name') || ''; } catch (e) { }
+            sb.rpc('presence_ping', { p_player: MP.pid, p_name: nm, p_mode: m }).then(() => { }, () => { });
+        }
+        catch (e) { }
+    }
+    setInterval(presPing, 5000);
+    function whoVisible() {
+        const inGame = mode === 'play' || mode === 'mp' || mode === 'end';
+        return !!SAVE.admin && !inGame;
+    }
+    function syncWho() {
+        const on = whoVisible();
+        $('#btnWho').style.display = on ? 'flex' : 'none';
+        if (!on)
+            $('#whoPanel').style.display = 'none';
+        clearInterval(whoTimer);
+        if (on) {
+            setTimeout(whoCount, 400);
+            whoTimer = setInterval(whoCount, 15000);
+        }
+    }
+    async function whoCount() {
+        if (!whoVisible())
+            return;
+        try {
+            const sb = MP_OK ? mpClient() : null;
+            if (!sb) {
+                $('#whoNum').textContent = '?';
+                $('#btnWho').title = 'Multiplayer/Supabase is not set up, so player counts are unavailable.';
+                return;
+            }
+            const { data, error } = await sb.rpc('presence_counts');
+            if (error || !data) {
+                $('#whoNum').textContent = '!';
+                $('#btnWho').title = 'Could not load player counts. Run supabase_presence.sql in the Supabase SQL editor.';
+                return;
+            }
+            whoCounts = data;
+            const sp = data.singleplayer | 0, mp = data.multiplayer | 0;
+            $('#whoNum').textContent = String(sp + mp);
+            $('#btnWho').title = sp + ' in singleplayer, ' + mp + ' in multiplayer';
+            if ($('#whoPanel').style.display === 'block')
+                $('#whoSummary').textContent = 'Playing now: ' + sp + ' singleplayer, ' + mp + ' multiplayer';
+        }
+        catch (e) { }
+    }
+    function whoAgo(t) {
+        const d = Math.max(0, (Date.now() - new Date(t).getTime()) / 1000);
+        if (d < 60) return 'just now';
+        if (d < 3600) return Math.floor(d / 60) + ' min ago';
+        if (d < 86400) return Math.floor(d / 3600) + ' h ago';
+        return Math.floor(d / 86400) + ' d ago';
+    }
+    async function whoOpen() {
+        const panel = $('#whoPanel');
+        if (panel.style.display === 'block') {
+            panel.style.display = 'none';
+            return;
+        }
+        let key = '';
+        try { key = localStorage.getItem(WHO_KEY) || ''; } catch (e) { }
+        if (!key) {
+            key = (window.prompt('Enter the admin key you set in supabase_presence.sql:') || '').trim();
+            if (!key)
+                return;
+        }
+        panel.style.display = 'block';
+        $('#whoEntries').textContent = 'Loading…';
+        const sb = MP_OK ? mpClient() : null;
+        if (!sb) {
+            $('#whoEntries').textContent = 'Multiplayer/Supabase is not set up, so there is no player data.';
+            return;
+        }
+        const { data, error } = await sb.rpc('presence_recent', { p_key: key, p_limit: 60 });
+        if (error) {
+            const t = String(error.message || error.details || error);
+            if (/not_admin/.test(t)) {
+                try { localStorage.removeItem(WHO_KEY); } catch (e) { }
+                $('#whoEntries').textContent = 'Wrong admin key. Click the button again to retry.';
+            }
+            else if (/Could not find|does not exist|PGRST/.test(t))
+                $('#whoEntries').textContent = 'Run supabase_presence.sql in the Supabase SQL editor first.';
+            else
+                $('#whoEntries').textContent = 'Error: ' + t;
+            return;
+        }
+        try { localStorage.setItem(WHO_KEY, key); } catch (e) { }
+        const rows = data || [], sp = rows.filter(r => r.online && r.mode === 'singleplayer').length, mp = rows.filter(r => r.online && r.mode === 'multiplayer').length;
+        $('#whoSummary').textContent = 'Playing now: ' + sp + ' singleplayer, ' + mp + ' multiplayer · ' + rows.length + ' recent';
+        $('#whoEntries').innerHTML = rows.length ? rows.map(r => '<div class="whoRow"><span class="dot' + (r.online ? ' on' : '') + '"></span><b>' + warnEsc(r.name || 'Player') + '</b> · ' + warnEsc(r.online ? r.mode : 'offline') + '<small>IP ' + warnEsc(r.ip || 'unknown') + ' · last seen ' + whoAgo(r.last_seen) + '</small></div>').join('') : 'Nobody has played yet.';
+    }
+    $('#btnWho').onclick = whoOpen;
+    $('#btnCloseWho').onclick = () => { $('#whoPanel').style.display = 'none'; };
     function syncCodeListButton() {
         const inGame = typeof mode !== 'undefined' && (mode === 'play' || mode === 'mp' || mode === 'end');
         $('#btnCodeList').style.display = (SAVE.codesUnlocked && !inGame) ? 'block' : 'none';
         if (inGame)
             $('#codeListPanel').style.display = 'none';
+        syncWho();
     }
     function renderCodeList() {
         $('#codeListEntries').innerHTML = CODE_DESCRIPTIONS.map(([name, desc]) => `<div class="codeEntry"><b>${name}</b><span>${desc}</span></div>`).join('');
@@ -3846,6 +4218,8 @@ body.spectating #bottom{display:none!important}
         return true;
     }
     function genStart() {
+        if (warnActive)
+            return;
         try {
             if (!genInit())
                 return;
@@ -3879,6 +4253,8 @@ body.spectating #bottom{display:none!important}
             genEl.pause();
     }
     function genResume() {
+        if (warnActive)
+            return;
         if (genEl && genOn) {
             const pr = genEl.play();
             if (pr && pr.catch)
@@ -3893,6 +4269,140 @@ body.spectating #bottom{display:none!important}
         catch (e) { }
     }));
     genSyncSliders();
+    /* ---------------- VOICELINES ---------------- */
+    const VOICELINES = ['Voiceline1.mp3', 'Voiceline2.mp3'];
+    let voiceEl = null;
+    function playVoiceline() {
+        if (warnActive)
+            return;
+        try {
+            if (voiceEl) {
+                voiceEl.pause();
+                voiceEl = null;
+            }
+            const a = new Audio(VOICELINES[Math.random() < .5 ? 0 : 1]);
+            a.addEventListener('error', () => console.warn(a.src + ' could not be loaded. Put it next to index.html.'));
+            voiceEl = a;
+            const pr = a.play();
+            if (pr && pr.catch)
+                pr.catch(() => { });
+        }
+        catch (e) { console.warn('Voiceline failed', e); }
+    }
+    /* ---------------- WARNING SCREEN (mutes everything, loops WarningMusic.mp3) ---------------- */
+    let warnEl = null, warnItems = [], warnRetry = null;
+    function warnEsc(t) { return String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
+    function warnRender() {
+        const list = document.getElementById('wbList');
+        if (!list)
+            return;
+        list.innerHTML = warnItems.slice(-3).map(w => '<div class="wbItem"><b>WHAT WENT WRONG</b>' + warnEsc(w.what) + '<b>WHY IT HAPPENED</b>' + warnEsc(w.why) + '<b>HOW TO FIX IT</b>' + warnEsc(w.fix) + '</div>').join('');
+        list.scrollTop = list.scrollHeight;
+    }
+    function warnPlayMusic() {
+        try {
+            if (!warnEl) {
+                warnEl = new Audio('WarningMusic.mp3');
+                warnEl.loop = true;
+                warnEl.addEventListener('error', () => console.warn('WarningMusic.mp3 could not be loaded. Put it next to index.html.'));
+            }
+            warnEl.volume = 1;
+            const pr = warnEl.play();
+            if (pr && pr.catch)
+                pr.catch(() => {
+                    if (warnRetry)
+                        return;
+                    warnRetry = () => {
+                        if (warnActive && warnEl)
+                            warnEl.play().catch(() => { });
+                        warnStopRetry();
+                    };
+                    ['pointerdown', 'keydown', 'touchstart'].forEach(ev => window.addEventListener(ev, warnRetry, true));
+                });
+        }
+        catch (e) { }
+    }
+    function warnStopRetry() {
+        if (!warnRetry)
+            return;
+        ['pointerdown', 'keydown', 'touchstart'].forEach(ev => window.removeEventListener(ev, warnRetry, true));
+        warnRetry = null;
+    }
+    function showWarning(what, why, fix) {
+        try {
+            if (warnItems.some(w => w.what === what))
+                return;
+            warnItems.push({ what, why, fix });
+            warnRender();
+            if (warnActive)
+                return;
+            warnActive = true;
+            try { if (AC && AC.state === 'running') AC.suspend().catch(() => { }); } catch (e) { }
+            try { if (genEl) genEl.pause(); } catch (e) { }
+            try { if (voiceEl) voiceEl.pause(); } catch (e) { }
+            document.querySelectorAll('audio,video').forEach(m => { try { m.muted = true; m.pause(); } catch (e) { } });
+            document.getElementById('warnBar').style.display = 'flex';
+            warnPlayMusic();
+        }
+        catch (e) { console.error('Could not show warning', e); }
+    }
+    function dismissWarning() {
+        warnActive = false;
+        warnItems = [];
+        warnStopRetry();
+        try { if (warnEl) { warnEl.pause(); warnEl.currentTime = 0; } } catch (e) { }
+        document.getElementById('warnBar').style.display = 'none';
+        try { if (AC) AC.resume(); } catch (e) { }
+        try { genResume(); } catch (e) { }
+        mpFailCount = 0;
+    }
+    document.getElementById('wbOk').addEventListener('click', dismissWarning);
+    let mpFailCount = 0;
+    function mpKnownError(e) {
+        return /lobby_not_found|lobby_full|lobby_started|need_two_players|not_host|not_in_lobby/.test(String((e && (e.message || e.details)) || e));
+    }
+    function mpFault(what, e) {
+        const t = String((e && (e.message || e.details || e.code)) || e || 'Unknown error');
+        let why, fix;
+        if (!navigator.onLine || /Failed to fetch|NetworkError|Load failed|network|timeout|TIMED_OUT|CHANNEL_ERROR|abort/i.test(t)) {
+            why = 'The connection to the multiplayer server was lost or blocked (' + t + ').';
+            fix = 'Check your internet connection, turn off any VPN or ad blocker that might block supabase.co, then reload the page and rejoin the lobby.';
+        }
+        else if (/JWT|Invalid API key|apikey|401|403|permission denied|row-level security/i.test(t)) {
+            why = 'The server refused the request, so the Supabase URL/anon key is wrong or the table permissions are missing (' + t + ').';
+            fix = 'Check SUPABASE_URL and SUPABASE_ANON_KEY at the top of the script, then re-run supabase_setup.sql in the Supabase SQL editor.';
+        }
+        else if (/PGRST|does not exist|Could not find|function|relation|schema cache|404/i.test(t)) {
+            why = 'The Supabase database is missing a table or function the game needs (' + t + ').';
+            fix = 'Run supabase_setup.sql (and any other game .sql files) in the Supabase SQL editor, wait a few seconds, then reload the page.';
+        }
+        else {
+            why = 'The multiplayer server returned an unexpected error (' + t + ').';
+            fix = 'Reload the page and rejoin the lobby. If it keeps happening, check your Supabase project status and the browser console (F12).';
+        }
+        showWarning(what, why, fix);
+    }
+    function mpPollFail(e) {
+        if (!MP.code)
+            return;
+        mpFailCount++;
+        if (mpFailCount >= 3)
+            mpFault('Lost contact with the multiplayer lobby', e);
+    }
+    function mpPollOk() { mpFailCount = 0; }
+    window.addEventListener('offline', () => { if (MP.code) showWarning('You went offline', 'Your device lost its internet connection, so the multiplayer match cannot keep syncing.', 'Reconnect to the internet. The game will resume syncing on its own, or reload the page and rejoin the lobby if it does not.'); });
+    window.addEventListener('error', ev => {
+        const m = String(ev.message || '');
+        if (!m || /ResizeObserver|^Script error/i.test(m))
+            return;
+        showWarning('The game hit an unexpected error', m + (ev.lineno ? ' (line ' + ev.lineno + ')' : ''), 'Reload the page. If it keeps happening, press F12 and check the Console tab for details.');
+    });
+    window.addEventListener('unhandledrejection', ev => {
+        const r = ev.reason, m = String((r && (r.message || r)) || '');
+        if (!m || (r && /AbortError|NotAllowedError/.test(r.name || '')) || /play\(\)|ResizeObserver/i.test(m))
+            return;
+        showWarning('A background task failed', m, 'Reload the page. If it keeps happening, press F12 and check the Console tab for details.');
+    });
     /* ---------------- EXTRA VISUALS ---------------- */
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.15;
@@ -4338,7 +4848,8 @@ body.spectating #bottom{display:none!important}
             my = 0;
         }
         lamp.intensity = (1.7 + Math.sin(t * .004) * .05 + (Math.random() < (hbLow ? .035 : .012) ? -.7 : 0)) * lampK;
-        opp.position.x = oppState.hit > 0 ? Math.sin(t * .06) * oppState.hit * .08 : 0;
+        if (!oppState.fx)
+            opp.position.x = oppState.hit > 0 ? Math.sin(t * .06) * oppState.hit * .08 : 0;
         if (!oppState.fallen) {
             opp.position.y = Math.sin(t * .0015) * .015;
             head.rotation.y = (mode === 'mp' ? 0 : mx * .35) + Math.sin(t * .0007) * .05;
@@ -4443,10 +4954,14 @@ body.spectating #bottom{display:none!important}
         showMpView(MP.code && !MP.started ? 'room' : 'menu');
         const ok = !!mpClient();
         $('#mpCreate').disabled = $('#mpJoin').disabled = !ok;
-        if (!MP_OK)
+        if (!MP_OK) {
             mpMsg('Multiplayer is not set up yet. Put your Supabase URL and anon key at the top of the script and run supabase_setup.sql.', true);
-        else if (!ok)
+            showWarning('Multiplayer is not set up', 'SUPABASE_URL or SUPABASE_ANON_KEY is empty or still a placeholder.', 'Paste your Supabase project URL and anon key at the top of the script, run supabase_setup.sql in the Supabase SQL editor, then reload.');
+        }
+        else if (!ok) {
             mpMsg('Could not load the Supabase library (needs an internet connection).', true);
+            showWarning('Could not load the multiplayer library', 'The Supabase script from cdn.jsdelivr.net did not load, usually because you are offline or something is blocking it.', 'Check your internet connection, disable any ad blocker or VPN blocking jsdelivr.net, then reload the page.');
+        }
         else
             mpMsg('');
         mpLoadPublic();
@@ -4459,8 +4974,11 @@ body.spectating #bottom{display:none!important}
         mpMsg('Creating lobby…');
         const { data, error } = await sb.rpc('mp_create_lobby', { p_player: MP.pid, p_name: mpNameVal() });
         $('#mpCreate').disabled = false;
-        if (error)
+        if (error) {
+            if (!mpKnownError(error))
+                mpFault('Could not create the lobby', error);
             return mpMsg(mpErr(error), true);
+        }
         try { sb.rpc('mp_set_lobby_public', { p_code: data, p_player: MP.pid, p_public: !$('#mpPrivate').checked }).then(() => { }, () => { }); } catch (e) { }
         mpEnter(data);
     }
@@ -4475,8 +4993,11 @@ body.spectating #bottom{display:none!important}
         mpMsg('Joining…');
         const { error } = await sb.rpc('mp_join_lobby', { p_code: code, p_player: MP.pid, p_name: mpNameVal() });
         $('#mpJoin').disabled = false;
-        if (error)
+        if (error) {
+            if (!mpKnownError(error))
+                mpFault('Could not join the lobby', error);
             return mpMsg(mpErr(error), true);
+        }
         mpEnter(code);
     }
     $('#mpSpectateCode').onclick = async () => {
@@ -4485,7 +5006,11 @@ body.spectating #bottom{display:none!important}
         if (!sb || code.length < 4) return mpMsg('Enter the in-progress lobby code.', true);
         mpMsg('Connecting as spectator…');
         const { error } = await sb.rpc('mp_join_spectate_lobby', { p_code: code, p_player: MP.pid, p_name: mpNameVal() });
-        if (error) return mpMsg('Could not spectate. Run the late-join SQL migration and check that the match is still active.', true);
+        if (error) {
+            if (!mpKnownError(error))
+                mpFault('Could not spectate the lobby', error);
+            return mpMsg('Could not spectate. Run the late-join SQL migration and check that the match is still active.', true);
+        }
         mpEnter(code, true);
     };
     function mpMyFlags() {
@@ -4579,7 +5104,7 @@ body.spectating #bottom{display:none!important}
             .on('broadcast', { event: 'hat' }, m => { const d = m && m.payload; if (d && d.pid && d.pid !== MP.pid) MP.hats[d.pid] = HATS.some(h => h.id === d.hat) ? d.hat : ''; })
             .on('broadcast', { event: 'quit' }, m => { const d = m && m.payload; if (d && d.pid && d.pid !== MP.pid) { MP.gone.add(d.pid); mpRenderRoom(); } })
             .on('broadcast', { event: 'react' }, m => { const d = m && m.payload; if (d && d.pid && d.pid !== MP.pid) showReaction(d.name, d.kind, false); })
-            .subscribe(st => { if (st === 'SUBSCRIBED') { mpSendFlags(); if (MP.skin.color || MP.skin.face) mpSendSkin(false); mpSendHat(); if (MP.host && Object.values(MP.fun).some(v => v === true)) setTimeout(() => mpSend('funconfig', MP.fun), 350); } });
+            .subscribe(st => { if ((st === 'CHANNEL_ERROR' || st === 'TIMED_OUT') && MP.code) mpFault('Live multiplayer connection failed', st); if (st === 'SUBSCRIBED') { mpSendFlags(); if (MP.skin.color || MP.skin.face) mpSendSkin(false); mpSendHat(); if (MP.host && Object.values(MP.fun).some(v => v === true)) setTimeout(() => mpSend('funconfig', MP.fun), 350); } });
         MP.flags = {};
         MP.look = {};
         MP.flags[MP.pid] = mpMyFlags();
@@ -4953,6 +5478,8 @@ body.spectating #bottom{display:none!important}
         await mpPoll();
         const { error } = await MP.sb.rpc('mp_start_lobby', { p_code: MP.code, p_player: MP.pid });
         if (error && !MP.played) {
+            if (!mpKnownError(error))
+                mpFault('Could not start the match', error);
             mpMsg(mpErr(error), true);
             mpRenderRoom();
             return;
@@ -4968,6 +5495,8 @@ body.spectating #bottom{display:none!important}
         const { data, error } = await MP.sb.rpc('mp_send_event', { p_code: MP.code, p_player: MP.pid, p_type: type, p_payload: payload || {} });
         if (error) {
             MP.busy = false;
+            if (!mpKnownError(error))
+                mpFault('A multiplayer action could not be sent', error);
             if (MP.S) {
                 say('Network error: ' + (error.message || error), 2000);
                 mpHUD();
@@ -4992,6 +5521,10 @@ body.spectating #bottom{display:none!important}
                 MP.sb.from('mp_look').select('*').eq('lobby_code', MP.code),
                 MP.sb.from('mp_skins').select('player_id,color,rev').eq('lobby_code', MP.code)
             ]);
+            if (lb.error || pl.error)
+                mpPollFail(lb.error || pl.error);
+            else
+                mpPollOk();
             if (lk && lk.data)
                 lk.data.forEach(mpLookRow);
             if (sks && sks.data)
@@ -5023,7 +5556,7 @@ body.spectating #bottom{display:none!important}
             if (MP.S && MP.host && MP.S.needLoad && !MP.S.loadSent && !MP.over && MP.pending === 0)
                 mpSendLoad();
         }
-        catch (e) { }
+        catch (e) { mpPollFail(e); }
         finally {
             MP.polling = false;
         }
@@ -5041,7 +5574,7 @@ body.spectating #bottom{display:none!important}
     }
     function mpEnqueue(ev) {
         MP.pending++;
-        MP.chain = MP.chain.then(() => mpApply(ev)).catch(e => console.error('multiplayer event failed', e)).then(() => {
+        MP.chain = MP.chain.then(() => mpApply(ev)).catch(e => { console.error('multiplayer event failed', e); mpFault('A multiplayer event could not be processed', e); }).then(() => {
             MP.pending--;
             if (MP.pending === 0)
                 MP.busy = false;
@@ -5361,6 +5894,7 @@ body.spectating #bottom{display:none!important}
             await rec;
         if (T.hp <= 0) {
             T.alive = false;
+            playVoiceline();
             mpHUD();
             if (target === me)
                 await tween(900, e => { $('#fade').style.opacity = .55 * e; });
