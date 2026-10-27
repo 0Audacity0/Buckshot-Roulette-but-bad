@@ -5614,6 +5614,7 @@ html.mobile body.inLobby #btnWho,html.mobile body.inLobby #whoPanel{display:none
         return from;
     }
     async function mpApply(ev) {
+        throw new Error('test multiplayer event');
         if (ev.type === 'leave' && ev.player_id !== MP.pid)
             MP.gone.add(ev.player_id);
         if (ev.type === 'start') {
