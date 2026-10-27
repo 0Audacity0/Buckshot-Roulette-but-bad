@@ -1306,11 +1306,17 @@ body.spectating #bottom{display:none!important}
   <div id="discoOv" style="display:none;position:fixed;inset:0;pointer-events:none;z-index:45;opacity:.13;mix-blend-mode:overlay"></div>
   <div id="topLeftBar">
    <button aria-label="What's New" class="ghost" id="btnWhatsNew" title="What's New" type="button"><svg aria-hidden="true" fill="none" height="22" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewBox="0 0 24 24" width="22"><path d="M4 5h13v14H6a2 2 0 0 1-2-2z"/><path d="M17 9h3v8a2 2 0 0 1-2 2h-1"/><path d="M7 8.5h7M7 12h7M7 15.5h4"/></svg><span id="wnBadge">!</span></button>
-   <div id="versionNumber" aria-label="Version 2.3.0">v2.4.6</div>
+   <div id="versionNumber" aria-label="Version 2.3.0">v2.4.8</div>
   </div>
   <div id="whatsNewPanel">
    <div id="whatsNewCard">
-    <h2>WHAT'S NEW IN v2.4.6</h2>
+    <h2>WHAT'S NEW IN v2.4.8</h2>
+    <ul>
+     <li><b>Added newer 'voicelines':</b> Hehe funny screams</li>
+     <li><b>Added new multiplayer death effects:</b> Same ones as The Dealer</li>
+     <li><b>Yeah there wasn't really much this update</b></li>
+    </ul>
+    <h3>EARLIER (v2.4.6)</h3>
     <ul>
      <li><b>Made 'The Dumbest of Today' Dealer personality dumber:</b> Was too smart, decided to make it more dumb because it knew how to play the game</li>
      <li><b>Added weird Dealer noises upon death:</b> Hehe funny lomando and baldi noises</li>
@@ -1319,14 +1325,6 @@ body.spectating #bottom{display:none!important}
      <li><b>Added late join spectating:</b> For multiplayer you can now join lobbies as a spectator</li>
      <li><b>Reduced low charge shake:</b> Felt the need to reduce it by a lot again, it seemed way too aggressive for no reason</li>
      <li><b>Added 2+ card:</b> Using it gives an extra turn: your next live shot grants you another turn. The extra turn is tracked separately for each player</li>
-    </ul>
-    <h3>EARLIER (v2.4.0)</h3>
-    <ul>
-     <li><b>Added spectator:</b> If you have died in multiplayer then you can switch POV's via Spectator and you can add reactions</li>
-     <li><b>Added achievements:</b> Ranges from multiple achievements</li>
-     <li><b>Added Dealer personalities:</b> Ranged from; The Accountant, The Gambler, The Bluffer, The Dumbest of Today and The Smartest of Today</li>
-     <li><b>Added low-charge shake:</b> If playing multiplayer and you have less than 2 points, your character shakes (if its somebody else they shake)</li>
-     <li><b>Added Heartbeat:</b> A heartbeak that plays at 1 charge until you die or the other person dies</li>
     </ul>
     <button class="ghost" id="btnCloseWhatsNew" type="button">CLOSE</button>
    </div>
@@ -2753,12 +2751,13 @@ html.mobile body.inLobby #btnPanel,html.mobile body.inLobby #adminPanel{display:
     heavenFx.add(haloDisc);
     const sparkles = fxPoints(50, 0xfff4c8, .06);
     heavenFx.add(sparkles);
-    async function oppFallFire() {
+    async function fxFire(tg, ax, az) {
+        fireFx.position.set(ax, 0, az);
         fireFx.visible = true;
         fireDisc.material.opacity = .95;
         flames.forEach(m => { m.material.opacity = m.userData.h > 1.2 ? .7 : .85; });
         fxLight.color.setHex(0xff5a1a);
-        fxLight.position.set(0, .6, -1.45);
+        fxLight.position.set(ax, .6, az + .3);
         screenFlash('#ff4a10');
         shake = Math.max(shake, .1);
         const t0 = performance.now();
@@ -2771,13 +2770,13 @@ html.mobile body.inLobby #btnPanel,html.mobile body.inLobby #adminPanel{display:
             }
             fxLight.intensity = (2.6 + Math.sin(t * 21) * .7) * grow;
             const sink = Math.max(0, (e - .12) / .88), k = sink * sink;
-            opp.position.y = -2.5 * k;
-            opp.position.x = Math.sin(t * 38) * .05 * (1 - k);
-            opp.rotation.z = Math.sin(t * 22) * .08 * (1 - k);
-            opp.rotation.x = -.2 * Math.min(1, e * 3) * (1 - k);
+            tg.position.y = -2.5 * k;
+            tg.position.x = Math.sin(t * 38) * .05 * (1 - k);
+            tg.rotation.z = Math.sin(t * 22) * .08 * (1 - k);
+            tg.rotation.x = -.2 * Math.min(1, e * 3) * (1 - k);
             fxPointsUpdate(embers, t, 2.2, 1.1);
         });
-        opp.visible = false;
+        tg.visible = false;
         const t1 = performance.now();
         await tween(550, e => {
             const t = (performance.now() - t1) / 1000;
@@ -2792,11 +2791,11 @@ html.mobile body.inLobby #btnPanel,html.mobile body.inLobby #adminPanel{display:
         fireFx.visible = false;
         fxLight.intensity = 0;
     }
-    async function oppFallHeaven() {
+    async function fxHeaven(tg, ax, az) {
+        heavenFx.position.set(ax, 0, az);
         heavenFx.visible = true;
         fxLight.color.setHex(0xfff0c8);
-        fxLight.position.set(0, 1.6, -1.45);
-        visorM.color.setHex(0xffffff);
+        fxLight.position.set(ax, 1.6, az + .3);
         const t0 = performance.now();
         await tween(2900, e => {
             const t = (performance.now() - t0) / 1000, fade = Math.min(1, e * 4), sh = .9 + .1 * Math.sin(t * 6);
@@ -2806,12 +2805,12 @@ html.mobile body.inLobby #btnPanel,html.mobile body.inLobby #adminPanel{display:
             haloDisc.scale.setScalar(.8 + .3 * Math.sin(t * 3));
             fxLight.intensity = 3.4 * fade;
             const up = Math.max(0, (e - .2) / .8), k = up * up;
-            opp.position.y = 3.9 * k;
-            opp.rotation.y = up * Math.PI * 1.2;
-            opp.rotation.z = Math.sin(t * 3) * .05;
+            tg.position.y = 3.9 * k;
+            tg.rotation.y = up * Math.PI * 1.2;
+            tg.rotation.z = Math.sin(t * 3) * .05;
             fxPointsUpdate(sparkles, t, 5, .8);
         });
-        opp.visible = false;
+        tg.visible = false;
         screenFlash('#ffffff');
         const t1 = performance.now();
         await tween(700, e => {
@@ -2825,6 +2824,8 @@ html.mobile body.inLobby #btnPanel,html.mobile body.inLobby #adminPanel{display:
         heavenFx.visible = false;
         fxLight.intensity = 0;
     }
+    async function oppFallFire() { await fxFire(opp, 0, -1.75); }
+    async function oppFallHeaven() { visorM.color.setHex(0xffffff); await fxHeaven(opp, 0, -1.75); }
     async function oppFall() {
         oppState.fallen = true;
         oppState.gone = true;
@@ -4571,8 +4572,8 @@ html.mobile body.inLobby #btnPanel,html.mobile body.inLobby #adminPanel{display:
     }));
     genSyncSliders();
     /* ---------------- VOICELINES ---------------- */
-    const VOICELINES = ['Voiceline1.mp3', 'Voiceline2.mp3'];
-    let voiceEl = null;
+    const VOICELINES = ['Voiceline1.mp3', 'Voiceline2.mp3', 'Voiceline3.mp3', 'Voiceline4.mp3', 'Voiceline5.mp3', 'Voiceline6.mp3'];
+    let voiceEl = null, voiceLast = -1;
     function playVoiceline() {
         if (warnActive)
             return;
@@ -4581,7 +4582,11 @@ html.mobile body.inLobby #btnPanel,html.mobile body.inLobby #adminPanel{display:
                 voiceEl.pause();
                 voiceEl = null;
             }
-            const a = new Audio(VOICELINES[Math.random() < .5 ? 0 : 1]);
+            let vi = Math.floor(Math.random() * VOICELINES.length);
+            if (VOICELINES.length > 1 && vi === voiceLast)
+                vi = (vi + 1 + Math.floor(Math.random() * (VOICELINES.length - 1))) % VOICELINES.length;
+            voiceLast = vi;
+            const a = new Audio(VOICELINES[vi]);
             a.addEventListener('error', () => console.warn(a.src + ' could not be loaded. Put it next to index.html.'));
             voiceEl = a;
             const pr = a.play();
@@ -6147,9 +6152,23 @@ html.mobile body.inLobby #btnPanel,html.mobile body.inLobby #adminPanel{display:
         await sleep(1000);
         await tween(650, e => { g.rotation.x = -.75 * (1 - e); });
     }
-    async function figFall(g) {
-        g.userData.dead = true;
-        await tween(1300, e => { g.rotation.x = -Math.PI / 2 * e; g.position.y = -.12 * e; });
+    async function figDeath(g) {
+        const u = g.userData, b = u.base || V(0, 0, 0);
+        u.dead = true;
+        g.position.set(0, 0, 0);
+        g.rotation.set(0, 0, 0);
+        try {
+            if (SAVE.cheats.family)
+                await fxHeaven(g, b.x, b.z);
+            else
+                await fxFire(g, b.x, b.z);
+        }
+        finally {
+            g.visible = false;
+            fireFx.visible = false;
+            heavenFx.visible = false;
+            fxLight.intensity = 0;
+        }
     }
     async function mpDoShoot(shooter, target) {
         const S = MP.S, T = S.P[target], A = S.P[shooter], me = MP.pid;
@@ -6203,10 +6222,12 @@ html.mobile body.inLobby #btnPanel,html.mobile body.inLobby #adminPanel{display:
             T.alive = false;
             playVoiceline();
             mpHUD();
-            if (target === me)
+            if (target === me) {
+                screenFlash(SAVE.cheats.family ? '#ffffff' : '#ff4a10');
                 await tween(900, e => { $('#fade').style.opacity = .55 * e; });
+            }
             else if (MP.figs[target])
-                await figFall(MP.figs[target]);
+                await figDeath(MP.figs[target]);
             await say(`${nm(target)} ${target === me ? 'are' : 'is'} out.`, 1500);
         }
         const alive = S.seatOrder.filter(id => S.P[id].alive);
