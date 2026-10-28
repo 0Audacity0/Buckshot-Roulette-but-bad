@@ -809,29 +809,25 @@ html body.mp #btnSettings {
   background: rgba(0,0,0,.72);
   padding: 16px
 }
-#pause .card {
-  width: min(560px, calc(100vw - 28px));
-  max-height: min(88dvh, 900px);
-  overflow-y: auto;
-  box-sizing: border-box;
-  padding: clamp(18px, 3vw, 30px);
-  border: 1px solid rgba(255,210,74,.45);
-  border-radius: 18px;
-  background: linear-gradient(155deg, rgba(35,31,25,.98), rgba(12,11,10,.98));
-  box-shadow: 0 24px 80px rgba(0,0,0,.6), inset 0 1px rgba(255,255,255,.05);
-  scrollbar-width: thin;
-  scrollbar-color: #776442 #171512;
-}
-#pause .card h1 { margin: 0 0 4px; letter-spacing: .12em; color: #ffd24a; }
-#pause .card h2 { margin: 0 0 20px; color: #c9c0ac; font-size: 13px; font-weight: 500; }
-#pause .settingsGroup { margin-top: 14px; padding: 13px 14px; border: 1px solid #393329; border-radius: 12px; background: rgba(255,255,255,.025); }
-#pause .settingsGroup h3 { margin: 0 0 10px; }
-#pause .funSlider { margin: 10px 0; }
-#pause .settingsToggle { padding: 9px 0; }
-#pause .card button { display:block; width:100%; margin:10px 0 0; border-radius:10px; min-height:42px; }
-#pause #btnResume { background:#ffd24a; color:#19150b; border-color:#ffd24a; font-weight:900; }
-#pause #btnQuit { background:rgba(255,255,255,.035); border-color:#51483a; }
-@media(max-width:520px) { #pause { padding:10px; } #pause .card { width:100%; max-height:92dvh; } #pause .card h1 { font-size:30px !important; } }
+/* Keep the original pause-window frame; polish only the controls inside it. */
+#pause .card { min-width:260px; }
+#pause .card h1 { margin-bottom:4px; color:#ffd24a; letter-spacing:.12em; }
+#pause .card h2 { margin:0 0 18px; color:#aaa28d; font-size:12px; line-height:1.5; font-weight:400; }
+#pause .settingsGroup { margin-top:14px; padding:12px 0 0; border:0; border-top:1px solid #3a3020; border-radius:0; background:transparent; text-align:left; }
+#pause .settingsGroup h3 { margin:0 0 9px; color:#ffd24a; font-size:11px; letter-spacing:.2em; }
+#pause .funSlider { margin:11px 2px; }
+#pause .funSlider label { display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:7px; color:#e8e2d0; font-size:11px; letter-spacing:.04em; }
+#pause .funSlider label b { color:#ffd24a; font-variant-numeric:tabular-nums; }
+#pause .funSlider input[type=range] { display:block; width:100%; accent-color:#ffd24a; cursor:pointer; }
+#pause .settingsToggle { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:10px 2px; border-top:1px solid #292319; color:#e8e2d0; font-size:11px; }
+#pause .settingsToggle span { display:flex; flex-direction:column; gap:4px; }
+#pause .settingsToggle small { color:#a8a08b; font-size:10px; line-height:1.4; }
+#pause .settingsToggle input { width:18px; height:18px; flex:none; accent-color:#ffd24a; cursor:pointer; }
+#pause .card button { display:block; width:100%; margin:10px 0 0; padding:12px; }
+#pause #btnResume { border-color:#ffd24a; color:#ffd24a; background:rgba(255,210,74,.08); font-weight:800; }
+#pause #btnResume:hover { color:#17130a; background:#ffd24a; }
+#pause #btnQuit { border-color:#51483a; background:transparent; color:#c9c0ac; }
+#pause #btnQuit:hover { border-color:#ffd24a; color:#ffd24a; }
 @media (max-width:820px) and (orientation:portrait) {
   #title {
     grid-template-columns: 1fr 1fr;
@@ -1330,11 +1326,11 @@ body.spectating #bottom{display:none!important}
   <div id="discoOv" style="display:none;position:fixed;inset:0;pointer-events:none;z-index:45;opacity:.13;mix-blend-mode:overlay"></div>
   <div id="topLeftBar">
    <button aria-label="What's New" class="ghost" id="btnWhatsNew" title="What's New" type="button"><svg aria-hidden="true" fill="none" height="22" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewBox="0 0 24 24" width="22"><path d="M4 5h13v14H6a2 2 0 0 1-2-2z"/><path d="M17 9h3v8a2 2 0 0 1-2 2h-1"/><path d="M7 8.5h7M7 12h7M7 15.5h4"/></svg><span id="wnBadge">!</span></button>
-   <div id="versionNumber" aria-label="Version 2.3.0">v2.4.9</div>
+   <div id="versionNumber" aria-label="Version 2.3.0">v2.5.0</div>
   </div>
   <div id="whatsNewPanel">
    <div id="whatsNewCard">
-    <h2>WHAT'S NEW IN v2.4.9</h2>
+    <h2>WHAT'S NEW IN v2.5.0</h2>
     <ul>
         <li><b>Made Settings Better:</b> Added music volume, sound effect volume,animation intensity, visual effects and gameplay preferences</li>
      <li><b>Improved item animations and models:</b> More 3D details for the magnifying glass, beer, knife, and +2 card.</li>
@@ -1345,6 +1341,7 @@ body.spectating #bottom{display:none!important}
      <li><b>Added newer 'voicelines':</b> Hehe funny screams</li>
      <li><b>Added new multiplayer death effects:</b> Same ones as The Dealer</li>
      <li><b>Yeah there wasn't really much this update</b></li>
+    </ul>
     <button class="ghost" id="btnCloseWhatsNew" type="button">CLOSE</button>
    </div>
   </div>
