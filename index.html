@@ -2628,11 +2628,20 @@ html.mobile body.inLobby #btnPanel,html.mobile body.inLobby #adminPanel{display:
             add(new THREE.CylinderGeometry(.052, .039, .145, 24, 1, true), crystal, 0, .087, 0);
             add(new THREE.CylinderGeometry(.046, .035, .105, 24), amber, 0, .071, 0);
             add(new THREE.CylinderGeometry(.056, .056, .009, 24), crystal, 0, .014, 0);
-            add(new THREE.TorusGeometry(.052, .005, 8, 24), crystal, 0, .16, 0);
-            add(new THREE.TorusGeometry(.036, .0055, 8, 20), crystal, .066, .092, 0, Math.PI / 2);
-            add(new THREE.SphereGeometry(.018, 12, 8), crystal, .092, .092, 0);
-            add(new THREE.SphereGeometry(.018, 12, 8), crystal, .092, .117, 0);
-            add(new THREE.SphereGeometry(.018, 12, 8), crystal, .092, .067, 0);
+            // Refined side handle: a smooth, slightly squared loop with sturdy glass joins.
+            // The extra ring across the top has been removed; the drinking rim is left open.
+            const handlePath = new THREE.CatmullRomCurve3([
+                new THREE.Vector3(.045, .132, 0),
+                new THREE.Vector3(.083, .132, 0),
+                new THREE.Vector3(.105, .116, 0),
+                new THREE.Vector3(.108, .092, 0),
+                new THREE.Vector3(.105, .068, 0),
+                new THREE.Vector3(.083, .052, 0),
+                new THREE.Vector3(.045, .052, 0)
+            ]);
+            add(new THREE.TubeGeometry(handlePath, 28, .0065, 8, false), crystal);
+            add(new THREE.SphereGeometry(.012, 12, 10), crystal, .046, .132, 0);
+            add(new THREE.SphereGeometry(.012, 12, 10), crystal, .046, .052, 0);
             add(new THREE.SphereGeometry(.043, 16, 10), foam, -.005, .151, 0).scale.set(1, .42, 1);
             add(new THREE.SphereGeometry(.026, 12, 8), foam, .025, .16, .008).scale.set(1, .55, 1);
             add(new THREE.BoxGeometry(.004, .085, .004), highlight, -.035, .085, .047);
