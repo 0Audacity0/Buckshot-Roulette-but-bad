@@ -723,6 +723,15 @@ html body.mp #btnSettings {
   color: #7ad07a;
   box-shadow: inset 0 0 0 1px #7ad07a
 }
+#settingsPanel .settingsGroup{margin-top:16px;padding-top:12px;border-top:1px solid #3a3020;text-align:left}
+#settingsPanel .settingsGroup h3{font-size:11px;letter-spacing:.2em;color:#ffd24a;margin-bottom:8px}
+#settingsPanel .funSlider{margin:10px 2px}
+#settingsPanel .settingsToggle{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:9px 2px;font-size:11px;color:#e8e2d0;border-top:1px solid #292319}
+#settingsPanel .settingsToggle span{display:flex;flex-direction:column;gap:4px}
+#settingsPanel .settingsToggle small{font-size:10px;line-height:1.4;color:#a8a08b}
+#settingsPanel .settingsToggle input{width:20px;height:20px;accent-color:#ffd24a;flex:none}
+#settingsPanel .funSlider input[type=range]{width:100%;accent-color:#ffd24a}
+#settingsPanel .settingsCard{max-height:90vh;overflow:auto;width:min(400px,100%)}
 #btnCodeList {
   position: fixed;
   left: 12px;
@@ -1306,25 +1315,21 @@ body.spectating #bottom{display:none!important}
   <div id="discoOv" style="display:none;position:fixed;inset:0;pointer-events:none;z-index:45;opacity:.13;mix-blend-mode:overlay"></div>
   <div id="topLeftBar">
    <button aria-label="What's New" class="ghost" id="btnWhatsNew" title="What's New" type="button"><svg aria-hidden="true" fill="none" height="22" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewBox="0 0 24 24" width="22"><path d="M4 5h13v14H6a2 2 0 0 1-2-2z"/><path d="M17 9h3v8a2 2 0 0 1-2 2h-1"/><path d="M7 8.5h7M7 12h7M7 15.5h4"/></svg><span id="wnBadge">!</span></button>
-   <div id="versionNumber" aria-label="Version 2.3.0">v2.4.8</div>
+   <div id="versionNumber" aria-label="Version 2.3.0">v2.4.9</div>
   </div>
   <div id="whatsNewPanel">
    <div id="whatsNewCard">
-    <h2>WHAT'S NEW IN v2.4.8</h2>
+    <h2>WHAT'S NEW IN v2.4.9</h2>
+    <ul>
+     <li><b>Made Settings Better:</b> Added music volume, sound effect volume,animation intensity, visual effects and gameplay preferences</li>
+     <li><b>Improved item animations and models:</b> More 3D details for the magnifying glass, beer, knife, and +2 card.</li>
+     <li><b>Added random inventory shuffling:</b> Inventory is switched upon you and The Dealer in singleplayer and multiplayer has an option to turn it on in the 'fun' tab</li>
+    </ul>
+    <h3>EARLIER (v2.4.8)</h3>
     <ul>
      <li><b>Added newer 'voicelines':</b> Hehe funny screams</li>
      <li><b>Added new multiplayer death effects:</b> Same ones as The Dealer</li>
      <li><b>Yeah there wasn't really much this update</b></li>
-    </ul>
-    <h3>EARLIER (v2.4.6)</h3>
-    <ul>
-     <li><b>Made 'The Dumbest of Today' Dealer personality dumber:</b> Was too smart, decided to make it more dumb because it knew how to play the game</li>
-     <li><b>Added weird Dealer noises upon death:</b> Hehe funny lomando and baldi noises</li>
-     <li><b>Added random room themes:</b> They're randomized</li>
-     <li><b>Added endless run and normal run:</b> Let's you choose between a regularrun and one that never ends</li>
-     <li><b>Added late join spectating:</b> For multiplayer you can now join lobbies as a spectator</li>
-     <li><b>Reduced low charge shake:</b> Felt the need to reduce it by a lot again, it seemed way too aggressive for no reason</li>
-     <li><b>Added 2+ card:</b> Using it gives an extra turn: your next live shot grants you another turn. The extra turn is tracked separately for each player</li>
     </ul>
     <button class="ghost" id="btnCloseWhatsNew" type="button">CLOSE</button>
    </div>
@@ -1360,7 +1365,18 @@ body.spectating #bottom{display:none!important}
      POTATO
      <small>No room, dust, glow, shadows or fancy lighting. Blocky gun and a wood slab as a table.</small>
     </button>
-<div class="funSlider genVolWrap" style="text-align:left;margin-top:16px"><label>MUSIC VOLUME <b class="genVolVal">60%</b></label><input class="genVolIn" type="range" min="0" max="100" step="1" value="60"/></div>
+<div class="settingsGroup"><h3>AUDIO</h3>
+     <div class="funSlider"><label for="setMusicVol">MUSIC VOLUME <b id="setMusicVal">60%</b></label><input id="setMusicVol" type="range" min="0" max="100" step="1" value="60"/></div>
+     <div class="funSlider"><label for="setSfxVol">SOUND EFFECTS <b id="setSfxVal">80%</b></label><input id="setSfxVol" type="range" min="0" max="100" step="1" value="80"/></div>
+    </div>
+    <div class="settingsGroup"><h3>ANIMATION & VISUALS</h3>
+     <div class="funSlider"><label for="setAnim">ANIMATION INTENSITY <b id="setAnimVal">100%</b></label><input id="setAnim" type="range" min="0" max="100" step="5" value="100"/></div>
+     <label class="settingsToggle"><span><b>VISUAL EFFECTS</b><small>Screen flashes, shake, and extra effects</small></span><input id="setVisualFx" type="checkbox" checked/></label>
+    </div>
+    <div class="settingsGroup"><h3>GAMEPLAY</h3>
+     <label class="settingsToggle"><span><b>RANDOM INVENTORY SHUFFLES</b><small>Occasional item swaps during solo and multiplayer rounds</small></span><input id="setShuffle" type="checkbox" checked/></label>
+     <label class="settingsToggle"><span><b>ITEM LABELS</b><small>Show item names below inventory icons</small></span><input id="setItemLabels" type="checkbox" checked/></label>
+    </div>
     <button class="ghost" id="btnCloseSettings" style="margin-top:16px" type="button">
      CLOSE
     </button>
@@ -1486,7 +1502,18 @@ body.spectating #bottom{display:none!important}
     <h2>
      Are you gonna play or quit to title?
     </h2>
-    <div class="funSlider genVolWrap" style="text-align:left;margin-top:16px"><label>MUSIC VOLUME <b class="genVolVal">60%</b></label><input class="genVolIn" type="range" min="0" max="100" step="1" value="60"/></div>
+    <div class="settingsGroup"><h3>AUDIO</h3>
+     <div class="funSlider"><label for="setMusicVol">MUSIC VOLUME <b id="setMusicVal">60%</b></label><input id="setMusicVol" type="range" min="0" max="100" step="1" value="60"/></div>
+     <div class="funSlider"><label for="setSfxVol">SOUND EFFECTS <b id="setSfxVal">80%</b></label><input id="setSfxVol" type="range" min="0" max="100" step="1" value="80"/></div>
+    </div>
+    <div class="settingsGroup"><h3>ANIMATION & VISUALS</h3>
+     <div class="funSlider"><label for="setAnim">ANIMATION INTENSITY <b id="setAnimVal">100%</b></label><input id="setAnim" type="range" min="0" max="100" step="5" value="100"/></div>
+     <label class="settingsToggle"><span><b>VISUAL EFFECTS</b><small>Screen flashes, shake, and extra effects</small></span><input id="setVisualFx" type="checkbox" checked/></label>
+    </div>
+    <div class="settingsGroup"><h3>GAMEPLAY</h3>
+     <label class="settingsToggle"><span><b>RANDOM INVENTORY SHUFFLES</b><small>Occasional item swaps during solo and multiplayer rounds</small></span><input id="setShuffle" type="checkbox" checked/></label>
+     <label class="settingsToggle"><span><b>ITEM LABELS</b><small>Show item names below inventory icons</small></span><input id="setItemLabels" type="checkbox" checked/></label>
+    </div>
     
     <div id="adminGrant" style="display:none;text-align:left;border:1px solid #6b6552;padding:12px;margin-top:14px">
      <div class="lbl">
@@ -1952,6 +1979,11 @@ html.mobile body.inLobby #btnPanel,html.mobile body.inLobby #adminPanel{display:
         return d;
     }
     const SAVE = loadSave();
+    const SETTINGS_KEY = 'shotbuck_full_settings_v1';
+    const GAME_SETTINGS = { music: 60, sfx: 80, animation: 100, visualFx: true, shuffle: true, itemLabels: true };
+    try { Object.assign(GAME_SETTINGS, JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}')); } catch (e) { }
+    function saveGameSettings() { try { localStorage.setItem(SETTINGS_KEY, JSON.stringify(GAME_SETTINGS)); } catch (e) { } }
+    function settingScale(k) { return Math.max(0, Math.min(1, Number(GAME_SETTINGS[k] || 0) / 100)); }
     function persist() { try {
         localStorage.setItem(SAVE_KEY, JSON.stringify(SAVE));
         localStorage.setItem(FAMILY_KEY, SAVE.cheats.family ? '1' : '0');
@@ -1989,7 +2021,7 @@ html.mobile body.inLobby #btnPanel,html.mobile body.inLobby #adminPanel{display:
         f.type = type;
         f.frequency.value = cut;
         const g = ac.createGain();
-        g.gain.value = gain;
+        g.gain.value = gain * settingScale('sfx');
         s.connect(f);
         f.connect(g);
         g.connect(ac.destination);
@@ -2004,7 +2036,7 @@ html.mobile body.inLobby #btnPanel,html.mobile body.inLobby #adminPanel{display:
         o.frequency.setValueAtTime(freq, t);
         if (slide)
             o.frequency.exponentialRampToValueAtTime(Math.max(20, freq + slide), t + dur);
-        g.gain.setValueAtTime(gain, t);
+        g.gain.setValueAtTime(gain * settingScale('sfx'), t);
         g.gain.exponentialRampToValueAtTime(.0001, t + dur);
         o.connect(g);
         g.connect(ac.destination);
@@ -2099,9 +2131,9 @@ html.mobile body.inLobby #btnPanel,html.mobile body.inLobby #adminPanel{display:
         const low = graphicsQuality === 'low' || potato;
         const ultra = graphicsQuality === 'ultra';
         renderer.setPixelRatio(potato ? 0.38 : low ? 0.6 : ultra ? Math.min(window.devicePixelRatio || 1, 3) : Math.min(window.devicePixelRatio || 1, 2));
-        renderer.shadowMap.enabled = !low;
+        renderer.shadowMap.enabled = !low && !!GAME_SETTINGS.visualFx;
         renderer.shadowMap.type = ultra ? THREE.PCFSoftShadowMap : THREE.PCFSoftShadowMap;
-        lamp.castShadow = !low;
+        lamp.castShadow = !low && !!GAME_SETTINGS.visualFx;
         lamp.shadow.mapSize.set(ultra ? 2048 : 1024, ultra ? 2048 : 1024);
         lamp.intensity = ultra ? 2.5 : 1.7;
         scene.background = new THREE.Color(potato ? 0x78a8d8 : 0x040404);
@@ -2562,6 +2594,8 @@ html.mobile body.inLobby #btnPanel,html.mobile body.inLobby #adminPanel{display:
             add(new THREE.TorusGeometry(.1, .018, 10, 24), M.brass, 0, .04, 0, Math.PI / 2);
             add(new THREE.CylinderGeometry(.095, .095, .01, 24), M.glass, 0, .04, 0);
             add(new THREE.BoxGeometry(.035, .03, .13), M.dark, 0, .03, .19);
+            add(new THREE.SphereGeometry(.024, 10, 8), M.brass, 0, .04, .255);
+            add(new THREE.TorusGeometry(.105, .006, 6, 24), M.white, 0, .04, 0, Math.PI / 2);
         }
         else if (type === 'beer' && SAVE.cheats.family) {
             const juice = mat(0xe9b84a, { roughness: .2, transparent: true, opacity: .9, emissive: 0x3a2a05 });
@@ -2578,6 +2612,8 @@ html.mobile body.inLobby #btnPanel,html.mobile body.inLobby #adminPanel{display:
             add(new THREE.CylinderGeometry(.018, .04, .07, 16), glass, 0, .165, 0);
             add(new THREE.CylinderGeometry(.021, .021, .014, 12), M.brass, 0, .207, 0);
             add(new THREE.CylinderGeometry(.0415, .0415, .05, 16), M.white, 0, .06, 0);
+            add(new THREE.SphereGeometry(.035, 12, 8), M.white, -.012, .205, .005);
+            add(new THREE.SphereGeometry(.028, 12, 8), M.white, .018, .21, -.008);
         }
         else if (type === 'knife' && SAVE.cheats.family) {
             add(new THREE.BoxGeometry(.2, .008, .05), M.metal, .04, .012, 0);
@@ -2615,6 +2651,17 @@ html.mobile body.inLobby #btnPanel,html.mobile body.inLobby #adminPanel{display:
         if (w === 'p')
             return V(-.8 + i * .4, 1.005, .62);
         return V(.8 - i * .4, 1.005, -.5);
+    }
+    function animateItemPickup(model) {
+        if (!model || settingScale('animation') <= 0) return Promise.resolve();
+        const base = model.position.clone(), startScale = model.scale.x || 1;
+        model.position.y = base.y + .24; model.scale.setScalar(startScale * .35);
+        return tween(380, e => { model.position.y = base.y + .24 * (1-e) + Math.sin(e*Math.PI)*.09; model.rotation.y += .035; model.scale.setScalar(startScale * (.35 + .65*e)); });
+    }
+    function animateItemUse(model) {
+        if (!model || settingScale('animation') <= 0) return Promise.resolve();
+        const p0 = model.position.clone(), r0 = model.rotation.z, s0 = model.scale.x || 1;
+        return tween(420, e => { model.position.y = p0.y + Math.sin(e*Math.PI)*.32; model.rotation.z = r0 + e*.45; model.rotation.y += .05; model.scale.setScalar(Math.max(.02, s0 * (1 - e))); });
     }
     function rebuildItems() {
         while (itemsGroup.children.length)
@@ -2669,7 +2716,9 @@ html.mobile body.inLobby #btnPanel,html.mobile body.inLobby #adminPanel{display:
                 if (!paused)
                     el += (n - last) * speed;
                 last = n;
-                const k = Math.min(1, el / dur);
+                const intensity = settingScale('animation');
+                const effectiveDur = Math.max(1, dur * (0.12 + intensity * 0.88));
+                const k = intensity <= 0 ? 1 : Math.min(1, el / effectiveDur);
                 fn(k < .5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2);
                 if (k < 1)
                     requestAnimationFrame(step);
@@ -2889,6 +2938,7 @@ html.mobile body.inLobby #btnPanel,html.mobile body.inLobby #adminPanel{display:
     let shake = 0, mx = 0, my = 0, yaw = 0, yawT = 0;
     const MAX_YAW = 40 * Math.PI / 180;
     function screenFlash(color = '#fff') {
+        if (!GAME_SETTINGS.visualFx) return;
         const f = $('#flash');
         f.style.background = color;
         f.style.transition = 'none';
@@ -2898,6 +2948,7 @@ html.mobile body.inLobby #btnPanel,html.mobile body.inLobby #adminPanel{display:
         f.style.opacity = 0;
     }
     function hurtFx() {
+        if (!GAME_SETTINGS.visualFx) return;
         const h = $('#hurt');
         h.style.transition = 'none';
         h.style.opacity = 1;
@@ -2951,7 +3002,7 @@ html.mobile body.inLobby #btnPanel,html.mobile body.inLobby #adminPanel{display:
         [...invEl.children].forEach((b, i) => {
             const t = mine[i];
             if (t) {
-                b.innerHTML = `<span class="k">${i + 1}</span>${ITEMS[t].icon}<small>${ITEMS[t].name}</small>`;
+                b.innerHTML = `<span class="k">${i + 1}</span>${ITEMS[t].icon}<small style="display:${GAME_SETTINGS.itemLabels ? '' : 'none'}">${ITEMS[t].name}</small>`;
                 b.classList.remove('empty');
             }
             else {
@@ -3122,6 +3173,30 @@ html.mobile body.inLobby #btnPanel,html.mobile body.inLobby #adminPanel{display:
         updateHUD();
     }
     /* ---------------- GAME LOGIC ---------------- */
+    function shuffledInventories(inventories) {
+        const result = Object.fromEntries(Object.entries(inventories).map(([id, arr]) => [id, arr.slice()]));
+        const positions = [];
+        for (const [id, arr] of Object.entries(result)) arr.forEach((t, slot) => { if (t) positions.push({ id, slot, type:t }); });
+        if (positions.length < 2) return result;
+        const types = positions.map(p => p.type);
+        for (let i=types.length-1;i>0;i--) { const j=rand(0,i); [types[i],types[j]]=[types[j],types[i]]; }
+        positions.forEach((p,i) => { result[p.id][p.slot] = types[i]; });
+        // Make sure a shuffle actually changes at least one owner's inventory when possible.
+        if (Object.keys(result).length > 1 && positions.every((p,i)=>result[p.id][p.slot]===p.type) && positions.length>1) {
+            const a=positions[0], b=positions.find(q=>q.id!==a.id);
+            if (b) [result[a.id][a.slot],result[b.id][b.slot]]=[result[b.id][b.slot],result[a.id][a.slot]];
+        }
+        return result;
+    }
+    async function singleplayerShuffle() {
+        if (!GAME_SETTINGS.shuffle || G.roundOver || mode !== 'play') return false;
+        const shuffled = shuffledInventories({p:G.players.p.items,o:G.players.o.items});
+        G.players.p.items = shuffled.p; G.players.o.items = shuffled.o;
+        rebuildItems(); updateHUD();
+        say('INVENTORY SHUFFLE', 1250, 'big');
+        for (const m of itemsGroup.children) { const y=m.position.y; await tween(260,e=>{m.position.y=y+Math.sin(e*Math.PI)*.16; m.rotation.y+=.04;}); }
+        return true;
+    }
     async function loadShells() {
         const total = rand(2, 8);
         const live = Math.max(1, Math.min(total - 1, Math.round(total / 2) + rand(-1, 1)));
@@ -3143,6 +3218,7 @@ html.mobile body.inLobby #btnPanel,html.mobile body.inLobby #adminPanel{display:
         await introSay(`${live} LIVE · ${total - live} BLANK`, 2600);
         hideTray();
         updateHUD();
+        if (GAME_SETTINGS.shuffle && Math.random() < .28 && G.players.p.items.concat(G.players.o.items).filter(Boolean).length > 1) await singleplayerShuffle();
     }
     async function useItem(w, i) {
         const P = G.players[w], t = P.items[i];
@@ -3160,10 +3236,7 @@ html.mobile body.inLobby #btnPanel,html.mobile body.inLobby #adminPanel{display:
         }
         say(`${NAME[w]} ${w === 'p' ? 'use' : 'uses'} the ${ITEMS[t].name}.`, 1100);
         const m = itemsGroup.children.find(c => c.userData.owner === w && c.userData.idx === i);
-        if (m) {
-            const y0 = m.position.y;
-            await tween(500, e => { m.position.y = y0 + e * .55; m.rotation.y += .22; m.scale.setScalar(Math.max(.05, 1 - e * .9)); });
-        }
+        if (m) await animateItemUse(m);
         if (!(w === 'p' && SAVE.admin))
             P.items[i] = null;
         if (w === 'p' && G.statsOn) {
@@ -4383,7 +4456,7 @@ html.mobile body.inLobby #btnPanel,html.mobile body.inLobby #adminPanel{display:
         beat = 0;
         if (!musicBus) {
             musicBus = ac.createGain();
-            musicBus.gain.value = .5;
+            musicBus.gain.value = .5 * settingScale('music');
             const lp = ac.createBiquadFilter();
             lp.type = 'lowpass';
             lp.frequency.value = 1600;
@@ -4393,6 +4466,7 @@ html.mobile body.inLobby #btnPanel,html.mobile body.inLobby #adminPanel{display:
         musicTimer = setInterval(() => musicStep(kind), kind === 'title' ? 2400 : 600);
         musicStep(kind);
     }
+    function applyMusicVolume() { if (musicBus) musicBus.gain.setTargetAtTime(.5 * settingScale('music'), AC.currentTime, .05); }
     function mNote(f, dur, type, gain, when = 0) {
         const t = AC.currentTime + when, o = AC.createOscillator(), g = AC.createGain();
         o.type = type;
@@ -4457,7 +4531,7 @@ html.mobile body.inLobby #btnPanel,html.mobile body.inLobby #adminPanel{display:
             genVol = Math.min(1, Math.max(0, v));
     }
     catch (e) { }
-    function genLevel() { return genVol * genVol * 1.8 * (hbLow ? .4 : 1); }
+    function genLevel() { return genVol * genVol * 1.8 * settingScale('music') * (hbLow ? .4 : 1); }
     function genSyncSliders() {
         document.querySelectorAll('.genVolIn').forEach(i => { i.value = Math.round(genVol * 100); });
         document.querySelectorAll('.genVolVal').forEach(b => { b.textContent = Math.round(genVol * 100) + '%'; });
@@ -5934,6 +6008,17 @@ html.mobile body.inLobby #btnPanel,html.mobile body.inLobby #adminPanel{display:
             await mpBegin(ev.payload);
             return;
         }
+        if (ev.type === 'shuffle') {
+            const S0 = MP.S, inventories = ev.payload && ev.payload.inventories;
+            if (S0 && inventories) {
+                for (const id of S0.seatOrder) if (S0.P[id] && Array.isArray(inventories[id])) S0.P[id].items = inventories[id].slice(0,5);
+                if (S0.P[MP.pid]) G.players.p.items = S0.P[MP.pid].items;
+                mpItemsKey = ''; rebuildItems(); mpHUD();
+                say('INVENTORY SHUFFLE', 1250, 'big');
+                for (const m of itemsGroup.children) { const y=m.position.y; await tween(260,e=>{m.position.y=y+Math.sin(e*Math.PI)*.16; m.rotation.y+=.04;}); }
+            }
+            return;
+        }
         if (ev.type === 'funconfig') {
             MP.fun = Object.assign({}, MP.fun, ev.payload || {});
             renderFunControls();
@@ -6067,6 +6152,13 @@ html.mobile body.inLobby #btnPanel,html.mobile body.inLobby #adminPanel{display:
         if (S.turn === MP.pid)
             say('YOUR TURN', 900);
         mpHUD();
+        // Only the host rolls the chance and publishes one authoritative inventory snapshot.
+        if (MP.host && GAME_SETTINGS.shuffle && Math.random() < .28 && S.seatOrder.filter(id => S.P[id] && S.P[id].alive).length > 1) {
+            const inv = {}; S.seatOrder.forEach(id => { if (S.P[id] && S.P[id].alive) inv[id] = S.P[id].items.slice(); });
+            const shuffled = shuffledInventories(inv);
+            const changed = Object.keys(inv).some(id => inv[id].some((t,i)=>t!==shuffled[id][i]));
+            if (changed) await mpSend('shuffle', { inventories: shuffled });
+        }
     }
     async function mpDoItem(pid, slot) {
         const S = MP.S, P = S.P[pid], me = MP.pid;
@@ -6079,10 +6171,7 @@ html.mobile body.inLobby #btnPanel,html.mobile body.inLobby #adminPanel{display:
             return;
         say(`${pid === me ? 'You use' : P.name + ' uses'} the ${ITEMS[t].name}.`, 1100);
         const m = pid === me ? itemsGroup.children.find(c => c.userData.owner === 'p' && c.userData.idx === slot) : null;
-        if (m) {
-            const y0 = m.position.y;
-            await tween(500, e => { m.position.y = y0 + e * .55; m.rotation.y += .22; m.scale.setScalar(Math.max(.05, 1 - e * .9)); });
-        }
+        if (m) await animateItemUse(m);
         else {
             const om = mpOtherItems.children.find(c => c.userData.owner === pid && c.userData.idx === slot);
             if (om) {
@@ -6403,7 +6492,7 @@ html.mobile body.inLobby #btnPanel,html.mobile body.inLobby #adminPanel{display:
         [...invEl.children].forEach((b, i) => {
             const t = mine[i];
             if (t) {
-                b.innerHTML = `<span class="k">${i + 1}</span>${ITEMS[t].icon}<small>${ITEMS[t].name}</small>`;
+                b.innerHTML = `<span class="k">${i + 1}</span>${ITEMS[t].icon}<small style="display:${GAME_SETTINGS.itemLabels ? '' : 'none'}">${ITEMS[t].name}</small>`;
                 b.classList.remove('empty');
             }
             else {
@@ -7238,12 +7327,25 @@ html.mobile body.inLobby #btnPanel,html.mobile body.inLobby #adminPanel{display:
         location.reload();
     };
     const settingsPanel = $('#settingsPanel');
-    $('#btnSettings').addEventListener('click', () => { applyGraphicsQuality(graphicsQuality, false); settingsPanel.style.display = 'flex'; });
+    $('#btnSettings').addEventListener('click', () => { syncFullSettingsUI(); applyGraphicsQuality(graphicsQuality, false); settingsPanel.style.display = 'flex'; });
     $('#qualityUltra').addEventListener('click', () => applyGraphicsQuality('ultra'));
     $('#qualityHigh').addEventListener('click', () => applyGraphicsQuality('high'));
     $('#qualityLow').addEventListener('click', () => applyGraphicsQuality('low'));
     $('#qualityPotato').addEventListener('click', () => applyGraphicsQuality('potato'));
     $('#btnCloseSettings').addEventListener('click', () => settingsPanel.style.display = 'none');
+    function syncFullSettingsUI() {
+        for (const [id,key,valId] of [['setMusicVol','music','setMusicVal'],['setSfxVol','sfx','setSfxVal'],['setAnim','animation','setAnimVal']]) {
+            const el=$('#'+id), val=$('#'+valId); if(el) el.value=GAME_SETTINGS[key]; if(val) val.textContent=GAME_SETTINGS[key]+'%';
+        }
+        $('#setVisualFx').checked=!!GAME_SETTINGS.visualFx; $('#setShuffle').checked=!!GAME_SETTINGS.shuffle; $('#setItemLabels').checked=!!GAME_SETTINGS.itemLabels;
+    }
+    $('#setMusicVol').addEventListener('input', e => { GAME_SETTINGS.music=+e.target.value; $('#setMusicVal').textContent=GAME_SETTINGS.music+'%'; saveGameSettings(); applyMusicVolume(); genApplyVol(); });
+    $('#setSfxVol').addEventListener('input', e => { GAME_SETTINGS.sfx=+e.target.value; $('#setSfxVal').textContent=GAME_SETTINGS.sfx+'%'; saveGameSettings(); });
+    $('#setAnim').addEventListener('input', e => { GAME_SETTINGS.animation=+e.target.value; $('#setAnimVal').textContent=GAME_SETTINGS.animation+'%'; saveGameSettings(); });
+    $('#setVisualFx').addEventListener('change', e => { GAME_SETTINGS.visualFx=e.target.checked; saveGameSettings(); applyGraphicsQuality(graphicsQuality,false); });
+    $('#setShuffle').addEventListener('change', e => { GAME_SETTINGS.shuffle=e.target.checked; saveGameSettings(); });
+    $('#setItemLabels').addEventListener('change', e => { GAME_SETTINGS.itemLabels=e.target.checked; saveGameSettings(); updateHUD(); });
+    syncFullSettingsUI();
     settingsPanel.addEventListener('click', e => { if (e.target === settingsPanel)
         settingsPanel.style.display = 'none'; });
     window.addEventListener('keydown', e => { if (e.key === 'Escape' && settingsPanel.style.display === 'flex')
