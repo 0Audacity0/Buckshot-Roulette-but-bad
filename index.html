@@ -1497,7 +1497,7 @@ body.spectating #bottom{display:none!important}
      <button data-tab="players" type="button">PLAYERS</button>
      <button data-tab="ip" type="button">IP BANS</button>
      <button data-tab="dev" type="button">DEVICE BANS</button>
-     <button data-tab="mp" type="button">MULTIPLAYER</button>
+     <button data-tab="game" type="button">GAME</button>
      <button data-tab="codes" type="button">ALL CODES</button>
     </div>
     <div id="apMsg"></div>
@@ -2017,6 +2017,7 @@ html.mobile body.inLobby #btnPanel,html.mobile body.inLobby #adminPanel{display:
         }
         catch (e) {
             AC = null;
+            assetFault('webaudio', 'Sound effects and music could not start', 'The browser could not create its audio system (' + String((e && e.message) || e) + '), so the synthesized sound effects and music cannot play.', 'Use an up-to-date browser, make sure your device is not blocking audio, then reload the page.');
         }
         return AC;
     }
@@ -3642,6 +3643,8 @@ html.mobile body.inLobby #btnPanel,html.mobile body.inLobby #adminPanel{display:
     async function startGame(endless = false) {
         if (G.running || introBusy)
             return;
+        if (spBlocked())
+            return spBlockedWarn();
         introBusy = true;
         audio();
         drone();
@@ -4048,6 +4051,7 @@ html.mobile body.inLobby #btnPanel,html.mobile body.inLobby #adminPanel{display:
             const sb = MP_OK ? mpClient() : null;
             if (!sb)
                 return;
+            spLockRefresh();
             let nm = '';
             try { nm = MP.name || localStorage.getItem('lastshell_mp_name') || ''; } catch (e) { }
             const { data, error } = await sb.rpc('check_ban', { p_device: DEVICE_ID, p_name: nm });
@@ -4078,6 +4082,7 @@ html.mobile body.inLobby #btnPanel,html.mobile body.inLobby #adminPanel{display:
         try { inMp = !!(MP.code || mode === 'mp' || $('#mpLobby').style.display === 'flex'); } catch (e) { }
         if (inMp) {
             mpKick = true;
+            mpEject();
             showWarning('Multiplayer was turned off', 'An administrator turned multiplayer off for everyone, so your lobby or match had to be closed.', 'Press OK to go back to the title screen. Singleplayer still works, and multiplayer comes back when an administrator turns it on again.');
         }
     }
@@ -4087,6 +4092,33 @@ html.mobile body.inLobby #btnPanel,html.mobile body.inLobby #adminPanel{display:
             if (!sb) return;
             const { data, error } = await sb.rpc('mp_status');
             if (!error && data) mpSetLock(!!data.disabled);
+        }
+        catch (e) { }
+    }
+
+    /* ---------------- SINGLEPLAYER KILL SWITCH (set from the PANEL, Game tab) ---------------- */
+    var spLocked = false, spKick = false;
+    function spBlocked() { try { return spLocked && !SAVE.admin; } catch (e) { return spLocked; } }
+    function spBlockedWarn() {
+        showWarning('Singleplayer is turned off', 'An administrator turned singleplayer off for everyone, so new runs cannot be started right now.', 'Check back later. Multiplayer still works. Singleplayer comes back when an administrator turns it on again.');
+    }
+    function spSetLock(v) {
+        spLocked = !!v;
+        try {
+            if (spBlocked() && !spKick && (mode === 'play' || introBusy)) {
+                spKick = true;
+                paused = true;
+                showWarning('Singleplayer was turned off', 'An administrator turned singleplayer off for everyone, so your run had to be closed.', 'Press OK to go back to the title screen. Multiplayer still works, and singleplayer comes back when an administrator turns it on again.');
+            }
+        }
+        catch (e) { }
+    }
+    async function spLockRefresh() {
+        try {
+            const sb = MP_OK ? mpClient() : null;
+            if (!sb) return;
+            const { data, error } = await sb.rpc('sp_status');
+            if (!error && data) spSetLock(!!data.disabled);
         }
         catch (e) { }
     }
@@ -4103,7 +4135,7 @@ html.mobile body.inLobby #btnPanel,html.mobile body.inLobby #adminPanel{display:
         dumbest: 'Short alias for DealerDumbest.',
         smartest: 'Short alias for DealerSmartest.'
     };
-    const ap = { tab: 'players', bans: [], seen: [], myIp: '', mpOff: false, mpSince: '', locked: false };
+    const ap = { tab: 'players', bans: [], seen: [], myIp: '', mpOff: false, mpSince: '', spOff: false, spSince: '', spMissing: false, locked: false };
     function apKey() { try { return localStorage.getItem(AP_KEY) || ''; } catch (e) { return ''; } }
     function apAskKey() {
         const k = (window.prompt('Enter the admin key you set in supabase_bans.sql:') || '').trim();
@@ -4144,6 +4176,17 @@ html.mobile body.inLobby #btnPanel,html.mobile body.inLobby #adminPanel{display:
             apSay('');
         }
         catch (e) { ap.locked = /not_admin/.test(String(e.message)); apSay(apErrText(e), true); }
+        if (!ap.locked) {
+            try {
+                const sb = MP_OK ? mpClient() : null;
+                if (sb) {
+                    const r = await sb.rpc('sp_status');
+                    if (r.error) ap.spMissing = true;
+                    else if (r.data) { ap.spMissing = false; ap.spOff = !!r.data.disabled; ap.spSince = r.data.since || ''; }
+                }
+            }
+            catch (e) { ap.spMissing = true; }
+        }
         apRender();
     }
     function apBansHtml(kind) {
@@ -4177,6 +4220,18 @@ html.mobile body.inLobby #btnPanel,html.mobile body.inLobby #adminPanel{display:
         h += '<button data-act="' + (off ? 'mpon' : 'mpoff') + '" type="button" style="width:100%;border-color:' + (off ? '#7ad07a' : '#ff5a48') + ';color:' + (off ? '#7ad07a' : '#ff5a48') + '">' + (off ? 'TURN MULTIPLAYER BACK ON' : 'TURN MULTIPLAYER OFF FOR EVERYONE') + '</button>';
         return h;
     }
+    function apSpHtml() {
+        const off = ap.spOff;
+        let h = '<div class="apHead" style="margin-top:18px">SINGLEPLAYER SWITCH</div>';
+        if (ap.spMissing) return h + '<div class="apHint">Run supabase_singleplayer.sql in the Supabase SQL editor first, then reopen this tab.</div>';
+        h += '<div class="apRow"><div><b style="color:' + (off ? '#ff5a48' : '#7ad07a') + '">SINGLEPLAYER IS ' + (off ? 'OFF FOR EVERYONE' : 'ON') + '</b><small>' + (ap.spSince ? 'last changed ' + whoAgo(ap.spSince) : 'never changed') + '</small></div></div>';
+        h += '<div class="apHint" style="margin:10px 0">' + (off
+            ? 'Anyone who presses PLAY sees the warning screen, and anyone in a singleplayer run gets glitched out to it within about 30 seconds. Multiplayer is not affected. Administrators (AdministratorMe) can still get in to test.'
+            : 'Turning it off shows the warning screen to everyone who presses PLAY and kicks players out of singleplayer runs within about 30 seconds. It stays off until you turn it back on here.') + '</div>';
+        h += '<button data-act="' + (off ? 'spon' : 'spoff') + '" type="button" style="width:100%;border-color:' + (off ? '#7ad07a' : '#ff5a48') + ';color:' + (off ? '#7ad07a' : '#ff5a48') + '">' + (off ? 'TURN SINGLEPLAYER BACK ON' : 'TURN SINGLEPLAYER OFF FOR EVERYONE') + '</button>';
+        return h;
+    }
+    function apGameHtml() { return apMpHtml() + apSpHtml(); }
     function apCodesHtml() {
         const listed = new Set(CODE_DESCRIPTIONS.map(c => c[0].toLowerCase()));
         const hid = Object.keys(CODES).filter(k => !listed.has(k));
@@ -4191,7 +4246,7 @@ html.mobile body.inLobby #btnPanel,html.mobile body.inLobby #adminPanel{display:
         let h;
         if (ap.tab === 'codes') h = apCodesHtml();
         else if (ap.locked) h = '<div class="apHint">Enter your admin key to manage players and bans.</div><button data-act="unlock" type="button" style="margin-top:8px">UNLOCK</button>';
-        else h = ap.tab === 'players' ? apPlayersHtml() : ap.tab === 'mp' ? apMpHtml() : apBansHtml(ap.tab === 'ip' ? 'ip' : 'device');
+        else h = ap.tab === 'players' ? apPlayersHtml() : ap.tab === 'game' ? apGameHtml() : apBansHtml(ap.tab === 'ip' ? 'ip' : 'device');
         $('#apBody').innerHTML = h;
     }
     async function apBan(kind, value, reason) {
@@ -4225,6 +4280,14 @@ html.mobile body.inLobby #btnPanel,html.mobile body.inLobby #adminPanel{display:
                 apSay(off ? 'Multiplayer is now OFF for everyone.' : 'Multiplayer is back ON.');
                 await apRefreshQuiet();
                 mpLockRefresh();
+            }
+            else if (act === 'spoff' || act === 'spon') {
+                const off = act === 'spoff';
+                if (off && !confirm('Turn singleplayer OFF for everyone? Players in a singleplayer run will be kicked to the title screen.')) return;
+                await apRpc('admin_set_sp', { p_disabled: off });
+                apSay(off ? 'Singleplayer is now OFF for everyone.' : 'Singleplayer is back ON.');
+                await apRefreshQuiet();
+                spLockRefresh();
             }
             else if (act === 'unlock') { apAskKey(); await apRefresh(); }
             else if (act === 'add') await apBan(kind, ($('#apVal').value || ''), ($('#apReason').value || '').trim());
@@ -4279,7 +4342,11 @@ html.mobile body.inLobby #btnPanel,html.mobile body.inLobby #adminPanel{display:
     };
     $('#btnCloseCodeList').onclick = () => { $('#codeListPanel').style.display = 'none'; };
     syncCodeListButton();
-    $('#btnPlay').onclick = () => { $('#playModePanel').style.display = 'flex'; };
+    $('#btnPlay').onclick = async () => {
+        await Promise.race([spLockRefresh(), new Promise(r => setTimeout(r, 2500))]);
+        if (spBlocked()) return spBlockedWarn();
+        $('#playModePanel').style.display = 'flex';
+    };
     $('#btnNormalRun').onclick = () => { $('#playModePanel').style.display = 'none'; startGame(false); };
     $('#btnEndlessRun').onclick = () => { $('#playModePanel').style.display = 'none'; startGame(true); };
     $('#btnCancelRun').onclick = () => { $('#playModePanel').style.display = 'none'; };
@@ -4580,7 +4647,7 @@ html.mobile body.inLobby #btnPanel,html.mobile body.inLobby #adminPanel{display:
         genEl = new Audio('General.mp3');
         genEl.loop = true;
         genEl.preload = 'auto';
-        genEl.addEventListener('error', () => console.warn('General.mp3 could not be loaded. Put it next to index.html.'));
+        genEl.addEventListener('error', () => { console.warn('General.mp3 could not be loaded. Put it next to index.html.'); assetFault('General.mp3', 'The music failed to load', 'The music file General.mp3 could not be loaded, so the background music cannot play.', 'Put General.mp3 in the same folder as index.html (check the spelling and capital G), then reload the page.'); });
         const src = ac.createMediaElementSource(genEl);
         const lp1 = ac.createBiquadFilter();
         lp1.type = 'lowpass';
@@ -4692,7 +4759,7 @@ html.mobile body.inLobby #btnPanel,html.mobile body.inLobby #adminPanel{display:
                 vi = (vi + 1 + Math.floor(Math.random() * (VOICELINES.length - 1))) % VOICELINES.length;
             voiceLast = vi;
             const a = new Audio(VOICELINES[vi]);
-            a.addEventListener('error', () => console.warn(a.src + ' could not be loaded. Put it next to index.html.'));
+            a.addEventListener('error', () => { console.warn(a.src + ' could not be loaded. Put it next to index.html.'); const fn = decodeURIComponent(String(a.src).split('/').pop() || 'A voiceline'); assetFault(fn, 'A sound failed to load', 'The voiceline file ' + fn + ' could not be loaded, so The Dealer cannot say it.', 'Put ' + fn + ' in the same folder as index.html (check the spelling and capitals), then reload the page.'); });
             voiceEl = a;
             const pr = a.play();
             if (pr && pr.catch)
@@ -4715,7 +4782,7 @@ html.mobile body.inLobby #btnPanel,html.mobile body.inLobby #adminPanel{display:
             if (!warnEl) {
                 warnEl = new Audio('WarningMusic.mp3');
                 warnEl.loop = true;
-                warnEl.addEventListener('error', () => console.warn('WarningMusic.mp3 could not be loaded. Put it next to index.html.'));
+                warnEl.addEventListener('error', () => { console.warn('WarningMusic.mp3 could not be loaded. Put it next to index.html.'); assetFault('WarningMusic.mp3', 'The warning music failed to load', 'The file WarningMusic.mp3 could not be loaded, so this screen has no music.', 'Put WarningMusic.mp3 in the same folder as index.html, then reload the page.'); });
             }
             warnEl.volume = 1;
             const pr = warnEl.play();
@@ -4739,12 +4806,77 @@ html.mobile body.inLobby #btnPanel,html.mobile body.inLobby #adminPanel{display:
         ['pointerdown', 'keydown', 'touchstart'].forEach(ev => window.removeEventListener(ev, warnRetry, true));
         warnRetry = null;
     }
-    function showWarning(what, why, fix) {
+    /* ---------------- GLITCH INTRO (plays before the warning screen, uses Glitch.mp3) ---------------- */
+    let warnGlitching = false, glitchSnd = null;
+    function warnGlitch(done) {
+        let finished = false, cv = null, timer = null, hard = null, phase = 1, sndOk = false, t0 = Date.now(), t2 = 0;
+        const PURPLES = ['#5b00c8', '#7a1fff', '#9d3cff', '#3b0a78', '#b84dff', '#2a0050'];
+        const game = (typeof canvas !== 'undefined') ? canvas : null;
+        function finish() {
+            if (finished) return;
+            finished = true;
+            clearInterval(timer); clearTimeout(hard);
+            try { if (glitchSnd) { glitchSnd.pause(); glitchSnd.currentTime = 0; } } catch (e) { }
+            try { if (game) { game.style.transform = ''; game.style.filter = ''; } } catch (e) { }
+            try { if (cv) cv.remove(); } catch (e) { }
+            done();
+        }
         try {
-            if (warnItems.some(w => w.what === what))
-                return;
-            warnItems.push({ what, why, fix });
-            warnRender();
+            cv = document.createElement('canvas');
+            cv.width = window.innerWidth; cv.height = window.innerHeight;
+            cv.style.cssText = 'position:fixed;inset:0;width:100%;height:100%;z-index:2147483646;pointer-events:none;';
+            document.body.appendChild(cv);
+            const g = cv.getContext('2d'), W = cv.width, H = cv.height;
+            const R = (a, b) => a + Math.random() * (b - a);
+            const pick = () => Math.random() < .45 ? '#000' : PURPLES[(Math.random() * PURPLES.length) | 0];
+            function block(big) {
+                g.fillStyle = pick();
+                const r = Math.random();
+                if (big && r < .22) g.fillRect(0, R(0, H), W, R(3, 26));
+                else if (r < .4) g.fillRect(R(0, W), R(0, H), R(40, big ? 360 : 140), R(4, big ? 50 : 18));
+                else { const sz = R(10, big ? 120 : 46); g.fillRect(Math.round(R(0, W) / 10) * 10, Math.round(R(0, H) / 10) * 10, sz, sz); }
+            }
+            function startSound() {
+                try {
+                    glitchSnd = new Audio('Glitch.mp3');
+                    glitchSnd.volume = 1;
+                    glitchSnd.addEventListener('ended', () => { sndOk = false; });
+                    glitchSnd.addEventListener('error', () => { sndOk = false; console.warn('Glitch.mp3 could not be loaded. Put it next to index.html.'); assetFault('Glitch.mp3', 'The glitch sound failed to load', 'The file Glitch.mp3 could not be loaded, so the glitch effect played without its sound.', 'Put Glitch.mp3 in the same folder as index.html, then reload the page.'); });
+                    sndOk = true;
+                    const pr = glitchSnd.play();
+                    if (pr && pr.catch) pr.catch(() => { sndOk = false; });
+                }
+                catch (e) { sndOk = false; }
+            }
+            timer = setInterval(() => {
+                const el = Date.now() - t0;
+                g.clearRect(0, 0, W, H);
+                if (phase === 1) {
+                    if (el > 1900) { phase = 2; t2 = Date.now(); startSound(); return; }
+                    const k = el / 1900;
+                    if (Math.random() < .35 + k * .4) { const n = 1 + ((Math.random() * (2 + k * 7)) | 0); for (let i = 0; i < n; i++) block(false); }
+                    if (game && Math.random() < .12 * k) { game.style.transform = 'translate(' + R(-5, 5).toFixed(1) + 'px,0)'; game.style.filter = 'hue-rotate(' + ((Math.random() * 40) | 0) + 'deg)'; }
+                    else if (game) { game.style.transform = ''; game.style.filter = ''; }
+                }
+                else {
+                    const el2 = Date.now() - t2;
+                    const n = 22 + ((Math.random() * 40) | 0);
+                    for (let i = 0; i < n; i++) block(true);
+                    if (Math.random() < .18) { g.fillStyle = Math.random() < .5 ? '#000' : '#4a0099'; g.fillRect(0, 0, W, H); }
+                    if (game) { game.style.transform = 'translate(' + R(-18, 18).toFixed(1) + 'px,' + R(-8, 8).toFixed(1) + 'px) scale(' + R(1, 1.04).toFixed(3) + ')'; game.style.filter = 'hue-rotate(' + ((Math.random() * 90) | 0) + 'deg) contrast(' + R(1, 1.7).toFixed(2) + ') saturate(' + R(1, 2.5).toFixed(2) + ')'; }
+                    if ((!sndOk && el2 > 1800) || (sndOk && glitchSnd && glitchSnd.ended) || el2 > 7000) {
+                        g.fillStyle = '#000'; g.fillRect(0, 0, W, H);
+                        setTimeout(finish, 140);
+                        clearInterval(timer);
+                    }
+                }
+            }, 55);
+            hard = setTimeout(finish, 10000);
+        }
+        catch (e) { console.warn('Glitch effect failed', e); finish(); }
+    }
+    function warnReveal() {
+        try {
             if (warnActive)
                 return;
             warnActive = true;
@@ -4757,10 +4889,49 @@ html.mobile body.inLobby #btnPanel,html.mobile body.inLobby #adminPanel{display:
         }
         catch (e) { console.error('Could not show warning', e); }
     }
+    const MP_KICK_ON_SOUND_FAULTS = true;
+    const assetWarned = new Set();
+    function assetFault(key, what, why, fix) {
+        if (assetWarned.has(key))
+            return;
+        assetWarned.add(key);
+        setTimeout(() => { try { showWarning(what, why, fix, !MP_KICK_ON_SOUND_FAULTS); } catch (e) { } }, 0);
+    }
+    function inMultiplayer() {
+        try { return !!(MP.code || mode === 'mp' || $('#mpLobby').style.display === 'flex'); } catch (e) { return false; }
+    }
+    let mpLeaving = false;
+    function mpEject() {
+        if (mpLeaving)
+            return;
+        mpLeaving = true;
+        (async () => {
+            try { if (MP.S && !MP.over) await Promise.race([mpSend('leave'), new Promise(r => setTimeout(r, 1500))]); }
+            catch (e) { }
+        })();
+    }
+    function showWarning(what, why, fix, noKick) {
+        try {
+            if (warnItems.some(w => w.what === what))
+                return;
+            warnItems.push({ what, why, fix });
+            if (!noKick && !mpKick && inMultiplayer()) {
+                mpKick = true;
+                warnItems.push({ what: 'You were removed from the multiplayer game', why: 'Something went wrong while you were in a multiplayer game, so you were removed from it to stop the match from carrying on with a broken player.', fix: 'Press OK to go back to the title screen, then create or join a lobby again.' });
+                mpEject();
+            }
+            warnRender();
+            if (warnActive || warnGlitching)
+                return;
+            warnGlitching = true;
+            warnGlitch(() => { warnGlitching = false; warnReveal(); });
+        }
+        catch (e) { console.error('Could not show warning', e); warnGlitching = false; warnReveal(); }
+    }
     function dismissWarning() {
         if (banLocked)
             return;
-        if (mpKick) { location.reload(); return; }
+        if (mpKick || spKick) { location.reload(); return; }
         warnActive = false;
         warnItems = [];
         warnStopRetry();
