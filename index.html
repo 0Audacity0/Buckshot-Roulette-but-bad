@@ -1317,6 +1317,38 @@ body.spectating #bottom{display:none!important}
 .rx .e{font-size:38px}
 .rx .n{font-size:10px;letter-spacing:.12em;color:#e9e2c8}
 @keyframes rxUp{0%{opacity:0;transform:translateY(0) scale(.6)}12%{opacity:1;transform:translateY(-20px) scale(1.15)}100%{opacity:0;transform:translateY(-260px) scale(1)}}
+
+#btnHub{position:relative;display:flex;align-items:center;justify-content:center;width:48px;height:48px;min-height:48px;box-sizing:border-box;padding:0;border:1px solid #ffd24a;border-radius:0;color:#ffd24a;background:rgba(10,9,7,.94);box-shadow:0 2px 12px #0008}
+html.mobile #btnHub{width:50px;height:50px;min-height:50px}
+body:not(.title) #btnHub,body.mpLobbyOpen #btnHub,body.mp #btnHub,body.inLobby #btnHub{display:none!important}
+#hubPanel{display:none;position:fixed;inset:0;z-index:70;background:rgba(0,0,0,.78);align-items:center;justify-content:center;padding:16px}
+#hubCard{width:min(380px,100%);background:#14110b;border:1px solid rgba(255,210,74,.5);padding:22px;box-shadow:0 0 40px rgba(255,150,0,.2);text-align:center}
+#hubCard h2{font-size:22px;color:#fff;margin-bottom:16px}
+#hubCard button{display:block;width:100%;margin-top:10px}
+#btnHubGo{display:flex!important;flex-direction:column;align-items:center;gap:8px}
+#hubCard #btnHubClose{width:60%;margin-left:auto;margin-right:auto}
+#btnHubGo svg{display:block}
+
+#voiceBtn{position:fixed;right:max(66px,calc(env(safe-area-inset-right) + 66px));bottom:max(12px,env(safe-area-inset-bottom));z-index:2147482000;display:none;align-items:center;justify-content:center;width:46px;height:46px;min-height:0;padding:0;background:rgba(10,9,7,.94);border:1px solid #7ad07a;color:#bff0bf}
+#voiceBtn.show{display:flex}
+#voiceBtn svg{width:24px;height:24px;display:block;pointer-events:none}
+#voiceBtn.live{background:#17331a;box-shadow:0 0 12px #3ddc5a88}
+#voiceBtn.muted{border-color:#d05a5a;color:#ffb3b3;background:#2a1212}
+html.mobile #voiceBtn{bottom:auto;right:64px;top:calc(max(8px,env(safe-area-inset-top)) + 46px)}
+#voicePanel{position:fixed;right:max(12px,env(safe-area-inset-right));bottom:max(66px,calc(env(safe-area-inset-bottom) + 66px));z-index:2147482001;display:none;flex-direction:column;gap:8px;width:min(290px,calc(100vw - 24px));padding:12px;background:rgba(10,12,16,.97);border:1px solid #7ad07a;box-shadow:0 0 18px #000;color:#e8e2d0;font-size:12px}
+#voicePanel.open{display:flex}
+html.mobile #voicePanel{bottom:auto;top:calc(max(8px,env(safe-area-inset-top)) + 100px)}
+#voicePanel .vHead{display:flex;justify-content:space-between;align-items:center;letter-spacing:.15em;color:#7ad07a;font-size:11px}
+#voicePanel button{width:100%;margin:0;padding:9px;min-height:0}
+#voicePanel .vStatus{min-height:1.3em;color:#a8a08b;font-size:11px;line-height:1.4}
+#voicePanel .vStatus.err{color:#ff8a8a}
+#voicePanel .vList{display:flex;flex-direction:column;gap:5px;max-height:150px;overflow:auto}
+#voicePanel .vRow{display:flex;align-items:center;gap:8px}
+#voicePanel .vRow i{width:9px;height:9px;border-radius:50%;background:#3b3b3b;flex:none}
+#voicePanel .vRow.talk i{background:#3ddc5a;box-shadow:0 0 8px #3ddc5a}
+#voicePanel .vRow span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#voicePanel label{display:flex;justify-content:space-between;font-size:11px}
+#voicePanel input[type=range]{width:100%;accent-color:#7ad07a}
 </style>
  </head>
  <body class="title">
@@ -1326,21 +1358,30 @@ body.spectating #bottom{display:none!important}
   <div id="discoOv" style="display:none;position:fixed;inset:0;pointer-events:none;z-index:45;opacity:.13;mix-blend-mode:overlay"></div>
   <div id="topLeftBar">
    <button aria-label="What's New" class="ghost" id="btnWhatsNew" title="What's New" type="button"><svg aria-hidden="true" fill="none" height="22" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewBox="0 0 24 24" width="22"><path d="M4 5h13v14H6a2 2 0 0 1-2-2z"/><path d="M17 9h3v8a2 2 0 0 1-2 2h-1"/><path d="M7 8.5h7M7 12h7M7 15.5h4"/></svg><span id="wnBadge">!</span></button>
-   <div id="versionNumber" aria-label="Version 2.3.0">v2.5.0</div>
+   <button aria-label="Project Hub" class="ghost" id="btnHub" title="Project Hub" type="button"><svg aria-hidden="true" fill="none" height="22" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewBox="0 0 24 24" width="22"><path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/></svg></button>
+   <div id="versionNumber" aria-label="Version 2.6.0">v2.6.0</div>
+  </div>
+  <div id="hubPanel">
+   <div id="hubCard">
+    <h2>Look at my other Projects</h2>
+    <button id="btnHubGo" type="button"><svg aria-hidden="true" fill="none" height="28" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" viewBox="0 0 24 24" width="28"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a14 14 0 0 1 0 18a14 14 0 0 1 0-18z"/></svg><span>OPEN PROJECT HUB</span></button>
+    <button class="ghost" id="btnHubClose" type="button">CLOSE</button>
+   </div>
   </div>
   <div id="whatsNewPanel">
    <div id="whatsNewCard">
-    <h2>WHAT'S NEW IN v2.5.0</h2>
+    <h2>WHAT'S NEW IN v2.6.0</h2>
     <ul>
-        <li><b>Made Settings Better:</b> Added music volume, sound effect volume,animation intensity, visual effects and gameplay preferences</li>
+     <li><b>Added VoiceChat for multiplayer:</b> yeahhhh talk to yo frienddsss </li>
+     <li><b>Added NEW button:</b> Takes you to my Project Hub </li>
+     <li><b>Fixed pause menu:</b> Almost everything in it was broken, I don't know why or how it was broken </li>
+    </ul>
+    <h3>EARLIER (v2.5.0)</h3>
+    <ul>
+     <li><b>Added VoiceChat for multiplayer:</b> yeahhhh talk to yo frienddsss </li>
+     <li><b>Made Settings Better:</b> Added music volume, sound effect volume,animation intensity, visual effects and gameplay preferences</li>
      <li><b>Improved item animations and models:</b> More 3D details for the magnifying glass, beer, knife, and +2 card.</li>
      <li><b>Added random inventory shuffling:</b> Inventory is switched upon you and The Dealer in singleplayer and multiplayer has an option to turn it on in the 'fun' tab</li>
-    </ul>
-    <h3>EARLIER (v2.4.8)</h3>
-    <ul>
-     <li><b>Added newer 'voicelines':</b> Hehe funny screams</li>
-     <li><b>Added new multiplayer death effects:</b> Same ones as The Dealer</li>
-     <li><b>Yeah there wasn't really much this update</b></li>
     </ul>
     <button class="ghost" id="btnCloseWhatsNew" type="button">CLOSE</button>
    </div>
@@ -1514,16 +1555,16 @@ body.spectating #bottom{display:none!important}
      Are you gonna play or quit to title?
     </h2>
     <div class="settingsGroup"><h3>AUDIO</h3>
-     <div class="funSlider"><label for="setMusicVol">MUSIC VOLUME <b id="setMusicVal">60%</b></label><input id="setMusicVol" type="range" min="0" max="100" step="1" value="60"/></div>
-     <div class="funSlider"><label for="setSfxVol">SOUND EFFECTS <b id="setSfxVal">80%</b></label><input id="setSfxVol" type="range" min="0" max="100" step="1" value="80"/></div>
+     <div class="funSlider"><label for="p_setMusicVol">MUSIC VOLUME <b id="p_setMusicVal">60%</b></label><input id="p_setMusicVol" type="range" min="0" max="100" step="1" value="60"/></div>
+     <div class="funSlider"><label for="p_setSfxVol">SOUND EFFECTS <b id="p_setSfxVal">80%</b></label><input id="p_setSfxVol" type="range" min="0" max="100" step="1" value="80"/></div>
     </div>
     <div class="settingsGroup"><h3>ANIMATION & VISUALS</h3>
-     <div class="funSlider"><label for="setAnim">ANIMATION INTENSITY <b id="setAnimVal">100%</b></label><input id="setAnim" type="range" min="0" max="100" step="5" value="100"/></div>
-     <label class="settingsToggle"><span><b>VISUAL EFFECTS</b><small>Screen flashes, shake, and extra effects</small></span><input id="setVisualFx" type="checkbox" checked/></label>
+     <div class="funSlider"><label for="p_setAnim">ANIMATION INTENSITY <b id="p_setAnimVal">100%</b></label><input id="p_setAnim" type="range" min="0" max="100" step="5" value="100"/></div>
+     <label class="settingsToggle"><span><b>VISUAL EFFECTS</b><small>Screen flashes, shake, and extra effects</small></span><input id="p_setVisualFx" type="checkbox" checked/></label>
     </div>
     <div class="settingsGroup"><h3>GAMEPLAY</h3>
-     <label class="settingsToggle"><span><b>RANDOM INVENTORY SHUFFLES</b><small>Occasional item swaps during solo and multiplayer rounds</small></span><input id="setShuffle" type="checkbox" checked/></label>
-     <label class="settingsToggle"><span><b>ITEM LABELS</b><small>Show item names below inventory icons</small></span><input id="setItemLabels" type="checkbox" checked/></label>
+     <label class="settingsToggle"><span><b>RANDOM INVENTORY SHUFFLES</b><small>Occasional item swaps during solo and multiplayer rounds</small></span><input id="p_setShuffle" type="checkbox" checked/></label>
+     <label class="settingsToggle"><span><b>ITEM LABELS</b><small>Show item names below inventory icons</small></span><input id="p_setItemLabels" type="checkbox" checked/></label>
     </div>
     
     <div id="adminGrant" style="display:none;text-align:left;border:1px solid #6b6552;padding:12px;margin-top:14px">
@@ -4362,8 +4403,10 @@ html.mobile body.inLobby #btnPanel,html.mobile body.inLobby #adminPanel{display:
         paused = b;
         $('#pause').style.display = b ? 'flex' : 'none';
         $('#adminGrant').style.display = (b && SAVE.admin) ? 'block' : 'none';
-        if (b)
+        if (b) {
             $('#grantMsg').textContent = '';
+            try { syncPauseSettingsUI(); } catch (e) { }
+        }
         try {
             if (AC) {
                 if (b)
@@ -5631,7 +5674,239 @@ html.mobile body.inLobby #btnPanel,html.mobile body.inLobby #adminPanel{display:
         if (r && r.player_id && r.player_id !== MP.pid && typeof r.yaw === 'number' && isFinite(r.yaw))
             MP.look[r.player_id] = Math.max(-.75, Math.min(.75, r.yaw));
     }
+
+    /* ---------------- VOICE CHAT (WebRTC audio, signalled through a Supabase Realtime broadcast channel) ---------------- */
+    const VOICE = { ch: null, stream: null, on: false, muted: false, peers: new Map(), names: {}, vol: 100, ctx: null, meter: null, talkTimer: 0, ui: null };
+    const VOICE_ICE = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:stun1.l.google.com:19302' }, { urls: 'stun:stun.cloudflare.com:3478' }] };
+    function voiceBuildUI() {
+        if (VOICE.ui) return VOICE.ui;
+        const btn = document.createElement('button');
+        btn.id = 'voiceBtn'; btn.type = 'button'; btn.title = 'Voice chat'; btn.setAttribute('aria-label', 'Voice chat');
+        btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3M8 21h8"/></svg>';
+        const panel = document.createElement('div');
+        panel.id = 'voicePanel';
+        panel.innerHTML = '<div class="vHead"><span>VOICE CHAT</span></div><div class="vStatus" id="vStatus">Talk to the other players in this lobby.</div><button id="vJoin" type="button">JOIN VOICE</button><button id="vMute" type="button" style="display:none">MUTE MIC</button><div class="vList" id="vList"></div><label>VOICE VOLUME <b id="vVolVal">100%</b></label><input id="vVol" type="range" min="0" max="100" step="1" value="100"/>';
+        document.documentElement.appendChild(btn);
+        document.documentElement.appendChild(panel);
+        btn.onclick = () => panel.classList.toggle('open');
+        panel.querySelector('#vJoin').onclick = () => { if (VOICE.on) voiceLeave(true); else voiceJoin(); };
+        panel.querySelector('#vMute').onclick = () => voiceSetMuted(!VOICE.muted);
+        panel.querySelector('#vVol').oninput = e => {
+            VOICE.vol = +e.target.value;
+            panel.querySelector('#vVolVal').textContent = VOICE.vol + '%';
+            VOICE.peers.forEach(p => { if (p.audio) p.audio.volume = VOICE.vol / 100; });
+        };
+        VOICE.ui = { btn, panel };
+        return VOICE.ui;
+    }
+    function voiceStatus(t, err) {
+        const el = document.getElementById('vStatus');
+        if (!el) return;
+        el.textContent = t;
+        el.className = 'vStatus' + (err ? ' err' : '');
+    }
+    function voiceRefreshUI() {
+        const ui = voiceBuildUI();
+        const inRoom = !!MP.code;
+        ui.btn.classList.toggle('show', inRoom);
+        if (!inRoom) ui.panel.classList.remove('open');
+        ui.btn.classList.toggle('live', VOICE.on && !VOICE.muted);
+        ui.btn.classList.toggle('muted', VOICE.on && VOICE.muted);
+        ui.panel.querySelector('#vJoin').textContent = VOICE.on ? 'LEAVE VOICE' : 'JOIN VOICE';
+        const mb = ui.panel.querySelector('#vMute');
+        mb.style.display = VOICE.on ? 'block' : 'none';
+        mb.textContent = VOICE.muted ? 'UNMUTE MIC' : 'MUTE MIC';
+        const list = ui.panel.querySelector('#vList');
+        if (!VOICE.on) { list.innerHTML = ''; return; }
+        const rows = [['me', (MP.name || 'You') + ' (you)', false]];
+        VOICE.peers.forEach((p, pid) => rows.push([pid, VOICE.names[pid] || 'Player', p.talking]));
+        list.innerHTML = '';
+        for (const [pid, nm, talk] of rows) {
+            const r = document.createElement('div');
+            r.className = 'vRow' + ((pid === 'me' ? VOICE.meTalking && !VOICE.muted : talk) ? ' talk' : '');
+            const dot = document.createElement('i'), t = document.createElement('span');
+            t.textContent = nm;
+            r.appendChild(dot); r.appendChild(t);
+            list.appendChild(r);
+        }
+    }
+    function voiceLevel(an, buf) {
+        an.getByteTimeDomainData(buf);
+        let m = 0;
+        for (let i = 0; i < buf.length; i++) { const v = Math.abs(buf[i] - 128); if (v > m) m = v; }
+        return m;
+    }
+    function voiceWatch(stream, cb) {
+        try {
+            if (!VOICE.ctx) VOICE.ctx = new (window.AudioContext || window.webkitAudioContext)();
+            const src = VOICE.ctx.createMediaStreamSource(stream);
+            const an = VOICE.ctx.createAnalyser();
+            an.fftSize = 512;
+            src.connect(an);
+            return { an, buf: new Uint8Array(an.fftSize), src, cb };
+        } catch (e) { return null; }
+    }
+    function voiceTick() {
+        let changed = false;
+        if (VOICE.meter) {
+            const t = voiceLevel(VOICE.meter.an, VOICE.meter.buf) > 12;
+            if (t !== !!VOICE.meTalking) { VOICE.meTalking = t; changed = true; }
+        }
+        VOICE.peers.forEach(p => {
+            if (!p.meter) return;
+            const t = voiceLevel(p.meter.an, p.meter.buf) > 10;
+            if (t !== !!p.talking) { p.talking = t; changed = true; }
+        });
+        if (changed) voiceRefreshUI();
+    }
+    function voiceSend(event, payload) {
+        if (!VOICE.ch) return;
+        try { VOICE.ch.send({ type: 'broadcast', event, payload }); } catch (e) { }
+    }
+    function voicePeer(pid, name) {
+        if (name) VOICE.names[pid] = name;
+        let p = VOICE.peers.get(pid);
+        if (p) return p;
+        const pc = new RTCPeerConnection(VOICE_ICE);
+        p = { pc, audio: null, meter: null, talking: false, queue: [], remoteSet: false };
+        VOICE.peers.set(pid, p);
+        if (VOICE.stream) VOICE.stream.getTracks().forEach(t => pc.addTrack(t, VOICE.stream));
+        pc.onicecandidate = e => { if (e.candidate) voiceSend('sig', { from: MP.pid, to: pid, kind: 'ice', data: e.candidate.toJSON ? e.candidate.toJSON() : e.candidate }); };
+        pc.ontrack = e => {
+            const stream = e.streams && e.streams[0] ? e.streams[0] : new MediaStream([e.track]);
+            if (!p.audio) {
+                p.audio = new Audio();
+                p.audio.autoplay = true;
+                p.audio.volume = VOICE.vol / 100;
+            }
+            p.audio.srcObject = stream;
+            p.audio.play().catch(() => { });
+            if (!p.meter) p.meter = voiceWatch(stream);
+            voiceRefreshUI();
+        };
+        pc.onconnectionstatechange = () => {
+            if (pc.connectionState === 'failed') { try { pc.restartIce && pc.restartIce(); } catch (er) { } }
+            if (pc.connectionState === 'closed') voiceDrop(pid);
+        };
+        return p;
+    }
+    function voiceDrop(pid) {
+        const p = VOICE.peers.get(pid);
+        if (!p) return;
+        VOICE.peers.delete(pid);
+        try { if (p.audio) { p.audio.pause(); p.audio.srcObject = null; } } catch (e) { }
+        try { if (p.meter && p.meter.src) p.meter.src.disconnect(); } catch (e) { }
+        try { p.pc.close(); } catch (e) { }
+        voiceRefreshUI();
+    }
+    async function voiceOffer(pid) {
+        const p = VOICE.peers.get(pid);
+        if (!p) return;
+        try {
+            const offer = await p.pc.createOffer();
+            await p.pc.setLocalDescription(offer);
+            voiceSend('sig', { from: MP.pid, to: pid, kind: 'offer', data: p.pc.localDescription });
+        } catch (e) { }
+    }
+    // The player with the smaller id sends the offer, so two players never offer at once.
+    function voiceMeet(pid, name) {
+        if (!VOICE.on || pid === MP.pid) return;
+        voicePeer(pid, name);
+        if (MP.pid < pid) voiceOffer(pid);
+        voiceRefreshUI();
+    }
+    async function voiceOnSig(d) {
+        if (!VOICE.on || !d || d.to !== MP.pid || d.from === MP.pid) return;
+        const p = voicePeer(d.from);
+        try {
+            if (d.kind === 'offer') {
+                await p.pc.setRemoteDescription(d.data);
+                p.remoteSet = true;
+                const ans = await p.pc.createAnswer();
+                await p.pc.setLocalDescription(ans);
+                voiceSend('sig', { from: MP.pid, to: d.from, kind: 'answer', data: p.pc.localDescription });
+            } else if (d.kind === 'answer') {
+                await p.pc.setRemoteDescription(d.data);
+                p.remoteSet = true;
+            } else if (d.kind === 'ice') {
+                if (p.remoteSet) await p.pc.addIceCandidate(d.data);
+                else { p.queue.push(d.data); return; }
+            }
+            while (p.remoteSet && p.queue.length) await p.pc.addIceCandidate(p.queue.shift());
+        } catch (e) { }
+    }
+    async function voiceJoin() {
+        if (VOICE.on || !MP.code || !MP.sb) return;
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || !window.RTCPeerConnection) {
+            voiceStatus('Voice chat is not supported in this browser (it also needs https or localhost).', true);
+            return;
+        }
+        voiceStatus('Asking for microphone access...');
+        try {
+            VOICE.stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }, video: false });
+        } catch (e) {
+            VOICE.stream = null;
+            voiceStatus('Microphone blocked or not found. Allow microphone access for this page and try again.', true);
+            return;
+        }
+        if (!MP.code || !MP.sb) { voiceStopStream(); return; }
+        VOICE.on = true;
+        VOICE.muted = false;
+        VOICE.names = {};
+        VOICE.meter = voiceWatch(VOICE.stream);
+        VOICE.talkTimer = setInterval(voiceTick, 150);
+        const code = MP.code;
+        VOICE.ch = MP.sb.channel('voice-' + code, { config: { broadcast: { self: false } } })
+            .on('broadcast', { event: 'join' }, m => { const d = m && m.payload; if (d && d.pid && d.pid !== MP.pid) { voiceMeet(d.pid, d.name); voiceSend('here', { pid: MP.pid, name: MP.name || 'Player', to: d.pid }); } })
+            .on('broadcast', { event: 'here' }, m => { const d = m && m.payload; if (d && d.pid && d.to === MP.pid) voiceMeet(d.pid, d.name); })
+            .on('broadcast', { event: 'sig' }, m => { voiceOnSig(m && m.payload); })
+            .on('broadcast', { event: 'leave' }, m => { const d = m && m.payload; if (d && d.pid) voiceDrop(d.pid); })
+            .subscribe(st => {
+                if (st === 'SUBSCRIBED') {
+                    voiceSend('join', { pid: MP.pid, name: MP.name || 'Player' });
+                    voiceStatus('Voice connected. Other players who join voice will hear you.');
+                } else if ((st === 'CHANNEL_ERROR' || st === 'TIMED_OUT') && VOICE.on) {
+                    voiceStatus('Voice connection failed. Check your internet and try joining again.', true);
+                    voiceLeave(false);
+                }
+            });
+        voiceRefreshUI();
+    }
+    function voiceSetMuted(m) {
+        VOICE.muted = !!m;
+        if (VOICE.stream) VOICE.stream.getAudioTracks().forEach(t => { t.enabled = !VOICE.muted; });
+        voiceRefreshUI();
+    }
+    function voiceStopStream() {
+        try { if (VOICE.stream) VOICE.stream.getTracks().forEach(t => t.stop()); } catch (e) { }
+        VOICE.stream = null;
+    }
+    function voiceLeave(say) {
+        if (VOICE.on) voiceSend('leave', { pid: MP.pid });
+        VOICE.on = false;
+        VOICE.muted = false;
+        VOICE.meTalking = false;
+        if (VOICE.talkTimer) clearInterval(VOICE.talkTimer);
+        VOICE.talkTimer = 0;
+        Array.from(VOICE.peers.keys()).forEach(voiceDrop);
+        try { if (VOICE.meter && VOICE.meter.src) VOICE.meter.src.disconnect(); } catch (e) { }
+        VOICE.meter = null;
+        voiceStopStream();
+        if (VOICE.ch && MP.sb) { try { MP.sb.removeChannel(VOICE.ch); } catch (e) { } }
+        VOICE.ch = null;
+        if (say) voiceStatus('You left voice chat.');
+        voiceRefreshUI();
+    }
+    function voiceOnEnter() {
+        try { voiceRefreshUI(); voiceStatus('Talk to the other players in this lobby.'); } catch (e) { }
+    }
+    function voiceStop() {
+        try { voiceLeave(false); } catch (e) { }
+        try { if (VOICE.ui) voiceRefreshUI(); } catch (e) { }
+    }
+    window.addEventListener('pagehide', () => { try { if (VOICE.on) voiceSend('leave', { pid: MP.pid }); } catch (e) { } });
     function mpCleanup() {
+        try { voiceStop(); } catch (e) { }
         if (MP.flagTimer)
             clearInterval(MP.flagTimer);
         MP.flagTimer = 0;
@@ -5708,6 +5983,7 @@ html.mobile body.inLobby #btnPanel,html.mobile body.inLobby #adminPanel{display:
         mpRenderRoom();
         mpPoll();
         setTimeout(() => { if (MP.code && (MP.skin.color || MP.skin.face)) mpSendSkin(false); }, 1200);
+        voiceOnEnter();
     }
     const SKIN_KEY = 'lastshell_skin_v1';
     const SKIN_COLORS = ['#3a2a52', '#24493a', '#55372a', '#2a3f5a', '#8a1c1c', '#c9a227', '#1f6f78', '#6b6b6b', '#d9d4c5', '#e07a1f', '#b0457a', '#2d2d2d'];
@@ -7167,6 +7443,13 @@ html.mobile body.inLobby #btnPanel,html.mobile body.inLobby #adminPanel{display:
     };
     document.getElementById('btnCloseWhatsNew').onclick = () => { wnPanel.style.display = 'none'; };
     wnPanel.addEventListener('click', e => { if (e.target === wnPanel) wnPanel.style.display = 'none'; });
+
+    const hubPanel = document.getElementById('hubPanel');
+    document.getElementById('btnHub').onclick = () => { hubPanel.style.display = 'flex'; };
+    document.getElementById('btnHubClose').onclick = () => { hubPanel.style.display = 'none'; };
+    document.getElementById('btnHubGo').onclick = () => { window.location.href = 'https://0audacity0.github.io/Matthew-s-Project-Hub/'; };
+    hubPanel.addEventListener('click', e => { if (e.target === hubPanel) hubPanel.style.display = 'none'; });
+    window.addEventListener('keydown', e => { if (e.key === 'Escape' && hubPanel.style.display === 'flex') hubPanel.style.display = 'none'; });
     /* ----- v2.3.0: open lobbies, pre-join customize, chat/code button placement ----- */
     async function mpLoadPublic() {
         const box = $('#mpPublicList');
@@ -7548,6 +7831,25 @@ html.mobile body.inLobby #btnPanel,html.mobile body.inLobby #adminPanel{display:
     $('#setShuffle').addEventListener('change', e => { GAME_SETTINGS.shuffle=e.target.checked; saveGameSettings(); });
     $('#setItemLabels').addEventListener('change', e => { GAME_SETTINGS.itemLabels=e.target.checked; saveGameSettings(); updateHUD(); });
     syncFullSettingsUI();
+
+    /* ----- pause-menu settings (own IDs, kept in sync with the title-screen settings) ----- */
+    function syncPauseSettingsUI() {
+        for (const [id, key, valId] of [['p_setMusicVol','music','p_setMusicVal'],['p_setSfxVol','sfx','p_setSfxVal'],['p_setAnim','animation','p_setAnimVal']]) {
+            const el = $('#' + id), val = $('#' + valId);
+            if (el) el.value = GAME_SETTINGS[key];
+            if (val) val.textContent = GAME_SETTINGS[key] + '%';
+        }
+        $('#p_setVisualFx').checked = !!GAME_SETTINGS.visualFx;
+        $('#p_setShuffle').checked = !!GAME_SETTINGS.shuffle;
+        $('#p_setItemLabels').checked = !!GAME_SETTINGS.itemLabels;
+    }
+    $('#p_setMusicVol').addEventListener('input', e => { GAME_SETTINGS.music = +e.target.value; $('#p_setMusicVal').textContent = GAME_SETTINGS.music + '%'; saveGameSettings(); try { applyMusicVolume(); genApplyVol(); } catch (er) { } });
+    $('#p_setSfxVol').addEventListener('input', e => { GAME_SETTINGS.sfx = +e.target.value; $('#p_setSfxVal').textContent = GAME_SETTINGS.sfx + '%'; saveGameSettings(); });
+    $('#p_setAnim').addEventListener('input', e => { GAME_SETTINGS.animation = +e.target.value; $('#p_setAnimVal').textContent = GAME_SETTINGS.animation + '%'; saveGameSettings(); });
+    $('#p_setVisualFx').addEventListener('change', e => { GAME_SETTINGS.visualFx = e.target.checked; saveGameSettings(); applyGraphicsQuality(graphicsQuality, false); });
+    $('#p_setShuffle').addEventListener('change', e => { GAME_SETTINGS.shuffle = e.target.checked; saveGameSettings(); });
+    $('#p_setItemLabels').addEventListener('change', e => { GAME_SETTINGS.itemLabels = e.target.checked; saveGameSettings(); updateHUD(); });
+    syncPauseSettingsUI();
     settingsPanel.addEventListener('click', e => { if (e.target === settingsPanel)
         settingsPanel.style.display = 'none'; });
     window.addEventListener('keydown', e => { if (e.key === 'Escape' && settingsPanel.style.display === 'flex')
