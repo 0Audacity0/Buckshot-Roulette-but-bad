@@ -5715,7 +5715,8 @@ html.mobile body.inLobby #btnPanel,html.mobile body.inLobby #adminPanel{display:
     }
     function voiceRefreshUI() {
         const ui = voiceBuildUI();
-        const inRoom = !!MP.code;
+        const lobEl = document.getElementById('mpLobby');
+        const inRoom = !!MP.code && (!!MP.started || (!!lobEl && lobEl.style.display !== 'none'));
         ui.btn.classList.toggle('show', inRoom);
         if (!inRoom) ui.panel.classList.remove('open');
         ui.btn.classList.toggle('live', VOICE.on && !VOICE.muted);
@@ -7535,6 +7536,12 @@ html.mobile body.inLobby #btnPanel,html.mobile body.inLobby #adminPanel{display:
         try {
             const vb = document.getElementById('voiceBtn'), vp = document.getElementById('voicePanel');
             if (vb && vp) {
+                const vcShow = !!MP.code && (!!MP.started || !!lobOpen);
+                vb.classList.toggle('show', vcShow);
+                if (!vcShow) {
+                    vp.classList.remove('open');
+                    if (!MP.code && VOICE.on) { try { voiceStop(); } catch (e) { } }
+                }
                 if (isMobileLayout && inRoom && btn.classList.contains('inCard')) {
                     if (vb.previousElementSibling !== btn) btn.after(vb);
                     vb.classList.add('inCard');
