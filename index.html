@@ -1329,15 +1329,23 @@ body:not(.title) #btnHub,body.mpLobbyOpen #btnHub,body.mp #btnHub,body.inLobby #
 #hubCard #btnHubClose{width:60%;margin-left:auto;margin-right:auto}
 #btnHubGo svg{display:block}
 
-#voiceBtn{position:fixed;right:max(66px,calc(env(safe-area-inset-right) + 66px));bottom:max(12px,env(safe-area-inset-bottom));z-index:2147482000;display:none;align-items:center;justify-content:center;width:46px;height:46px;min-height:0;padding:0;background:rgba(10,9,7,.94);border:1px solid #7ad07a;color:#bff0bf}
+#voiceBtn{position:fixed;right:max(68px,calc(env(safe-area-inset-right) + 68px));bottom:max(12px,env(safe-area-inset-bottom));z-index:2147482000;display:none;align-items:center;justify-content:center;width:46px;height:46px;min-height:0;padding:0;background:rgba(10,9,7,.94);border:1px solid #7ad07a;color:#bff0bf}
 #voiceBtn.show{display:flex}
 #voiceBtn svg{width:24px;height:24px;display:block;pointer-events:none}
 #voiceBtn.live{background:#17331a;box-shadow:0 0 12px #3ddc5a88}
 #voiceBtn.muted{border-color:#d05a5a;color:#ffb3b3;background:#2a1212}
-html.mobile #voiceBtn{bottom:auto;right:64px;top:calc(max(8px,env(safe-area-inset-top)) + 46px)}
+html.mobile #voiceBtn{bottom:auto;right:10px;top:calc(max(8px,env(safe-area-inset-top)) + 102px)}
+html.mobile #chatBtn.inCard.show:not(.hide){display:inline-flex;vertical-align:top}
+html.mobile #voiceBtn.inCard{position:relative;top:auto;right:auto;bottom:auto;margin:8px 0 0 10px;z-index:auto;vertical-align:top}
+html.mobile #voiceBtn.inCard.show{display:inline-flex}
 #voicePanel{position:fixed;right:max(12px,env(safe-area-inset-right));bottom:max(66px,calc(env(safe-area-inset-bottom) + 66px));z-index:2147482001;display:none;flex-direction:column;gap:8px;width:min(290px,calc(100vw - 24px));padding:12px;background:rgba(10,12,16,.97);border:1px solid #7ad07a;box-shadow:0 0 18px #000;color:#e8e2d0;font-size:12px}
 #voicePanel.open{display:flex}
-html.mobile #voicePanel{bottom:auto;top:calc(max(8px,env(safe-area-inset-top)) + 100px)}
+html.mobile #voicePanel{bottom:auto;right:10px;top:calc(max(8px,env(safe-area-inset-top)) + 154px)}
+html.mobile #voicePanel.inCard{top:auto;right:max(8px,env(safe-area-inset-right));bottom:max(8px,env(safe-area-inset-bottom));width:min(340px,calc(100vw - 16px))}
+@media screen and (min-width: 901px) and (pointer: fine) {
+  html:not(.mobile) #voiceBtn{right:76px;bottom:20px}
+  html:not(.mobile) #voicePanel{right:76px;bottom:78px}
+}
 #voicePanel .vHead{display:flex;justify-content:space-between;align-items:center;letter-spacing:.15em;color:#7ad07a;font-size:11px}
 #voicePanel button{width:100%;margin:0;padding:9px;min-height:0}
 #voicePanel .vStatus{min-height:1.3em;color:#a8a08b;font-size:11px;line-height:1.4}
@@ -7524,6 +7532,22 @@ html.mobile body.inLobby #btnPanel,html.mobile body.inLobby #adminPanel{display:
             document.body.appendChild(btn);
             btn.classList.remove('inCard');
         }
+        try {
+            const vb = document.getElementById('voiceBtn'), vp = document.getElementById('voicePanel');
+            if (vb && vp) {
+                if (isMobileLayout && inRoom && btn.classList.contains('inCard')) {
+                    if (vb.previousElementSibling !== btn) btn.after(vb);
+                    vb.classList.add('inCard');
+                    vp.classList.add('inCard');
+                }
+                else if (vb.classList.contains('inCard') || vb.parentElement !== document.documentElement) {
+                    document.documentElement.appendChild(vb);
+                    vb.classList.remove('inCard');
+                    vp.classList.remove('inCard');
+                }
+            }
+        }
+        catch (e) { }
     }
     let mpLastAdminUi = !!SAVE.admin;
     setInterval(() => {
